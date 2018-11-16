@@ -15,4 +15,11 @@ Wrapper around `pandas` library and much more...
 
 # Usage
 
-Incoming ...
+```python
+import peakina as pk
+
+
+df = pk.read_pandas('my/local/file.csv')
+df = pk.read_pandas('ftps://user:pw@server.com/remote/file.csv')
+df = pk.read_pandas('s3://key:secret@bucket/file.csv')
+```
