@@ -1,0 +1,34 @@
+# Virtual env
+env/
+venv/
+
+# Python bytecode
+__pycache__
+
+# Operating system system files
+.DS_Store
+
+# Test results
+.coverage
+htmlcov/
+
+# notebooks
+.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+
+# Mypy
+.mypy_cache/
+
+# pyenv
+.python-version
+
+# Pytest
+.pytest_cache/
+
+# package
+*.egg-info/
+build/
+dist/

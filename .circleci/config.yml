@@ -1,0 +1,26 @@
+version: 2
+
+jobs:
+  py36:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run: sudo make install
+      - run: make all
+      - run: sudo pip install codecov
+      - run: codecov --token=54da3565-8d06-4d1e-86b8-d78e7b39d8e6
+  py37:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run: sudo make install
+      - run: make all
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - py36
+      - py37
