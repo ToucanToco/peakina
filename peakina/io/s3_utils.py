@@ -1,0 +1,52 @@
+"""This module gathers misc convenience functions to handle s3 objects"""
+import tempfile
+from typing.io import BinaryIO
+from urllib.parse import unquote, urlparse
+
+import s3fs
+
+uses_s3 = ['s3', 's3n', 's3a']
+
+
+def parse_s3_url(url):
+    """parses a s3 url and extract credentials and s3 object path.
+
+    A S3 URL looks like s3://aws_key:aws_secret@bucketname/objectname where
+    credentials are optional. Since credentials might include characters
+    such as `/`, `@` or `#`, they have to be urlquoted in the url.
+
+    Args:
+        url (str): the s3 url
+
+    Returns:
+        tuple: (access_key, secret, bucketname, objectname). If credentials
+        are not specified, `access_key` and `secret` are set to None.
+    """
+    urlchunks = urlparse(url)
+    assert urlchunks.scheme in uses_s3, f'{urlchunks.scheme} unsupported, use one of {uses_s3}'
+    assert not urlchunks.params, f's3 url should not have params, got {urlchunks.params}'
+    assert not urlchunks.query, f's3 url should not have query, got {urlchunks.query}'
+    assert not urlchunks.fragment, f's3 url should not have fragment, got {urlchunks.fragment}'
+    # if either username or password is specified, we have credentials
+    if urlchunks.username or urlchunks.password:
+        # and they should both not be empty
+        assert urlchunks.username, 's3 access key should not be empty'
+        assert urlchunks.password, 's3 secret should not be empty'
+        access_key = unquote(urlchunks.username)
+        secret = unquote(urlchunks.password)
+    else:
+        access_key = secret = None
+    objectname = urlchunks.path.lstrip('/')  # remove leading /, it's not part of the objectname
+    assert objectname, f"s3 objectname can't be empty"
+    return access_key, secret, urlchunks.hostname, objectname
+
+
+def s3_open(url) -> BinaryIO:
+    """opens a s3 url and returns a file-like object"""
+    access_key, secret, bucketname, objectname = parse_s3_url(url)
+    fs = s3fs.S3FileSystem(key=access_key, secret=secret)
+    ret = tempfile.NamedTemporaryFile(suffix='.s3tmp')
+    file = fs.open(f'{bucketname}/{objectname}')
+    ret.write(file.read())
+    ret.seek(0)
+    return ret
