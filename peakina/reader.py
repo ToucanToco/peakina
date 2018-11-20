@@ -2,4 +2,4 @@ from .datasource import DataSource
 
 
 def read_pandas(file_path, **kwargs):
-    return DataSource(file_path, **kwargs).df
+    return DataSource(file_path, **kwargs).get_df()

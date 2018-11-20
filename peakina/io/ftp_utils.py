@@ -4,7 +4,6 @@ import re
 import socket
 import ssl
 import tempfile
-from contextlib import contextmanager
 from datetime import datetime
 from functools import partial
 from os.path import basename
@@ -15,6 +14,18 @@ from urllib.parse import ParseResult, quote, unquote, urlparse
 import paramiko
 
 ftp_schemes = ['ftp', 'sftp', 'ftps']
+
+
+def _urlparse(url) -> ParseResult:
+    """
+    We had several cases of ftp usernames having '#' in them which confuses urlparse.
+    The # is a reserved char for 'fragment identifiers':
+    https://en.wikipedia.org/wiki/Fragment_identifier
+    """
+    url_params = urlparse(quote(url, safe=':/@'))  # the '#' is marked as unsafe
+    # unquote to get back the original bits of string
+    url_params = tuple(unquote(param) for param in tuple(url_params))
+    return ParseResult._make(url_params)
 
 
 class FTPS(ftplib.FTP_TLS):
@@ -33,98 +44,103 @@ class FTPS(ftplib.FTP_TLS):
         return self.welcome
 
 
-@contextmanager
-def ftps_client(params) -> tuple:
-    ftps = FTPS()
-    try:
-        ftps.connect(host=params.hostname, port=params.port, timeout=3)
-        ftps.prot_p()
-        ftps.login(user=params.username, passwd=params.password)
-        yield ftps, params.path
-    finally:
-        ftps.quit()
+class FTPRegister:
+    _registry: dict = {}
+
+    @classmethod
+    def __init_subclass__(cls, *, scheme):
+        cls._registry[scheme] = cls
+        super().__init_subclass__()
+
+    def __init__(self, params: ParseResult):
+        self.params = params
+        self.path = params.path
+        self.client = None
+
+    @classmethod
+    def get_connection(cls, url: str):
+        params = _urlparse(url)
+        return cls._registry[params.scheme](params)
 
 
-@contextmanager
-def ftp_client(params) -> tuple:
-    port = params.port or 21
-    ftp = ftplib.FTP()
-    try:
-        ftp.connect(host=params.hostname, port=port, timeout=3)
-        ftp.login(user=params.username, passwd=params.password)
-        yield ftp, params.path
-    finally:
-        ftp.quit()
+class ftps_connection(FTPRegister, scheme='ftps'):
+    def __enter__(self):
+        self.client = FTPS()
+        self.client.connect(host=self.params.hostname, port=self.params.port, timeout=3)
+        self.client.prot_p()
+        self.client.login(user=self.params.username, passwd=self.params.password)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.client.quit()
 
 
-@contextmanager
-def sftp_client(params):
-    port = params.port or 22
-    ssh_client = paramiko.SSHClient()
-    try:
-        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_client.connect(
-            hostname=params.hostname,
-            username=params.username,
-            password=params.password,
-            port=port,
+class ftp_connection(FTPRegister, scheme='ftp'):
+    def __enter__(self):
+        self.client = ftplib.FTP()
+        self.client.connect(host=self.params.hostname, port=self.params.port or 21, timeout=3)
+        self.client.login(user=self.params.username, passwd=self.params.password)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.client.quit()
+
+
+class sftp_connection(FTPRegister, scheme='sftp'):
+    def __enter__(self):
+        self.ssh_client = paramiko.SSHClient()
+        self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.ssh_client.connect(
+            hostname=self.params.hostname,
+            username=self.params.username,
+            password=self.params.password,
+            port=self.params.port or 22,
             timeout=3,
         )
-        sftp = ssh_client.open_sftp()
-        yield sftp, params.path
-    finally:
-        ssh_client.close()
+        self.client = self.ssh_client.open_sftp()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.ssh_client.close()
 
 
-def _urlparse(url) -> ParseResult:
-    """
-    We had several cases of ftp usernames having '#' in them which confuses urlparse.
-    The # is a reserved char for 'fragment identifiers':
-    https://en.wikipedia.org/wiki/Fragment_identifier
-    """
-    url_params = urlparse(quote(url, safe=':/@'))  # the '#' is marked as unsafe
-    # unquote to get back the original bits of string
-    url_params = tuple(unquote(param) for param in tuple(url_params))
-    return ParseResult._make(url_params)
+def connection(url):
+    return FTPRegister.get_connection(url)
 
 
-def client(url):
-    parse_result = _urlparse(url)
-    ftp_client_mapping = {'ftp': ftp_client, 'ftps': ftps_client, 'sftp': sftp_client}
-    return ftp_client_mapping[parse_result.scheme](parse_result)
-
-
-def retry_pasv(c, cmd, *args):
+def retry_pasv(client, cmd, *args):
     """
     Some servers accept the PASV command, but timeout when doing commands using it.
     Solution is to retry a timeout-ed command in active mode.
     """
-    fun = partial(getattr(c, cmd), *args)
+    fun = partial(getattr(client, cmd), *args)
     try:
         return fun()
     except socket.timeout:
-        c.set_pasv(False)
+        client.set_pasv(False)
         return fun()
 
 
-def _open(url: str) -> BinaryIO:
+def _open(client, path) -> BinaryIO:
     ret = tempfile.NamedTemporaryFile(suffix='.ftptmp')
-    with client(url) as (c, path):
-        try:
-            retry_pasv(c, 'retrbinary', f'RETR {path}', ret.write)
-        except AttributeError:
-            c.getfo(path, ret)
-        except ftplib.error_perm as e:
-            raise Exception(f'Cannot open file "{path}". Please make sure the file exists') from e
-
+    try:
+        retry_pasv(client, 'retrbinary', f'RETR {path}', ret.write)
+    except AttributeError:
+        client.getfo(path, ret)
+    except ftplib.error_perm as e:
+        raise Exception(f'Cannot open file "{path}". Please make sure the file exists') from e
     ret.seek(0)
     return ret
 
 
-def ftp_open(url: str, retry: int = 4) -> BinaryIO:
+def ftp_open(url: str, retry: int = 4, client=None) -> BinaryIO:
     for i in range(1, retry + 1):
         try:
-            return _open(url)
+            if client:
+                return _open(client, _urlparse(url).path)
+            else:
+                with connection(url) as conn:
+                    return _open(conn.client, conn.path)
         except (AttributeError, OSError, ftplib.error_temp) as e:
             sleep_time = 2 * i ** 2
             logging.getLogger(__name__).warning(f'Retry #{i}: Sleeping {sleep_time}s because {e}')
@@ -139,36 +155,36 @@ def _get_all_files(c, path):
 
 
 def ftp_listdir(url: str) -> list:
-    with client(url) as (c, path):
-        return _get_all_files(c, path)
+    with connection(url) as conn:
+        return _get_all_files(conn.client, conn.path)
 
 
-def _get_mtime(c, path):
+def _get_mtime(client, path):
     """Returns timestamp of last modification"""
     try:
-        mdtm = c.sendcmd('MDTM ' + path)
+        mdtm = client.sendcmd('MDTM ' + path)
         # mdtm-response = "213" SP time-val CRLF
         mdtm = re.sub(r'^213 ', '', mdtm)
         dt = datetime.strptime(mdtm, '%Y%m%d%H%M%S')
         return (dt - datetime(1970, 1, 1)).total_seconds()
     except AttributeError:
-        return c.stat(path).st_mtime
+        return client.stat(path).st_mtime
     except ftplib.error_perm as e:
         raise type(e)(f'Cannot open file "{path}". Please make sure the file exists: {e}')
 
 
 def ftp_mtime(url: str) -> str:
-    with client(url) as (cl_ftp, path):
-        return _get_mtime(cl_ftp, path)
+    with connection(url) as conn:
+        return _get_mtime(conn.client, conn.path)
 
 
 def dir_mtimes(url: str) -> dict:
-    with client(url) as (cl_ftp, path):
+    with connection(url) as conn_ftp:
         dir_mtimes_mapping = {}
-        all_files = _get_all_files(cl_ftp, path)
+        all_files = _get_all_files(conn_ftp.client, conn_ftp.path)
         for file in all_files:
             try:
-                dir_mtimes_mapping[file] = _get_mtime(cl_ftp, file)
+                dir_mtimes_mapping[file] = _get_mtime(conn_ftp.client, file)
             except ftplib.error_perm:
                 dir_mtimes_mapping[file] = None
     return dir_mtimes_mapping

@@ -9,10 +9,12 @@ from peakina.io.ftp_utils import _open, dir_mtimes, ftp_listdir, ftp_mtime, ftp_
 
 @fixture
 def ftp_client(mocker):
-    client_mock = mocker.patch('peakina.io.ftp_utils.client')
-    c_ftp = mocker.MagicMock()
-    client_mock.return_value.__enter__.return_value = c_ftp, 'ftpurl'
-    return c_ftp
+    connection_mock = mocker.patch('peakina.io.ftp_utils.connection')
+    conn_ftp = mocker.MagicMock()
+    conn_ftp.client = mocker.MagicMock()
+    conn_ftp.path = 'ftpurl'
+    connection_mock.return_value.__enter__.return_value = conn_ftp
+    return conn_ftp.client
 
 
 def test_ftps_connect():
@@ -46,8 +48,8 @@ def test_open(ftp_client, mocker):
 
 def test_ftp_listdir(mocker):
     """nlst now returns the parent dir. We should retrieve only the filenames"""
-    client_mock = mocker.patch('peakina.io.ftp_utils.client')
-    client_mock.return_value.__enter__.return_value = (ftplib.FTP_TLS(), 'path')
+    client_mock = mocker.patch('peakina.io.ftp_utils.connection')
+    client_mock.return_value.__enter__.return_value.client = ftplib.FTP_TLS()
     mocker.patch('ftplib.FTP.nlst').return_value = ['parent_dir/file1.csv', 'parent_dir/file2.csv']
     assert ftp_listdir('ftps://someuri') == ['file1.csv', 'file2.csv']
 
@@ -55,11 +57,11 @@ def test_ftp_listdir(mocker):
 def test_open_ko(mocker, ftp_client):
     mocker.patch('peakina.io.ftp_utils.retry_pasv').side_effect = ftplib.error_perm
     with raises(Exception) as e:
-        _open('ftpurl')
+        _open(ftp_client, 'ftpurl')
     assert str(e.value) == 'Cannot open file "ftpurl". Please make sure the file exists'
 
 
-def test_retry_open(mocker):
+def test_retry_open(mocker, ftp_client):
     mocker.patch('peakina.io.ftp_utils._open').side_effect = [
         ftplib.error_temp('421 Could not create socket'),
         AttributeError("'NoneType' object has no attribute 'sendall'"),
@@ -90,7 +92,7 @@ def test_get_mtime(ftp_client):
     )
 
 
-def test_dir_mtimes(ftp_client, mocker):
+def test_dir_mtimes(mocker, ftp_client):
     mocker.patch('peakina.io.ftp_utils._get_all_files').return_value = [
         'file1.csv',
         'file2.csv',

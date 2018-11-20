@@ -7,7 +7,7 @@ import pandas as pd
 from pydantic.dataclasses import dataclass
 
 from .helpers import detect_encoding, detect_sep, detect_type, validate_encoding
-from .io.ftp_utils import ftp_open, ftp_schemes
+from .io.ftp_utils import connection, ftp_open, ftp_schemes
 from .io.s3_utils import s3_open, s3_schemes
 from .matcher import MatchEnum, Matcher
 
@@ -34,12 +34,14 @@ class DataSource:
         self.scheme = urlparse(self.file).scheme
         if self.scheme not in PD_VALID_URLS:
             raise AttributeError(f'Unvalid scheme "{self.scheme}"')
-        self.files = Matcher.all_matches(self.file, self.scheme, self.match)
+        self._client = None
         self.kwargs = kwargs
 
     def file_stream(self, file) -> BinaryIO:
         if self.scheme in ftp_schemes:
-            return ftp_open(file)
+            if self._client is None:
+                self._client = connection(file).__enter__().client
+            return ftp_open(file, client=self._client)
         elif self.scheme in s3_schemes:
             return s3_open(file)
         else:
@@ -57,11 +59,11 @@ class DataSource:
         pd_read = getattr(pd, f'read_{file_type}')
         return pd_read(file_stream, encoding=encoding, sep=sep, **kwargs)
 
-    @property
-    def df(self):
+    def get_df(self):
+        all_files = Matcher.all_matches(self.file, self.scheme, self.match)
         return pd.concat(
             [
                 self._get_single_df(file_path, self.type, self.encoding, self.sep, **self.kwargs)
-                for file_path in self.files
+                for file_path in all_files
             ]
         )
