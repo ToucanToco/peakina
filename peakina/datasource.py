@@ -7,10 +7,11 @@ import pandas as pd
 from pydantic.dataclasses import dataclass
 
 from .helpers import detect_encoding, detect_sep, detect_type, validate_encoding
-from .io.ftp_utils import ftp_open, uses_ftp
-from .io.s3_utils import s3_open, uses_s3
+from .io.ftp_utils import ftp_open, ftp_schemes
+from .io.s3_utils import s3_open, s3_schemes
+from .matcher import MatchEnum, Matcher
 
-PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params + uses_ftp + uses_s3)
+PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params + ftp_schemes + s3_schemes)
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +20,6 @@ class TypeEnum(str, Enum):
     CSV = 'csv'
     EXCEL = 'excel'
     JSON = 'json'
-
-
-class MatchEnum(str, Enum):
-    REGEX = 'regex'
-    GLOB = 'glob'
 
 
 @dataclass
@@ -38,13 +34,13 @@ class DataSource:
         self.scheme = urlparse(self.file).scheme
         if self.scheme not in PD_VALID_URLS:
             raise AttributeError(f'Unvalid scheme "{self.scheme}"')
-        self.files = [self.file]
+        self.files = Matcher.all_matches(self.file, self.scheme, self.match)
         self.kwargs = kwargs
 
     def file_stream(self, file) -> BinaryIO:
-        if self.scheme in uses_ftp:
+        if self.scheme in ftp_schemes:
             return ftp_open(file)
-        elif self.scheme in uses_s3:
+        elif self.scheme in s3_schemes:
             return s3_open(file)
         else:
             return open(file, 'rb')

@@ -5,7 +5,7 @@ from urllib.parse import unquote, urlparse
 
 import s3fs
 
-uses_s3 = ['s3', 's3n', 's3a']
+s3_schemes = ['s3', 's3n', 's3a']
 
 
 def parse_s3_url(url):
@@ -23,7 +23,8 @@ def parse_s3_url(url):
         are not specified, `access_key` and `secret` are set to None.
     """
     urlchunks = urlparse(url)
-    assert urlchunks.scheme in uses_s3, f'{urlchunks.scheme} unsupported, use one of {uses_s3}'
+    scheme = urlchunks.scheme
+    assert scheme in s3_schemes, f'{scheme} unsupported, use one of {s3_schemes}'
     assert not urlchunks.params, f's3 url should not have params, got {urlchunks.params}'
     assert not urlchunks.query, f's3 url should not have query, got {urlchunks.query}'
     assert not urlchunks.fragment, f's3 url should not have fragment, got {urlchunks.fragment}'

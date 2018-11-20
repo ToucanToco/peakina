@@ -14,7 +14,7 @@ from urllib.parse import ParseResult, quote, unquote, urlparse
 
 import paramiko
 
-uses_ftp = ['ftp', 'sftp', 'ftps']
+ftp_schemes = ['ftp', 'sftp', 'ftps']
 
 
 class FTPS(ftplib.FTP_TLS):
