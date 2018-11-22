@@ -133,14 +133,11 @@ def _open(client, path) -> BinaryIO:
     return ret
 
 
-def ftp_open(url: str, retry: int = 4, client=None) -> BinaryIO:
+def ftp_open(url: str, retry: int = 4) -> BinaryIO:
     for i in range(1, retry + 1):
         try:
-            if client:
-                return _open(client, _urlparse(url).path)
-            else:
-                with connection(url) as conn:
-                    return _open(conn.client, conn.path)
+            with connection(url) as conn:
+                return _open(conn.client, conn.path)
         except (AttributeError, OSError, ftplib.error_temp) as e:
             sleep_time = 2 * i ** 2
             logging.getLogger(__name__).warning(f'Retry #{i}: Sleeping {sleep_time}s because {e}')

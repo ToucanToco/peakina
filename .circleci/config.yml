@@ -16,7 +16,7 @@ jobs:
     steps:
       - checkout
       - run: sudo make install
-      - run: make all
+      - run: make test
 
 workflows:
   version: 2

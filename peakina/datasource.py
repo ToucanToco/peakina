@@ -1,13 +1,23 @@
 import logging
+from contextlib import suppress
 from enum import Enum
+from typing import Optional
 from typing.io import BinaryIO
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
+from dataclasses import field
 from pydantic.dataclasses import dataclass
 
-from .helpers import detect_encoding, detect_sep, detect_type, validate_encoding
-from .io.ftp_utils import connection, ftp_open, ftp_schemes
+from .helpers import (
+    detect_encoding,
+    detect_sep,
+    detect_type,
+    guess_type,
+    validate_encoding,
+    validate_kwargs,
+)
+from .io.ftp_utils import ftp_open, ftp_schemes
 from .io.s3_utils import s3_open, s3_schemes
 from .matcher import MatchEnum, Matcher
 
@@ -26,44 +36,59 @@ class TypeEnum(str, Enum):
 class DataSource:
     file: str
     type: TypeEnum = None
-    encoding: str = None
-    sep: str = None
     match: MatchEnum = None
+    extra_kwargs: dict = field(default_factory=dict)
 
-    def __post_init__(self, **kwargs):
+    def __post_init__(self):
         self.scheme = urlparse(self.file).scheme
         if self.scheme not in PD_VALID_URLS:
             raise AttributeError(f'Unvalid scheme "{self.scheme}"')
-        self._client = None
-        self.kwargs = kwargs
-
-    def file_stream(self, file) -> BinaryIO:
-        if self.scheme in ftp_schemes:
-            if self._client is None:
-                self._client = connection(file).__enter__().client
-            return ftp_open(file, client=self._client)
-        elif self.scheme in s3_schemes:
-            return s3_open(file)
+        if self.type is None:
+            with suppress(ValueError):  # if `guess_type` returns None
+                self.type = TypeEnum(guess_type(self.file, bool(self.match)))
+        if self.type:
+            pandas_methods = [getattr(pd, f'read_{self.type}')]
         else:
-            return open(file, 'rb')
+            pandas_methods = [getattr(pd, f'read_{f_type}') for f_type in TypeEnum]
+        validate_kwargs(self.extra_kwargs, pandas_methods)
 
-    def _get_single_df(self, file_path: str, file_type: str, encoding: str, sep: str, **kwargs):
+    @staticmethod
+    def _open(file_path) -> BinaryIO:
+        scheme = urlparse(file_path).scheme
+        if scheme in ftp_schemes:
+            return ftp_open(file_path)
+        elif scheme in s3_schemes:
+            return s3_open(file_path)
+        else:
+            return open(file_path, 'rb')
+
+    @staticmethod
+    def _get_single_df(file_path: str, file_type: Optional[TypeEnum], **kwargs) -> pd.DataFrame:
+        """Read a file_path and retrieve the data frame"""
         if file_type is None:
             file_type = TypeEnum(detect_type(file_path))
-        file_stream = self.file_stream(file_path)
+
+        file_stream = DataSource._open(file_path)
         file_stream_path = file_stream.name
+
+        encoding = kwargs.get('encoding')
         if not validate_encoding(file_stream_path, encoding):
-            encoding = detect_encoding(file_stream_path)
-        if sep is None:
-            sep = detect_sep(file_stream_path, encoding)
+            encoding = kwargs['encoding'] = detect_encoding(file_stream_path)
+
+        if file_type is TypeEnum.CSV and 'sep' not in kwargs:
+            kwargs['sep'] = detect_sep(file_stream_path, encoding)
+
         pd_read = getattr(pd, f'read_{file_type}')
-        return pd_read(file_stream, encoding=encoding, sep=sep, **kwargs)
+        try:
+            return pd_read(file_stream_path, **kwargs)
+        finally:
+            file_stream.close()
 
     def get_df(self):
         all_files = Matcher.all_matches(self.file, self.scheme, self.match)
         return pd.concat(
             [
-                self._get_single_df(file_path, self.type, self.encoding, self.sep, **self.kwargs)
+                self._get_single_df(file_path, self.type, **self.extra_kwargs)
                 for file_path in all_files
             ]
         )
