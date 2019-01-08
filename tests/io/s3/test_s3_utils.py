@@ -2,7 +2,7 @@ import io
 
 from pytest import raises
 
-from peakina.io.s3_utils import parse_s3_url as pu, s3_open
+from peakina.io.s3.s3_utils import parse_s3_url as pu, s3_open
 
 
 def test_parse_s3_url_no_credentials():

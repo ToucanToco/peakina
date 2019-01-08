@@ -1,14 +1,15 @@
 """This module gathers misc convenience functions to handle s3 objects"""
 import tempfile
+from typing import Tuple
 from typing.io import BinaryIO
 from urllib.parse import unquote, urlparse
 
 import s3fs
 
-s3_schemes = ['s3', 's3n', 's3a']
+S3_SCHEMES = ['s3', 's3n', 's3a']
 
 
-def parse_s3_url(url):
+def parse_s3_url(url) -> Tuple[str, str, str, str]:
     """parses a s3 url and extract credentials and s3 object path.
 
     A S3 URL looks like s3://aws_key:aws_secret@bucketname/objectname where
@@ -24,7 +25,7 @@ def parse_s3_url(url):
     """
     urlchunks = urlparse(url)
     scheme = urlchunks.scheme
-    assert scheme in s3_schemes, f'{scheme} unsupported, use one of {s3_schemes}'
+    assert scheme in S3_SCHEMES, f'{scheme} unsupported, use one of {S3_SCHEMES}'
     assert not urlchunks.params, f's3 url should not have params, got {urlchunks.params}'
     assert not urlchunks.query, f's3 url should not have query, got {urlchunks.query}'
     assert not urlchunks.fragment, f's3 url should not have fragment, got {urlchunks.fragment}'
@@ -42,7 +43,7 @@ def parse_s3_url(url):
     return access_key, secret, urlchunks.hostname, objectname
 
 
-def s3_open(url) -> BinaryIO:
+def s3_open(url: str) -> BinaryIO:
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
     fs = s3fs.S3FileSystem(key=access_key, secret=secret)

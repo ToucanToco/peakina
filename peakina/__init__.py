@@ -1,2 +1,2 @@
 # flake8: noqa
-from .reader import read_pandas
+from .main import read_pandas

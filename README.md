@@ -7,19 +7,48 @@
 
 # Pea Kina _aka 'Giant Panda'_
 
-Wrapper around `pandas` library and much more...
+Wrapper around `pandas` library, which detects separator, encoding
+and type of the file. It allows to get a group of files with a matching pattern (python or glob regex).
+It can read local but also FTP/FTPS/SFTP and S3/S3N/S3A files.
 
 # Installation
 
 `pip install peakina`
 
 # Usage
+Considering a file 'file.csv'
+```
+a;b
+0;0
+0;1
+```
+
+Just type
+```python
+> import peakina as pk
+> pk.read_pandas('file.csv')
+   a  b
+0  0  0
+1  0  1
+```
+
+Or files on a FTPS server:
+- my_data_2015.csv
+- my_data_2016.csv
+- my_data_2017.csv
+- my_data_2018.csv
+
+You can just type
 
 ```python
-import peakina as pk
-
-
-df = pk.read_pandas('my/local/file.csv')
-df = pk.read_pandas('ftps://user:pw@server.com/remote/file.csv')
-df = pk.read_pandas('s3://key:secret@bucket/file.csv')
+> pk.read_pandas('ftps://<path>/my_data_\\d{4}\\.csv$', match='regex', dtype={'a': 'str'})
+    a   b     __filename__
+0  '0'  0  'my_data_2015.csv'
+1  '0'  1  'my_data_2015.csv'
+2  '1'  0  'my_data_2016.csv'
+3  '1'  1  'my_data_2016.csv'
+4  '3'  0  'my_data_2017.csv'
+5  '3'  1  'my_data_2017.csv'
+6  '4'  0  'my_data_2018.csv'
+7  '4'  1  'my_data_2018.csv'
 ```

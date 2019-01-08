@@ -1,35 +1,21 @@
-import logging
-from contextlib import suppress
-from enum import Enum
+"""
+This module provides access to the DataSource class.
+A datasource is defined by one or many files matching a pattern and some extra parameters like
+encoding, separator...and its only method is `get_df` to retrieve the pandas DataFrame for
+the given parameters.
+"""
 from typing import Optional
-from typing.io import BinaryIO
+from typing.io import IO
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
 from dataclasses import field
 from pydantic.dataclasses import dataclass
 
-from .helpers import (
-    detect_encoding,
-    detect_sep,
-    detect_type,
-    guess_type,
-    validate_encoding,
-    validate_kwargs,
-)
-from .io.ftp_utils import ftp_open, ftp_schemes
-from .io.s3_utils import s3_open, s3_schemes
-from .matcher import MatchEnum, Matcher
+from .helpers import TypeEnum, detect_type, validate_encoding, validate_kwargs, validate_sep
+from .io import MatchEnum, Reader
 
-PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params + ftp_schemes + s3_schemes)
-
-logger = logging.getLogger(__name__)
-
-
-class TypeEnum(str, Enum):
-    CSV = 'csv'
-    EXCEL = 'excel'
-    JSON = 'json'
+PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | set(Reader.registry)
 
 
 @dataclass
@@ -42,10 +28,8 @@ class DataSource:
     def __post_init__(self):
         self.scheme = urlparse(self.file).scheme
         if self.scheme not in PD_VALID_URLS:
-            raise AttributeError(f'Unvalid scheme "{self.scheme}"')
-        if self.type is None:
-            with suppress(ValueError):  # if `guess_type` returns None
-                self.type = TypeEnum(guess_type(self.file, bool(self.match)))
+            raise AttributeError(f'Unvalid scheme {self.scheme!r}')
+        self.type = self.type or detect_type(self.file, is_regex=bool(self.match))
         if self.type:
             pandas_methods = [getattr(pd, f'read_{self.type}')]
         else:
@@ -53,42 +37,32 @@ class DataSource:
         validate_kwargs(self.extra_kwargs, pandas_methods)
 
     @staticmethod
-    def _open(file_path) -> BinaryIO:
-        scheme = urlparse(file_path).scheme
-        if scheme in ftp_schemes:
-            return ftp_open(file_path)
-        elif scheme in s3_schemes:
-            return s3_open(file_path)
-        else:
-            return open(file_path, 'rb')
+    def _get_single_df(stream: IO, filetype: Optional[TypeEnum], **kwargs) -> pd.DataFrame:
+        """
+        Read a stream and retrieve the data frame
+        It uses `stream.name`, which is the path to a local file (often temporary)
+        to avoid closing it. It will be closed at the end of the method.
+        """
+        if filetype is None:
+            filetype = TypeEnum(detect_type(stream.name))
 
-    @staticmethod
-    def _get_single_df(file_path: str, file_type: Optional[TypeEnum], **kwargs) -> pd.DataFrame:
-        """Read a file_path and retrieve the data frame"""
-        if file_type is None:
-            file_type = TypeEnum(detect_type(file_path))
+        kwargs['encoding'] = encoding = validate_encoding(stream.name, kwargs.get('encoding'))
 
-        file_stream = DataSource._open(file_path)
-        file_stream_path = file_stream.name
+        if filetype is TypeEnum.CSV and 'sep' not in kwargs:
+            kwargs['sep'] = validate_sep(stream.name, encoding=encoding)
 
-        encoding = kwargs.get('encoding')
-        if not validate_encoding(file_stream_path, encoding):
-            encoding = kwargs['encoding'] = detect_encoding(file_stream_path)
-
-        if file_type is TypeEnum.CSV and 'sep' not in kwargs:
-            kwargs['sep'] = detect_sep(file_stream_path, encoding)
-
-        pd_read = getattr(pd, f'read_{file_type}')
+        pd_read = getattr(pd, f'read_{filetype}')
         try:
-            return pd_read(file_stream_path, **kwargs)
+            return pd_read(stream.name, **kwargs)
         finally:
-            file_stream.close()
+            stream.close()
 
-    def get_df(self):
-        all_files = Matcher.all_matches(self.file, self.scheme, self.match)
-        return pd.concat(
-            [
-                self._get_single_df(file_path, self.type, **self.extra_kwargs)
-                for file_path in all_files
-            ]
-        )
+    def get_df(self) -> pd.DataFrame:
+        reader = Reader.get_reader(self.file, self.match)
+        dfs = []
+        for filename, stream in reader.get_files():
+            df = self._get_single_df(stream, self.type, **self.extra_kwargs)
+            if self.match:
+                df['__filename__'] = filename
+            dfs.append(df)
+        return pd.concat(dfs, sort=False).reset_index(drop=True)

@@ -2,7 +2,6 @@ import pandas as pd
 from pytest import fixture, raises
 
 from peakina.datasource import DataSource, TypeEnum
-from peakina.helpers import UnknownType
 
 
 @fixture
@@ -20,13 +19,13 @@ def test_scheme():
     assert DataSource('ftp://remote/path/file.csv').scheme == 'ftp'
     with raises(AttributeError) as e:
         DataSource('pika://wtf/did/I/write')
-    assert str(e.value) == 'Unvalid scheme "pika"'
+    assert str(e.value) == "Unvalid scheme 'pika'"
 
 
 def test_type():
     """It should be able to set type if possible"""
     assert DataSource('myfile.csv').type is TypeEnum.CSV
-    with raises(UnknownType):
+    with raises(ValueError):
         DataSource('myfile.csv$')
     assert DataSource('myfile.tsv$', match='glob').type is TypeEnum.CSV
     assert DataSource('myfile.*', match='glob').type is None
@@ -78,11 +77,25 @@ def test_csv_with_sep_and_encoding(path):
 
 def test_match(path):
     """It should be able to concat files matching a pattern"""
-    ds = DataSource(path(r'0_\d.csv'), match='regex')  # 0_0.csv, 0_1.csv
-    assert ds.get_df().shape == (4, 2)
+    ds = DataSource(path(r'0_\d.csv'), match='regex')
+    df = ds.get_df()
+    assert set(df['__filename__']) == {'0_0.csv', '0_1.csv'}
+    assert df.shape == (4, 3)
 
 
 def test_match_different_file_types(path):
     """It should be able to match even different types, encodings or seps"""
     ds = DataSource(path('0_*'), match='glob')
-    assert ds.get_df().shape == (8, 2)  # 0_0.csv, 0_0_sep.csv, 0_1.csv, 0_2.xls
+    df = ds.get_df()
+    assert set(df['__filename__']) == {'0_0.csv', '0_0_sep.csv', '0_1.csv', '0_2.xls'}
+    assert df.shape == (8, 3)
+
+
+def test_ftp(ftp_path):
+    ds = DataSource(f'{ftp_path}/sales.csv')
+    assert ds.get_df().shape == (208, 15)
+
+
+def test_ftp_match(ftp_path):
+    ds = DataSource(f'{ftp_path}/my_data_\\d{{4}}\\.csv$', match='regex')
+    assert ds.get_df().shape == (8, 3)

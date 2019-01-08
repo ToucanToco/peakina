@@ -13,9 +13,8 @@ format:
 
 .PHONY: lint
 lint:
-	python setup.py check -rms
 	flake8 peakina/ tests/
-	pytest peakina -p no:sugar -q
+#	pytest tests -p no:sugar -q
 	black -S -l 100 --py36 --check peakina tests
 
 .PHONY: mypy
