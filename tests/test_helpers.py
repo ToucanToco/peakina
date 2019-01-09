@@ -1,4 +1,3 @@
-import pandas as pd
 from pytest import raises
 
 from peakina.helpers import (
@@ -59,14 +58,11 @@ def test_detect_encoding(path):
 
 
 def test_validate_encoding(path):
-    """
-    It should validate if an encoding seems good
-    and fallback on the detected one if it's not the case
-    """
-    assert validate_encoding(path('0_0.csv'), None) is None
-    assert validate_encoding(path('0_0.csv'), 'utf8') == 'utf8'
-    assert validate_encoding(path('latin_1.csv'), 'utf8') == 'ISO-8859-1'
-    assert validate_encoding(path('latin_1.csv'), 'latin1') == 'latin1'
+    """It should validate if an encoding seems good"""
+    assert validate_encoding(path('0_0.csv'))
+    assert validate_encoding(path('0_0.csv'), 'utf8')
+    assert not validate_encoding(path('latin_1.csv'), 'utf8')
+    assert validate_encoding(path('latin_1.csv'), 'latin1')
 
 
 def test_detect_sep(path):
@@ -76,22 +72,20 @@ def test_detect_sep(path):
 
 
 def test_validate_sep(path):
-    """
-    It should validate if a separator seems good
-    and fallback on the detected one if it's not the case
-    """
-    assert validate_sep(path('0_0.csv'), ',') == ','
-    assert validate_sep(path('0_0.csv'), ';') == ','
-    assert validate_sep(path('latin_1_sep.csv'), ',', 'latin1') == ';'
+    """It should validate if a separator seems good"""
+    assert validate_sep(path('0_0.csv'))
+    assert not validate_sep(path('0_0.csv'), ';')
+    assert not validate_sep(path('latin_1_sep.csv'), ',', 'latin1')
+    assert validate_sep(path('latin_1_sep.csv'), ';', 'latin1')
 
 
 def test_validate_kwargs():
     """It should raise an error if at least one kwarg is not in one of the methods"""
-    assert validate_kwargs({'encoding': 'utf8'}, [pd.read_csv])
+    assert validate_kwargs({'encoding': 'utf8'}, 'csv')
     with raises(ValueError) as e:
-        validate_kwargs({'sheet_name': 0}, [pd.read_csv])
+        validate_kwargs({'sheet_name': 0}, 'csv')
     assert str(e.value) == "Unsupported kwargs: 'sheet_name'"
-    assert validate_kwargs({'sheet_name': 0}, [pd.read_csv, pd.read_excel])
+    assert validate_kwargs({'sheet_name': 0}, None)
 
 
 def test_mdtm_to_string():

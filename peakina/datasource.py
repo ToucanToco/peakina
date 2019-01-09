@@ -4,15 +4,22 @@ A datasource is defined by one or many files matching a pattern and some extra p
 encoding, separator...and its only method is `get_df` to retrieve the pandas DataFrame for
 the given parameters.
 """
-from typing import Optional
-from typing.io import IO
+from typing import IO, Optional
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
 from dataclasses import field
 from pydantic.dataclasses import dataclass
 
-from .helpers import TypeEnum, detect_type, validate_encoding, validate_kwargs, validate_sep
+from .helpers import (
+    TypeEnum,
+    detect_encoding,
+    detect_sep,
+    detect_type,
+    validate_encoding,
+    validate_kwargs,
+    validate_sep,
+)
 from .io import MatchEnum, Reader
 
 PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | set(Reader.registry)
@@ -20,21 +27,19 @@ PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | set(Reader.regi
 
 @dataclass
 class DataSource:
-    file: str
+    uri: str
     type: TypeEnum = None
     match: MatchEnum = None
     extra_kwargs: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        self.scheme = urlparse(self.file).scheme
+        self.scheme = urlparse(self.uri).scheme
         if self.scheme not in PD_VALID_URLS:
-            raise AttributeError(f'Unvalid scheme {self.scheme!r}')
-        self.type = self.type or detect_type(self.file, is_regex=bool(self.match))
-        if self.type:
-            pandas_methods = [getattr(pd, f'read_{self.type}')]
-        else:
-            pandas_methods = [getattr(pd, f'read_{f_type}') for f_type in TypeEnum]
-        validate_kwargs(self.extra_kwargs, pandas_methods)
+            raise AttributeError(f'Invalid scheme {self.scheme!r}')
+
+        self.type = self.type or detect_type(self.uri, is_regex=bool(self.match))
+
+        validate_kwargs(self.extra_kwargs, self.type)
 
     @staticmethod
     def _get_single_df(stream: IO, filetype: Optional[TypeEnum], **kwargs) -> pd.DataFrame:
@@ -46,10 +51,16 @@ class DataSource:
         if filetype is None:
             filetype = TypeEnum(detect_type(stream.name))
 
-        kwargs['encoding'] = encoding = validate_encoding(stream.name, kwargs.get('encoding'))
+        # Check encoding
+        encoding = kwargs.get('encoding')
+        if not validate_encoding(stream.name, encoding):
+            encoding = detect_encoding(stream.name)
+        kwargs['encoding'] = encoding
 
+        # Check separator for CSV files if it's not set
         if filetype is TypeEnum.CSV and 'sep' not in kwargs:
-            kwargs['sep'] = validate_sep(stream.name, encoding=encoding)
+            if not validate_sep(stream.name, encoding=encoding):
+                kwargs['sep'] = detect_sep(stream.name, encoding)
 
         pd_read = getattr(pd, f'read_{filetype}')
         try:
@@ -58,7 +69,7 @@ class DataSource:
             stream.close()
 
     def get_df(self) -> pd.DataFrame:
-        reader = Reader.get_reader(self.file, self.match)
+        reader = Reader.get_reader(self.uri, self.match)
         dfs = []
         for filename, stream in reader.get_files():
             df = self._get_single_df(stream, self.type, **self.extra_kwargs)

@@ -66,35 +66,36 @@ def detect_encoding(filepath: str) -> str:
     return chardet.detect(bytes_head(filepath, 100))['encoding']
 
 
-def validate_encoding(filepath: str, encoding: str = None) -> str:
-    """
-    Validates if `encoding` seems ok to read the file based on its 100 first lines.
-    Returns `encoding` if it seems good or the detected encoding in case of failure.
-    """
+def validate_encoding(filepath: str, encoding: str = None) -> bool:
+    """Validates if `encoding` seems ok to read the file based on its 100 first lines."""
     try:
         str_head(filepath, 100, encoding)
-        return encoding
+        return True
     except UnicodeDecodeError:
-        return detect_encoding(filepath)
+        return False
 
 
-def detect_sep(filepath: str, encoding: str = None):
+def detect_sep(filepath: str, encoding: str = None) -> str:
     """Detect separator of a CSV file based on its 100 first lines"""
     return csv.Sniffer().sniff(str_head(filepath, 100, encoding)).delimiter
 
 
-def validate_sep(filepath: str, sep: str = ',', encoding: str = None):
+def validate_sep(filepath: str, sep: str = ',', encoding: str = None) -> bool:
     """
     Validates if the `sep` is a right separator of a CSV file
     (i.e. the dataframe has more than one column).
-    Returns the input `sep` if it's the case, else the detected one.
     """
     df = pd.read_csv(filepath, sep=sep, encoding=encoding, nrows=2)
-    return sep if len(df.columns) > 1 else detect_sep(filepath, encoding)
+    return len(df.columns) > 1
 
 
-def validate_kwargs(kwargs: dict, methods: list) -> bool:
-    """Validate that kwargs are at least in one signature of the methods"""
+def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
+    """
+    Validate that kwargs are at least in one signature of the methods
+    Raises an error if it's not the case
+    """
+    types = [t] if t else [t for t in TypeEnum]
+    methods = [getattr(pd, f'read_{t}') for t in types]
     allowed_kwargs = {kw for method in methods for kw in inspect.signature(method).parameters}
     bad_kwargs = set(kwargs) - allowed_kwargs
     if bad_kwargs:

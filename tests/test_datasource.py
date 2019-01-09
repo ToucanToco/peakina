@@ -19,7 +19,7 @@ def test_scheme():
     assert DataSource('ftp://remote/path/file.csv').scheme == 'ftp'
     with raises(AttributeError) as e:
         DataSource('pika://wtf/did/I/write')
-    assert str(e.value) == "Unvalid scheme 'pika'"
+    assert str(e.value) == "Invalid scheme 'pika'"
 
 
 def test_type():
@@ -36,11 +36,11 @@ def test_validation_kwargs(mocker):
     validatation_kwargs = mocker.patch('peakina.datasource.validate_kwargs')
 
     DataSource('myfile.csv')
-    validatation_kwargs.assert_called_once_with({}, [pd.read_csv])
+    validatation_kwargs.assert_called_once_with({}, 'csv')
     validatation_kwargs.reset_mock()
 
     DataSource('myfile.*', match='glob')
-    validatation_kwargs.assert_called_once_with({}, [pd.read_csv, pd.read_excel, pd.read_json])
+    validatation_kwargs.assert_called_once_with({}, None)
     validatation_kwargs.reset_mock()
 
 
