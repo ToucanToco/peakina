@@ -1,11 +1,11 @@
 import os
 from typing import List, TextIO
 
-from ..reader import Reader, register
+from ..fetcher import Fetcher, register
 
 
 @register(schemes='')
-class FileReader(Reader):
+class FileFetcher(Fetcher):
     @staticmethod
     def open(filepath) -> TextIO:
         return open(filepath)

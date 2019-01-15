@@ -20,9 +20,9 @@ from .helpers import (
     validate_kwargs,
     validate_sep,
 )
-from .io import MatchEnum, Reader
+from .io import Fetcher, MatchEnum
 
-PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | set(Reader.registry)
+PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | set(Fetcher.registry)
 
 
 @dataclass
@@ -69,9 +69,9 @@ class DataSource:
             stream.close()
 
     def get_df(self) -> pd.DataFrame:
-        reader = Reader.get_reader(self.uri, self.match)
+        fetcher = Fetcher.get_fetcher(self.uri, self.match)
         dfs = []
-        for filename, stream in reader.get_files():
+        for filename, stream in fetcher.get_files():
             df = self._get_single_df(stream, self.type, **self.extra_kwargs)
             if self.match:
                 df['__filename__'] = filename

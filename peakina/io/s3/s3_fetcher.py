@@ -1,11 +1,11 @@
 from typing import BinaryIO, List
 
-from ..reader import Reader, register
+from ..fetcher import Fetcher, register
 from .s3_utils import S3_SCHEMES, s3_open
 
 
 @register(schemes=S3_SCHEMES)
-class S3Reader(Reader):
+class S3Fetcher(Fetcher):
     @staticmethod
     def open(filepath) -> BinaryIO:
         return s3_open(filepath)

@@ -1,7 +1,7 @@
 """
-This module provides access to the base Reader class and its registry
-where all the readers are saved.
-The main purpose of this reader is to retrieve a file or a list of files in case of a regex
+This module provides access to the base Fetcher class and its registry
+where all the fetchers are saved.
+The main purpose of this fetcher is to retrieve a file or a list of files in case of a regex
 filepath by calling the right registered subclass (local, ftp...) matching the filepath scheme.
 The subclasses are all declared in the `io` directory.
 """
@@ -33,15 +33,15 @@ def register(schemes: Union[str, List[str]]):
     return f
 
 
-class Reader(metaclass=ABCMeta):
+class Fetcher(metaclass=ABCMeta):
     """
     Base class used to:
      - list the files in a directory
      - retrieve the last modification time of a file
      - retrieve one (or many in case of a regex) TextIO from a path
-    This class is used by calling `get_reader`, which reads the scheme of the path
-    ('ftp', 's3', ...) and redirects to the right reader.
-    All the `Reader` subclasses need to implement basic methods in order to be used properly.
+    This class is used by calling `get_fetcher`, which reads the scheme of the path
+    ('ftp', 's3', ...) and redirects to the right fetcher.
+    All the `Fetcher` subclasses need to implement basic methods in order to be used properly.
     """
 
     registry: dict = {}
@@ -57,7 +57,7 @@ class Reader(metaclass=ABCMeta):
             self.pattern = re.compile(self.basename)
 
     @classmethod
-    def get_reader(cls, filepath: str, match: Optional[str] = None) -> 'Reader':
+    def get_fetcher(cls, filepath: str, match: Optional[str] = None) -> 'Fetcher':
         scheme = urlparse(filepath).scheme
         return cls.registry[scheme](filepath, match)
 
