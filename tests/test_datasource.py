@@ -99,3 +99,17 @@ def test_ftp(ftp_path):
 def test_ftp_match(ftp_path):
     ds = DataSource(f'{ftp_path}/my_data_\\d{{4}}\\.csv$', match='regex')
     assert ds.get_df().shape == (8, 3)
+
+
+def test_basic_excel(path):
+    """It should not add a __sheet__ column when retrieving a single sheet"""
+    ds = DataSource(path('fixture-multi-sheet.xlsx'))
+    df = pd.DataFrame({'Month': [1], 'Year': [2019]})
+    assert ds.get_df().equals(df)
+
+
+def test_multi_sheets_excel(path):
+    """It should not add a __sheet__ column when retrieving a single sheet"""
+    ds = DataSource(path('fixture-multi-sheet.xlsx'), extra_kwargs={'sheet_name': None})
+    df = pd.DataFrame({'Month': [1, 2], 'Year': [2019, 2019], '__sheet__': ['January', 'February']})
+    assert ds.get_df().equals(df)

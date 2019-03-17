@@ -23,6 +23,7 @@ from .helpers import (
 from .io import Fetcher, MatchEnum
 
 PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | set(Fetcher.registry)
+NOTSET = object()
 
 
 @dataclass
@@ -64,9 +65,17 @@ class DataSource:
 
         pd_read = getattr(pd, f'read_{filetype}')
         try:
-            return pd_read(stream.name, **kwargs)
+            df = pd_read(stream.name, **kwargs)
         finally:
             stream.close()
+
+        # In case of sheets, the df can be a dictionary
+        if kwargs.get('sheet_name', NOTSET) is None:
+            for sheet_name, _df in df.items():
+                _df['__sheet__'] = sheet_name
+            df = pd.concat(df.values(), sort=False)
+
+        return df
 
     def get_df(self) -> pd.DataFrame:
         fetcher = Fetcher.get_fetcher(self.uri, self.match)
