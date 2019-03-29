@@ -113,3 +113,19 @@ def test_multi_sheets_excel(path):
     ds = DataSource(path('fixture-multi-sheet.xlsx'), extra_kwargs={'sheet_name': None})
     df = pd.DataFrame({'Month': [1, 2], 'Year': [2019, 2019], '__sheet__': ['January', 'February']})
     assert ds.get_df().equals(df)
+
+
+def test_chunk(path):
+    """It should be able to retrieve a dataframe with chunks"""
+    ds = DataSource(path('0_0.csv'), extra_kwargs={'chunksize': 1})
+    assert all(df.shape == (1, 2) for df in ds.get_dfs())
+    assert ds.get_df().shape == (2, 2)
+
+
+def test_chunk_match(path):
+    """It should be able to retrieve a dataframe with chunks and match"""
+    ds = DataSource(path('0_*.csv'), match='glob', extra_kwargs={'chunksize': 1})
+    assert all(df.shape == (1, 3) for df in ds.get_dfs())
+    df = ds.get_df()
+    assert df.shape == (6, 3)
+    assert '__filename__' in df.columns

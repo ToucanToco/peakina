@@ -5,7 +5,7 @@ encoding, separator...and its only method is `get_df` to retrieve the pandas Dat
 the given parameters.
 """
 from dataclasses import field
-from typing import IO, Optional
+from typing import IO, Generator, Iterable, Optional, Union
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
@@ -43,9 +43,11 @@ class DataSource:
         validate_kwargs(self.extra_kwargs, self.type)
 
     @staticmethod
-    def _get_single_df(stream: IO, filetype: Optional[TypeEnum], **kwargs) -> pd.DataFrame:
+    def _get_single_df(
+        stream: IO, filetype: Optional[TypeEnum], **kwargs
+    ) -> Union[pd.DataFrame, Iterable[pd.DataFrame]]:
         """
-        Read a stream and retrieve the data frame
+        Read a stream and retrieve the data frame or data frame generator (chunks)
         It uses `stream.name`, which is the path to a local file (often temporary)
         to avoid closing it. It will be closed at the end of the method.
         """
@@ -77,12 +79,24 @@ class DataSource:
 
         return df
 
-    def get_df(self) -> pd.DataFrame:
+    def get_dfs(self) -> Generator[pd.DataFrame, None, None]:
+        """
+        From the conf of the datasource, returns a generator
+        with all the dataframes
+        The generator can have a single dataframe (single file as input
+        without options) or many (e.g. with `match` or `chunksize`)
+        """
         fetcher = Fetcher.get_fetcher(self.uri, self.match)
-        dfs = []
+        by_chunk = self.extra_kwargs.get('chunksize') is not None
+
         for filename, stream in fetcher.get_files():
             df = self._get_single_df(stream, self.type, **self.extra_kwargs)
-            if self.match:
-                df['__filename__'] = filename
-            dfs.append(df)
-        return pd.concat(dfs, sort=False).reset_index(drop=True)
+            dfs = df if by_chunk else [df]
+
+            for df in dfs:
+                if self.match:
+                    df['__filename__'] = filename
+                yield df
+
+    def get_df(self) -> pd.DataFrame:
+        return pd.concat([x for x in self.get_dfs()], sort=False).reset_index(drop=True)
