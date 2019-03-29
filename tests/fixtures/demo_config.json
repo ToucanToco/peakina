@@ -1,0 +1,209 @@
+{
+  "source_input": {
+    "file": "{ftp_path}/movie_metadata.csv"
+  },
+  "country_region_mapping": {
+    "file": "{ftp_path}/country_region_mapping.csv",
+    "sep": ",",
+    "encoding": "utf-8"
+  },
+  "ventes_magasins": {
+    "file": "{ftp_path}/sales.csv",
+    "sep": ";",
+    "encoding": "utf-8"
+  },
+  "main_country_radarchart": {
+    "file": "{ftp_path}/main_country_radarchart.csv",
+    "sep": ",",
+    "encoding": "utf-8"
+  },
+  "waterfall_simple": {
+    "file": "{ftp_path}/waterfall.xlsx",
+    "sheet_name": "simple"
+  },
+  "waterfall_drill": {
+    "file": "{ftp_path}/waterfall.xlsx",
+    "sheet_name": "drill"
+  },
+  "waterfall_simple2": {
+    "file": "{ftp_path}/waterfall_mode2.xlsx",
+    "sheet_name": "simple"
+  },
+  "waterfall_drill2": {
+    "file": "{ftp_path}/waterfall_mode2.xlsx",
+    "sheet_name": "drill"
+  },
+  "nom_domain": {
+    "file": "{ftp_path}/widget.xlsx",
+    "sheet_name": "leaderboard"
+  },
+  "lca_sparklines": {
+    "file": "{ftp_path}/lca_sparklines.xlsx",
+    "sheet_name": "Feuille1"
+  },
+  "notification": {
+    "file": "{ftp_path}/notification.xlsx",
+    "sheet_name": "notification"
+  },
+  "recommendation": {
+    "file": "{ftp_path}/recommendation.xlsx",
+    "sheet_name": "recommendation"
+  },
+  "modele_predictif": {
+    "file": "{ftp_path}/modele_predictif.xlsx",
+    "sheet_name": "predictif"
+  },
+  "offline": {
+    "file": "{ftp_path}/offline.xlsx",
+    "sheet_name": "offline"
+  },
+  "linechart_MS": {
+    "file": "{ftp_path}/linechart_MS.xlsx",
+    "sheet_name": "linechart"
+  },
+  "horizontalbarchart_MS": {
+    "file": "{ftp_path}/horizontalbarchart_MS.xlsx",
+    "sheet_name": "horizontalbarchart"
+  },
+  "leaderboard-with-highlighted-value": {
+    "file": "{ftp_path}/leaderboard-with-highlighted-value.csv"
+  },
+  "master-slave-requesters-slave": {
+    "file": "{ftp_path}/master-slave-requesters-slave.csv",
+    "encoding": "windows-1252"
+  },
+  "master-slave-requesters-master": {
+    "file": "{ftp_path}/master-slave-requesters-master.csv"
+  },
+  "horizontal_barchart_sparklines": {
+    "file": "{ftp_path}/horizontal_barchart_sparklines.xlsx",
+    "sheet_name": "commentaries"
+  },
+  "PDF": {
+    "file": "{ftp_path}/PDF.xlsx",
+    "sheet_name": "PDF"
+  },
+  "horizontal_barchart_groups": {
+    "file": "{ftp_path}/horizontal_barchart_groups.csv"
+  },
+  "horizontal_barchart_evolution": {
+    "file": "{ftp_path}/horizontal_barchart_evolution.csv"
+  },
+  "horizontal_barchart_legacy_sparklines": {
+    "file": "{ftp_path}/horizontal_barchart_legacy_sparklines.csv"
+  },
+  "horizontal_barchart_evolution_avg": {
+    "file": "{ftp_path}/horizontal_barchart_evolution_avg.csv"
+  },
+  "horizontal_barchart_groups_avg": {
+    "file": "{ftp_path}/horizontal_barchart_groups_avg.csv"
+  },
+  "radarchart": {
+    "file": "{ftp_path}/radarchart.csv"
+  },
+  "versuschart": {
+    "file": "{ftp_path}/versuschart.csv"
+  },
+  "stackedbarchart-base-data": {
+    "file": "{ftp_path}/stackedbarchart-base-data.csv"
+  },
+  "stackedbarchart-mixed-data": {
+    "file": "{ftp_path}/stackedbarchart-mixed-data.csv"
+  },
+  "stackedbarchart-negative-data": {
+    "file": "{ftp_path}/stackedbarchart-negative-data.csv"
+  },
+  "stackedbarchart-date-data": {
+    "file": "{ftp_path}/stackedbarchart-date-data.csv"
+  },
+  "stackedbarchart-nps-data": {
+    "file": "{ftp_path}/stackedbarchart-nps-data.csv"
+  },
+  "barlines_lines": {
+    "file": "{ftp_path}/barlines_lines.csv"
+  },
+  "barlines_bars": {
+    "file": "{ftp_path}/barlines_bars.csv"
+  },
+  "barlines_bars_filter": {
+    "file": "{ftp_path}/barlines_bars_filter.csv"
+  },
+  "funnelchart": {
+    "file": "{ftp_path}/funnelchart.csv"
+  },
+  "bubble_bissector": {
+    "file": "{ftp_path}/bubble_bissector.csv"
+  },
+  "heatmap": {
+    "file": "{ftp_path}/heatmap.csv"
+  },
+  "filter_1": {
+    "file": "{ftp_path}/filter_1.xlsx",
+    "sheet_name": "filter_1"
+  },
+  "filter_2_1": {
+    "file": "{ftp_path}/filter_2.xlsx",
+    "sheet_name": "filter_2_1"
+  },
+  "filter_2_2": {
+    "file": "{ftp_path}/filter_2.xlsx",
+    "sheet_name": "filter_2_2"
+  },
+  "filter_3": {
+    "file": "{ftp_path}/filter_3.xlsx",
+    "sheet_name": "filter_3"
+  },
+  "filter_4": {
+    "file": "{ftp_path}/filter_4.xlsx",
+    "sheet_name": "filter_4"
+  },
+  "filter_5": {
+    "file": "{ftp_path}/filter_5.xlsx",
+    "sheet_name": "filter_5"
+  },
+  "cities_data": {
+    "file": "{ftp_path}/cities_data.csv"
+  },
+  "map_34201": {
+    "file": "{ftp_path}/0_34201.csv"
+  },
+  "value_dynamic_data": {
+    "file": "{ftp_path}/value_dynamic_data.xls",
+    "sheet_name": "Feuille1"
+  },
+  "value_dynamique": {
+    "file": "{ftp_path}/value_dynamique.xlsx",
+    "sheet_name": "value_1"
+  },
+  "codes_postaux": {
+    "file": "{ftp_path}/code-insee-postaux-geoflar.csv",
+    "sep": ";"
+  },
+  "widget_leaderboard": {
+    "file": "{ftp_path}/widget_leaderboard.csv",
+    "sep": ";"
+  },
+  "regions-italy": {
+    "file": "{ftp_path}/regions-italy.csv",
+    "sep": ";"
+  },
+  "new-pdf": {
+    "file": "{ftp_path}/new-pdf.csv",
+    "sep": ";"
+  },
+  "my_remote_data": {
+    "file": "{ftp_path}/my_data_\\d{{4}}\\.csv$",
+    "match": "regex"
+  },
+  "my_sheets": {
+    "file": "{ftp_path}/my_sheets.xlsx",
+    "sheet_name": null
+  },
+  "0_0": {
+    "file": "0_0.csv"
+  },
+  "0_all_years": {
+    "file": "0_\\d{{1}}\\.csv$",
+    "match": "regex"
+  }
+}
