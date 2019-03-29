@@ -4,11 +4,11 @@ A datasource is defined by one or many files matching a pattern and some extra p
 encoding, separator...and its only method is `get_df` to retrieve the pandas DataFrame for
 the given parameters.
 """
+from dataclasses import field
 from typing import IO, Optional
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
-from dataclasses import field
 from pydantic.dataclasses import dataclass
 
 from .helpers import (
