@@ -6,9 +6,9 @@ from .datasource import DataSource
 
 class DataPool:
     def __init__(self, config: Dict[Hashable, dict], data_sources_dir: str = ''):
-        self.datasources = {}
+        self.datasources: dict = {}
         for ds_id, ds_conf in config.items():
-            ds = DataSource(**ds_conf)
+            ds = DataSource(**ds_conf)  # type: ignore
 
             # change local path into absolute path
             if ds.scheme == '' and not path.isabs(ds.uri):
