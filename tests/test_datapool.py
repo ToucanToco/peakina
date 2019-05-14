@@ -18,7 +18,7 @@ def templatize(d, real_ftp_path):
     return res
 
 
-@pytest.fixture()
+@pytest.fixture
 def config(path, ftp_path):
     with open(path('demo_config.json')) as f:
         config = json.load(f)

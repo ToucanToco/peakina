@@ -1,10 +1,10 @@
 import pandas as pd
-from pytest import fixture, raises
+import pytest
 
 from peakina.datasource import DataSource, TypeEnum
 
 
-@fixture
+@pytest.fixture
 def read_csv_spy(mocker):
     read_csv = mocker.spy(pd, 'read_csv')
     # need to mock the validation as the signature is changed via the spy
@@ -17,7 +17,7 @@ def test_scheme():
     """It should be able to set scheme"""
     assert DataSource('my/local/path/file.csv').scheme == ''
     assert DataSource('ftp://remote/path/file.csv').scheme == 'ftp'
-    with raises(AttributeError) as e:
+    with pytest.raises(AttributeError) as e:
         DataSource('pika://wtf/did/I/write')
     assert str(e.value) == "Invalid scheme 'pika'"
 
@@ -25,7 +25,7 @@ def test_scheme():
 def test_type():
     """It should be able to set type if possible"""
     assert DataSource('myfile.csv').type is TypeEnum.CSV
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         DataSource('myfile.csv$')
     assert DataSource('myfile.tsv$', match='glob').type is TypeEnum.CSV
     assert DataSource('myfile.*', match='glob').type is None
@@ -49,7 +49,7 @@ def test_simple_csv(path):
     ds = DataSource(path('0_0.csv'), extra_kwargs={'encoding': 'utf8', 'sep': ','})
     assert ds.get_df().shape == (2, 2)
 
-    with raises(Exception):
+    with pytest.raises(Exception):
         DataSource(path('0_0.csv'), type='excel', encoding='utf8', sep=',').get_df()
 
 
@@ -91,11 +91,13 @@ def test_match_different_file_types(path):
     assert df.shape == (8, 3)
 
 
+@pytest.mark.flaky(reruns=5)
 def test_ftp(ftp_path):
     ds = DataSource(f'{ftp_path}/sales.csv')
     assert ds.get_df().shape == (208, 15)
 
 
+@pytest.mark.flaky(reruns=5)
 def test_ftp_match(ftp_path):
     ds = DataSource(f'{ftp_path}/my_data_\\d{{4}}\\.csv$', match='regex')
     assert ds.get_df().shape == (8, 3)

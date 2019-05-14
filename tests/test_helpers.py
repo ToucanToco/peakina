@@ -1,4 +1,4 @@
-from pytest import raises
+import pytest
 
 from peakina.helpers import (
     bytes_head,
@@ -17,22 +17,22 @@ def test_detect_type_no_regex():
     """It should find the right type of a file and raise an exception if not supported"""
     assert detect_type('file.csv') == 'csv'
     assert detect_type('file.tsv') == 'csv'
-    with raises(ValueError) as e:
+    with pytest.raises(ValueError) as e:
         detect_type('file.xml')
     assert (
         str(e.value) == "Unsupported mimetype 'application/xml'. "
         "Supported types are: 'csv', 'excel', 'json'."
     )
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         detect_type('file*.csv$')
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         detect_type('file*')
 
 
 def test_detect_type_with_regex():
     """It should find the type of a regex and not raise an error if it coulnd't be guessed"""
     assert detect_type('file*.csv$', is_regex=True) == 'csv'
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         detect_type('file*.xml$', is_regex=True)
     assert detect_type('file*', is_regex=True) is None
 
@@ -47,7 +47,7 @@ def test_str_head(path):
     """It should get the first lines of a file as string"""
     assert str_head(path('0_0.csv'), 1) == 'a,b\n'
     assert str_head(path('0_0.csv'), 100) == 'a,b\n0,0\n0,1'
-    with raises(UnicodeDecodeError):
+    with pytest.raises(UnicodeDecodeError):
         str_head(path('latin_1.csv'), 1)
     assert str_head(path('latin_1.csv'), 1, encoding='latin1')[:4] == 'Date'
 
@@ -87,7 +87,7 @@ def test_validate_sep_error(path):
 def test_validate_kwargs():
     """It should raise an error if at least one kwarg is not in one of the methods"""
     assert validate_kwargs({'encoding': 'utf8'}, 'csv')
-    with raises(ValueError) as e:
+    with pytest.raises(ValueError) as e:
         validate_kwargs({'sheet_name': 0}, 'csv')
     assert str(e.value) == "Unsupported kwargs: 'sheet_name'"
     assert validate_kwargs({'sheet_name': 0}, None)
