@@ -79,6 +79,11 @@ def test_validate_sep(path):
     assert validate_sep(path('latin_1_sep.csv'), ';', 'latin1')
 
 
+def test_validate_sep_error(path):
+    """It should return discard the separator in case of parsing errors"""
+    assert not validate_sep(path('sep_parse_error.csv'))
+
+
 def test_validate_kwargs():
     """It should raise an error if at least one kwarg is not in one of the methods"""
     assert validate_kwargs({'encoding': 'utf8'}, 'csv')

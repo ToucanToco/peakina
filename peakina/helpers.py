@@ -85,8 +85,11 @@ def validate_sep(filepath: str, sep: str = ',', encoding: str = None) -> bool:
     Validates if the `sep` is a right separator of a CSV file
     (i.e. the dataframe has more than one column).
     """
-    df = pd.read_csv(filepath, sep=sep, encoding=encoding, nrows=2)
-    return len(df.columns) > 1
+    try:
+        df = pd.read_csv(filepath, sep=sep, encoding=encoding, nrows=2)
+        return len(df.columns) > 1
+    except pd.errors.ParserError:
+        return False
 
 
 def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
