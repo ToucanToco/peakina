@@ -31,6 +31,7 @@ class DataSource:
     uri: str
     type: TypeEnum = None
     match: MatchEnum = None
+    scheme: str = None
     extra_kwargs: dict = field(default_factory=dict)
 
     def __post_init__(self):
