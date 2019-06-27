@@ -1,6 +1,6 @@
 import tempfile
 from email.utils import parsedate_to_datetime
-from typing import List, IO
+from typing import IO, List
 
 from urllib3 import PoolManager
 

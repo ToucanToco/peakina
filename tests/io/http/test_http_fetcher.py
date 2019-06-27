@@ -10,6 +10,9 @@ def test_http_fetcher(http_path, mocker):
     with pytest.raises(KeyError):
         HttpFetcher.mtime(http_path)
 
+    with pytest.raises(NotImplementedError):
+        HttpFetcher.listdir(http_path)
+
     stub_headers = {"last-modified": "Mon, 25 Jun 1984 11:22:33 GMT"}
     mocker.patch(
         "peakina.io.http.http_fetcher.PoolManager"
