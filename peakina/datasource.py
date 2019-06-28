@@ -31,10 +31,9 @@ class DataSource:
     uri: str
     type: TypeEnum = None
     match: MatchEnum = None
-    scheme: str = None
     extra_kwargs: dict = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init_post_parse__(self):
         self.scheme = urlparse(self.uri).scheme
         if self.scheme not in PD_VALID_URLS:
             raise AttributeError(f'Invalid scheme {self.scheme!r}')
