@@ -1,3 +1,6 @@
+import os
+import time
+
 import pandas as pd
 import pytest
 
@@ -134,13 +137,22 @@ def test_chunk_match(path):
     assert '__filename__' in df.columns
 
 
-def test_cache():
+def test_cache(path, mocker):
     df = pd.DataFrame({'x': [1, 2, 3]})
-    ds = DataSource('idontexist.csv')
+    ds = DataSource(path('0_0.csv'), expire=10)
+    mtime = int(os.path.getmtime(path('0_0.csv')))
     cache = InMemoryCache()
-    cache[ds.hash] = df
+    cache.set(ds.hash, value=df, mtime=mtime)
 
-    with pytest.raises(FileNotFoundError):
-        ds.get_df()
+    assert ds.get_df().shape == (2, 2)  # without cache: read from disk
+    assert ds.get_df(cache=cache).shape == (3, 1)  # retrieved from cache
 
-    assert ds.get_df(cache=cache).shape == (3, 1)
+    mocker.patch('peakina.cache.time').return_value = time.time() + 15  # fake 15s elapsed
+    assert ds.get_df(cache=cache).shape == (2, 2)  # cache is expired/invalidated: read from disk
+    assert cache.get(ds.hash).shape == (2, 2)  # cache has been updated with the new data
+
+    cache.set(ds.hash, value=df, mtime=mtime + 15)  # put back the fake df with an updated mtime
+    assert ds.get_df(cache=cache).shape == (3, 1)  # back to "retrieved from cache"
+    # fake a more recent file:
+    mocker.patch('peakina.io.local.file_fetcher.os.path.getmtime').return_value = mtime + 16
+    assert ds.get_df(cache=cache).shape == (2, 2)  # cache expired/invalidated again

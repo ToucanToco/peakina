@@ -5,7 +5,10 @@ encoding, separator...and its only method is `get_df` to retrieve the pandas Dat
 the given parameters.
 """
 import os
+import time
+from contextlib import suppress
 from dataclasses import field, asdict
+from datetime import timedelta
 from hashlib import md5
 from typing import IO, Generator, Iterable, Optional, Union
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
@@ -33,6 +36,7 @@ class DataSource:
     uri: str
     type: TypeEnum = None
     match: MatchEnum = None
+    expire: timedelta = None
     extra_kwargs: dict = field(default_factory=dict)
 
     def __post_init_post_parse__(self):
@@ -89,7 +93,8 @@ class DataSource:
         fetcher = Fetcher.get_fetcher(self.uri, self.match)
         my_args = asdict(self)
         for uri in fetcher.get_filepath_list():
-            yield DataSource(**{**my_args, "uri": uri, "match": None})
+            overriden_args = {**my_args, "uri": uri, "match": None}
+            yield DataSource(**overriden_args)  # type: ignore
 
     def get_dfs(self, cache=None) -> Generator[pd.DataFrame, None, None]:
         """
@@ -100,14 +105,16 @@ class DataSource:
         """
         fetcher = Fetcher.get_fetcher(self.uri, self.match)
         by_chunk = self.extra_kwargs.get('chunksize') is not None
+        with_cache = cache is not None and self.expire and not by_chunk
 
         for datasource in self.get_matched_datasources():
-            if cache:
-                try:
-                    df = cache[datasource.hash]
-                except KeyError:
-                    pass
-                else:
+            if with_cache:
+                cache_key = datasource.hash
+                cache_mtime = None
+                with suppress(NotImplementedError, KeyError, OSError):
+                    cache_mtime = fetcher.mtime(datasource.uri)  # TODO: get all mtimes at once
+                with suppress(KeyError):
+                    df = cache.get(key=cache_key, mtime=cache_mtime, expire=self.expire)
                     yield df
                     continue
 
@@ -118,12 +125,9 @@ class DataSource:
             for df in dfs:
                 if self.match:
                     df['__filename__'] = os.path.basename(datasource.uri)
-                if cache:
-                    cache[datasource.hash] = df
+                if with_cache:
+                    cache.set(key=cache_key, value=df, mtime=time.time())
                 yield df
 
     def get_df(self, cache=None) -> pd.DataFrame:
-        return pd.concat(
-            [x for x in self.get_dfs(cache=cache)],
-            sort=False
-        ).reset_index(drop=True)
+        return pd.concat([x for x in self.get_dfs(cache=cache)], sort=False).reset_index(drop=True)
