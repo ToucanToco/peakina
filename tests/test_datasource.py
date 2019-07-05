@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 
+from peakina.cache import InMemoryCache
 from peakina.datasource import DataSource, TypeEnum
 
 
@@ -131,3 +132,15 @@ def test_chunk_match(path):
     df = ds.get_df()
     assert df.shape == (6, 3)
     assert '__filename__' in df.columns
+
+
+def test_cache():
+    df = pd.DataFrame({'x': [1, 2, 3]})
+    ds = DataSource('idontexist.csv')
+    cache = InMemoryCache()
+    cache[ds.hash] = df
+
+    with pytest.raises(FileNotFoundError):
+        ds.get_df()
+
+    assert ds.get_df(cache=cache).shape == (3, 1)

@@ -4,7 +4,9 @@ A datasource is defined by one or many files matching a pattern and some extra p
 encoding, separator...and its only method is `get_df` to retrieve the pandas DataFrame for
 the given parameters.
 """
-from dataclasses import field
+import os
+from dataclasses import field, asdict
+from hashlib import md5
 from typing import IO, Generator, Iterable, Optional, Union
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
@@ -41,6 +43,10 @@ class DataSource:
         self.type = self.type or detect_type(self.uri, is_regex=bool(self.match))
 
         validate_kwargs(self.extra_kwargs, self.type)
+
+    @property
+    def hash(self):
+        return md5(str(asdict(self)).encode('utf-8')).hexdigest()
 
     @staticmethod
     def _get_single_df(
@@ -79,7 +85,13 @@ class DataSource:
 
         return df
 
-    def get_dfs(self) -> Generator[pd.DataFrame, None, None]:
+    def get_matched_datasources(self) -> Generator:
+        fetcher = Fetcher.get_fetcher(self.uri, self.match)
+        my_args = asdict(self)
+        for uri in fetcher.get_filepath_list():
+            yield DataSource(**{**my_args, "uri": uri, "match": None})
+
+    def get_dfs(self, cache=None) -> Generator[pd.DataFrame, None, None]:
         """
         From the conf of the datasource, returns a generator
         with all the dataframes
@@ -89,14 +101,29 @@ class DataSource:
         fetcher = Fetcher.get_fetcher(self.uri, self.match)
         by_chunk = self.extra_kwargs.get('chunksize') is not None
 
-        for filename, stream in fetcher.get_files():
+        for datasource in self.get_matched_datasources():
+            if cache:
+                try:
+                    df = cache[datasource.hash]
+                except KeyError:
+                    pass
+                else:
+                    yield df
+                    continue
+
+            stream = fetcher.open(datasource.uri)
             df = self._get_single_df(stream, self.type, **self.extra_kwargs)
             dfs = df if by_chunk else [df]
 
             for df in dfs:
                 if self.match:
-                    df['__filename__'] = filename
+                    df['__filename__'] = os.path.basename(datasource.uri)
+                if cache:
+                    cache[datasource.hash] = df
                 yield df
 
-    def get_df(self) -> pd.DataFrame:
-        return pd.concat([x for x in self.get_dfs()], sort=False).reset_index(drop=True)
+    def get_df(self, cache=None) -> pd.DataFrame:
+        return pd.concat(
+            [x for x in self.get_dfs(cache=cache)],
+            sort=False
+        ).reset_index(drop=True)
