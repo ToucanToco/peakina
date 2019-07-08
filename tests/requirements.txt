@@ -4,6 +4,7 @@ isort
 mypy
 pytest
 pytest-cov
+pytest-cases
 pytest-isort
 pytest-mock
 pytest-sugar
