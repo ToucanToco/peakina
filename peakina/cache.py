@@ -82,6 +82,11 @@ class HDFCache(Cache):
         self.cache_dir = Path(cache_dir).resolve()
 
     def get_metadata(self) -> pd.DataFrame:
+        """
+        metadata is a dataframe containing last mtime and created_at fields
+        for each cached datasource, identified by its key (= its hash).
+        If metadata file is not found or is corrupted, an empty one is recreated.
+        """
         try:
             metadata = pd.read_hdf(self.cache_dir / self.META_DF_KEY)
         except Exception:  # catch all, on purpose
@@ -95,6 +100,7 @@ class HDFCache(Cache):
     def get(self, key: str, mtime=None, expire: timedelta = None) -> pd.DataFrame:
         metadata = self.get_metadata()
         try:
+            # look for the row concerning the desired key in the metadata dataframe:
             infos = metadata[metadata.key == key].iloc[0].to_dict()
         except IndexError:
             raise KeyError(key)
@@ -117,6 +123,8 @@ class HDFCache(Cache):
         infos = {'key': key, 'mtime': mtime, 'created_at': time()}
         metadata = self.get_metadata()
         try:
+            # add new row to the metadata dataframe:
+            metadata = metadata[metadata.key != key]  # drop duplicates
             metadata = metadata.append(infos, ignore_index=True)
             self.set_metadata(metadata)
             value.to_hdf(self.cache_dir / key, key, mode='w')
