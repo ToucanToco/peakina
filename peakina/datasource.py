@@ -16,6 +16,7 @@ from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 import pandas as pd
 from pydantic.dataclasses import dataclass
 
+from .cache import Cache
 from .helpers import (
     TypeEnum,
     detect_encoding,
@@ -104,7 +105,7 @@ class DataSource:
             overriden_args = {**my_args, "uri": uri, "match": None}
             yield DataSource(**overriden_args)  # type: ignore
 
-    def get_dfs(self, cache=None) -> Generator[pd.DataFrame, None, None]:
+    def get_dfs(self, cache: Cache = None) -> Generator[pd.DataFrame, None, None]:
         """
         From the conf of the datasource, returns a generator
         with all the dataframes
@@ -136,7 +137,7 @@ class DataSource:
                     cache.set(key=cache_key, value=df, mtime=time.time())
                 yield df
 
-    def get_df(self, cache=None) -> pd.DataFrame:
+    def get_df(self, cache: Cache = None) -> pd.DataFrame:
         return pd.concat([x for x in self.get_dfs(cache=cache)], sort=False).reset_index(drop=True)
 
 
