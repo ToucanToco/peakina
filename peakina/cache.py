@@ -4,6 +4,7 @@ from datetime import timedelta
 from enum import Enum
 from pathlib import Path
 from time import time
+from typing import Union
 
 import pandas as pd
 
@@ -77,8 +78,8 @@ class InMemoryCache(Cache):
 class HDFCache(Cache):
     META_DF_KEY = '__meta__'
 
-    def __init__(self, cache_dir: Path):
-        self.cache_dir = cache_dir
+    def __init__(self, cache_dir: Union[str, Path]):
+        self.cache_dir = Path(cache_dir).resolve()
 
     def get_metadata(self) -> pd.DataFrame:
         try:
