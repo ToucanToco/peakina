@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from peakina.cache import InMemoryCache
-from peakina.datasource import DataSource, TypeEnum
+from peakina.datasource import DataSource, TypeEnum, read_pandas
 
 
 @pytest.fixture
@@ -77,6 +77,11 @@ def test_csv_with_sep_and_encoding(path):
     """It should be able to detect everything"""
     ds = DataSource(path('latin_1_sep.csv'))
     assert ds.get_df().shape == (2, 7)
+
+
+def test_read_pandas(path):
+    """It should be able to detect everything with read_pandas shortcut"""
+    assert read_pandas(path('latin_1_sep.csv')).shape == (2, 7)
 
 
 def test_match(path):

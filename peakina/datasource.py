@@ -131,3 +131,16 @@ class DataSource:
 
     def get_df(self, cache=None) -> pd.DataFrame:
         return pd.concat([x for x in self.get_dfs(cache=cache)], sort=False).reset_index(drop=True)
+
+
+def read_pandas(
+    uri: str,
+    *,
+    type: TypeEnum = None,
+    match: MatchEnum = None,
+    expire: timedelta = None,
+    **extra_kwargs,
+) -> pd.DataFrame:
+    return DataSource(  # type: ignore
+        uri=uri, type=type, match=match, expire=expire, extra_kwargs=extra_kwargs
+    ).get_df()
