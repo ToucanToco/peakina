@@ -6,14 +6,11 @@ from ..fetcher import Fetcher, register
 
 @register(schemes='')
 class FileFetcher(Fetcher):
-    @staticmethod
-    def open(filepath) -> TextIO:
+    def open(self, filepath) -> TextIO:
         return open(filepath)
 
-    @staticmethod
-    def listdir(dirpath) -> List[str]:
+    def listdir(self, dirpath) -> List[str]:
         return os.listdir(dirpath)
 
-    @staticmethod
-    def mtime(filepath) -> int:
+    def mtime(self, filepath) -> int:
         return int(os.path.getmtime(filepath))

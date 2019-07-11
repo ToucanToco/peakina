@@ -40,6 +40,7 @@ class DataSource:
     extra_kwargs: dict = field(default_factory=dict)
 
     def __post_init_post_parse__(self):
+        self._fetcher = None
         self.scheme = urlparse(self.uri).scheme
         if self.scheme not in PD_VALID_URLS:
             raise AttributeError(f'Invalid scheme {self.scheme!r}')
@@ -47,6 +48,12 @@ class DataSource:
         self.type = self.type or detect_type(self.uri, is_regex=bool(self.match))
 
         validate_kwargs(self.extra_kwargs, self.type)
+
+    @property
+    def fetcher(self):
+        if self._fetcher is None:
+            self._fetcher = Fetcher.get_fetcher(self.uri, self.match)
+        return self._fetcher
 
     @property
     def hash(self):
@@ -92,9 +99,8 @@ class DataSource:
         return df
 
     def get_matched_datasources(self) -> Generator:
-        fetcher = Fetcher.get_fetcher(self.uri, self.match)
         my_args = asdict(self)
-        for uri in fetcher.get_filepath_list():
+        for uri in self.fetcher.get_filepath_list():
             overriden_args = {**my_args, "uri": uri, "match": None}
             yield DataSource(**overriden_args)  # type: ignore
 
@@ -105,7 +111,6 @@ class DataSource:
         The generator can have a single dataframe (single file as input
         without options) or many (e.g. with `match` or `chunksize`)
         """
-        fetcher = Fetcher.get_fetcher(self.uri, self.match)
         by_chunk = self.extra_kwargs.get('chunksize') is not None
         with_cache = cache is not None and self.expire and not by_chunk
 
@@ -114,13 +119,13 @@ class DataSource:
                 cache_key = datasource.hash
                 cache_mtime = None
                 with suppress(NotImplementedError, KeyError, OSError):
-                    cache_mtime = fetcher.mtime(datasource.uri)  # TODO: get all mtimes at once
+                    cache_mtime = self.fetcher.mtime(datasource.uri)
                 with suppress(KeyError):
                     df = cache.get(key=cache_key, mtime=cache_mtime, expire=self.expire)
                     yield df
                     continue
 
-            stream = fetcher.open(datasource.uri)
+            stream = self.fetcher.open(datasource.uri)
             df = self._get_single_df(stream, self.type, **self.extra_kwargs)
             dfs = df if by_chunk else [df]
 

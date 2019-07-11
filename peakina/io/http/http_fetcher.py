@@ -9,8 +9,7 @@ from ..fetcher import Fetcher, register
 
 @register(schemes=['http', 'https'])
 class HttpFetcher(Fetcher):
-    @staticmethod
-    def open(filepath) -> IO:
+    def open(self, filepath) -> IO:
         r = PoolManager().request('GET', filepath, preload_content=False)
         ret = tempfile.NamedTemporaryFile(suffix='.httptmp')
         for chunk in r.stream():
@@ -18,12 +17,10 @@ class HttpFetcher(Fetcher):
         ret.seek(0)
         return ret
 
-    @staticmethod
-    def listdir(dirpath) -> List[str]:
+    def listdir(self, dirpath) -> List[str]:
         raise NotImplementedError
 
-    @staticmethod
-    def mtime(filepath) -> int:
+    def mtime(self, filepath) -> int:
         r = PoolManager().request('HEAD', filepath)
         if 'last-modified' not in r.headers:
             raise KeyError
