@@ -10,7 +10,7 @@ import os
 import re
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import IO, Any, Dict, Generator, List, Optional, Tuple, Union
+from typing import IO, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 from peakina.helpers import mdtm_to_string
@@ -87,13 +87,6 @@ class Fetcher(metaclass=ABCMeta):
         else:
             matching_filenames = [f for f in all_filenames if self.pattern.match(f)]
         return [os.path.join(self.dirpath, f) for f in sorted(matching_filenames)]
-
-    def get_files(self) -> Generator[Tuple[str, IO], Any, None]:
-        """
-        Actually call open on each filepath and retrieve a BinaryIO or TextIO
-        Returns a generator of tuples (filename, IO)
-        """
-        return ((os.path.basename(f), self.open(f)) for f in self.get_filepath_list())
 
     @classmethod
     def get_str_mtime(cls, filepath: str) -> Optional[str]:

@@ -50,7 +50,9 @@ class DataSource:
 
     @property
     def hash(self):
-        return md5(str(asdict(self)).encode('utf-8')).hexdigest()
+        identifier = asdict(self)
+        del identifier['expire']
+        return md5(str(identifier).encode('utf-8')).hexdigest()
 
     @staticmethod
     def _get_single_df(
