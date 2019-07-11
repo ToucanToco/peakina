@@ -1,9 +1,0 @@
-black
-flake8
-isort
-mypy
-pytest
-pytest-cov
-pytest-isort
-pytest-mock
-pytest-sugar

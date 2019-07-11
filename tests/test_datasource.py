@@ -1,7 +1,11 @@
+import os
+import time
+
 import pandas as pd
 import pytest
 
-from peakina.datasource import DataSource, TypeEnum
+from peakina.cache import InMemoryCache
+from peakina.datasource import DataSource, TypeEnum, read_pandas
 
 
 @pytest.fixture
@@ -75,6 +79,11 @@ def test_csv_with_sep_and_encoding(path):
     assert ds.get_df().shape == (2, 7)
 
 
+def test_read_pandas(path):
+    """It should be able to detect everything with read_pandas shortcut"""
+    assert read_pandas(path('latin_1_sep.csv')).shape == (2, 7)
+
+
 def test_match(path):
     """It should be able to concat files matching a pattern"""
     ds = DataSource(path(r'0_\d.csv'), match='regex')
@@ -131,3 +140,24 @@ def test_chunk_match(path):
     df = ds.get_df()
     assert df.shape == (6, 3)
     assert '__filename__' in df.columns
+
+
+def test_cache(path, mocker):
+    df = pd.DataFrame({'x': [1, 2, 3]})
+    ds = DataSource(path('0_0.csv'), expire=10)
+    mtime = int(os.path.getmtime(path('0_0.csv')))
+    cache = InMemoryCache()
+    cache.set(ds.hash, value=df, mtime=mtime)
+
+    assert ds.get_df().shape == (2, 2)  # without cache: read from disk
+    assert ds.get_df(cache=cache).shape == (3, 1)  # retrieved from cache
+
+    mocker.patch('peakina.cache.time').return_value = time.time() + 15  # fake 15s elapsed
+    assert ds.get_df(cache=cache).shape == (2, 2)  # cache is expired/invalidated: read from disk
+    assert cache.get(ds.hash).shape == (2, 2)  # cache has been updated with the new data
+
+    cache.set(ds.hash, value=df, mtime=mtime + 15)  # put back the fake df with an updated mtime
+    assert ds.get_df(cache=cache).shape == (3, 1)  # back to "retrieved from cache"
+    # fake a more recent file:
+    mocker.patch('peakina.io.local.file_fetcher.os.path.getmtime').return_value = mtime + 16
+    assert ds.get_df(cache=cache).shape == (2, 2)  # cache expired/invalidated again

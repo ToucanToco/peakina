@@ -1,19 +1,28 @@
+import os
 from typing import BinaryIO, List
 
 from ..fetcher import Fetcher, register
-from .ftp_utils import FTP_SCHEMES, ftp_listdir, ftp_mtime, ftp_open
+from .ftp_utils import FTP_SCHEMES, dir_mtimes, ftp_mtime, ftp_open
 
 
 @register(schemes=FTP_SCHEMES)
 class FTPFetcher(Fetcher):
-    @staticmethod
-    def open(filepath) -> BinaryIO:
+    def open(self, filepath) -> BinaryIO:
         return ftp_open(filepath)
 
-    @staticmethod
-    def listdir(dirpath) -> List[str]:
-        return ftp_listdir(dirpath)
+    def listdir(self, dirpath) -> List[str]:
+        """
+        Make use of listdir to get all mtimes of remote files at once and
+        put this information in cache.
+        This will save us time by avoiding to create a new FTP connection
+        for each file when we'll want to get its mtime.
+        """
+        self._mtimes_cache = dir_mtimes(dirpath)
+        return list(self._mtimes_cache.keys())
 
-    @staticmethod
-    def mtime(filepath) -> int:
-        return ftp_mtime(filepath)
+    def mtime(self, filepath) -> int:
+        filename = os.path.basename(filepath)
+        if hasattr(self, '_mtimes_cache') and filename in self._mtimes_cache:
+            return self._mtimes_cache[filename]
+        else:
+            return ftp_mtime(filepath)

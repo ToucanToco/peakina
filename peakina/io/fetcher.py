@@ -10,7 +10,7 @@ import os
 import re
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import IO, Any, Dict, Generator, List, Optional, Tuple, Union
+from typing import IO, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 from peakina.helpers import mdtm_to_string
@@ -61,19 +61,16 @@ class Fetcher(metaclass=ABCMeta):
         scheme = urlparse(filepath).scheme
         return cls.registry[scheme](filepath, match)
 
-    @staticmethod
     @abstractmethod
-    def listdir(dirpath: str) -> List[str]:
+    def listdir(self, dirpath: str) -> List[str]:
         """List all the files in a directory"""
 
-    @staticmethod
     @abstractmethod
-    def open(filepath: str) -> IO:
+    def open(self, filepath: str) -> IO:
         """Same as builtins `open` method in text mode"""
 
-    @staticmethod
     @abstractmethod
-    def mtime(filepath: str) -> Optional[int]:
+    def mtime(self, filepath: str) -> Optional[int]:
         """Get last modification time of a file"""
 
     def get_filepath_list(self) -> List[str]:
@@ -88,18 +85,9 @@ class Fetcher(metaclass=ABCMeta):
             matching_filenames = [f for f in all_filenames if self.pattern.match(f)]
         return [os.path.join(self.dirpath, f) for f in sorted(matching_filenames)]
 
-    def get_files(self) -> Generator[Tuple[str, IO], Any, None]:
-        """
-        Actually call open on each filepath and retrieve a BinaryIO or TextIO
-        Returns a generator of tuples (filename, IO)
-        """
-        return ((os.path.basename(f), self.open(f)) for f in self.get_filepath_list())
-
-    @classmethod
-    def get_str_mtime(cls, filepath: str) -> Optional[str]:
-        mdtime = cls.mtime(filepath)
+    def get_str_mtime(self, filepath: str) -> Optional[str]:
+        mdtime = self.mtime(filepath)
         return mdtm_to_string(mdtime) if mdtime else None
 
-    @classmethod
-    def get_mtime_dict(cls, dirpath: str) -> Dict[str, Optional[str]]:
-        return {f: cls.get_str_mtime(os.path.join(dirpath, f)) for f in cls.listdir(dirpath)}
+    def get_mtime_dict(self, dirpath: str) -> Dict[str, Optional[str]]:
+        return {f: self.get_str_mtime(os.path.join(dirpath, f)) for f in self.listdir(dirpath)}
