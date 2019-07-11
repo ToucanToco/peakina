@@ -29,18 +29,26 @@ def test_inmemory_cache(df_test):
         c1.get('key')
 
 
-def test_hdf_cache(tmp_path, df_test):
+def test_hdf_cache(mocker, tmp_path, df_test):
     """two hdf caches pointing to the same directory are equivalent"""
     c1 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
     c2 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
 
     c1.set('key', df_test)
+    assert c1.get_metadata().shape == (1, 3)
     assert_frame_equal(c1.get('key'), df_test)
     assert_frame_equal(c2.get('key'), df_test)
+    assert_frame_equal(c2.get_metadata(), c1.get_metadata())
 
     c1.delete('key')
+    assert len(c1.get_metadata()) == 0
     with pytest.raises(KeyError):
         c1.get('key')
+
+    mocker.patch.object(df_test, 'to_hdf').side_effect = IOError('disk full')
+    with pytest.raises(OSError):
+        c1.set('key', df_test)
+    assert len(c1.get_metadata()) == 0
 
 
 def case_inmemory(tmp_path=None) -> CaseData:

@@ -36,15 +36,17 @@ class Cache(metaclass=ABCMeta):
         return is_newer_version or is_expired
 
     @abstractmethod
-    def get(self, key: str, mtime=None, expire: timedelta = None) -> pd.DataFrame:
+    def get(
+        self, key: str, mtime=None, expire: timedelta = None
+    ) -> pd.DataFrame:  # pragma: no cover
         pass
 
     @abstractmethod
-    def set(self, key: str, value: pd.DataFrame, mtime=None):
+    def set(self, key: str, value: pd.DataFrame, mtime=None):  # pragma: no cover
         pass
 
     @abstractmethod
-    def delete(self, key: str):
+    def delete(self, key: str):  # pragma: no cover
         pass
 
 
@@ -73,7 +75,7 @@ class InMemoryCache(Cache):
 
 
 class HDFCache(Cache):
-    META_DF_KEY = 'metameta'
+    META_DF_KEY = '__meta__'
 
     def __init__(self, cache_dir: Path):
         self.cache_dir = cache_dir
