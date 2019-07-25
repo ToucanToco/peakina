@@ -9,16 +9,22 @@ import mimetypes
 from datetime import datetime
 from enum import Enum
 from itertools import islice
-from typing import Optional
+from typing import Optional, Union
 
 import chardet
+import xmltodict
 import pandas as pd
+from jq import jq
 
 
 class TypeEnum(str, Enum):
     CSV = 'csv'
     EXCEL = 'excel'
     JSON = 'json'
+    XML = 'xml'
+
+
+CUSTOM_READ_TYPES = [TypeEnum.XML]
 
 
 MIMETYPE_TYPE_MAPPING = {
@@ -27,6 +33,7 @@ MIMETYPE_TYPE_MAPPING = {
     'application/vnd.ms-excel': TypeEnum.EXCEL,
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': TypeEnum.EXCEL,
     'application/json': TypeEnum.JSON,
+    'application/xml': TypeEnum.XML,
 }
 
 
@@ -97,9 +104,13 @@ def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
     Validate that kwargs are at least in one signature of the methods
     Raises an error if it's not the case
     """
-    types = [t] if t else [t for t in TypeEnum]
-    methods = [getattr(pd, f'read_{t}') for t in types]
-    allowed_kwargs = {kw for method in methods for kw in inspect.signature(method).parameters}
+    if t is TypeEnum.XML:
+        allowed_kwargs = {'filter', 'encoding'}
+    else:
+        types = [t] if t else [t for t in TypeEnum if t not in CUSTOM_READ_TYPES]
+        methods = [getattr(pd, f'read_{t}') for t in types]
+        allowed_kwargs = {kw for method in methods for kw in inspect.signature(method).parameters}
+
     bad_kwargs = set(kwargs) - allowed_kwargs
     if bad_kwargs:
         raise ValueError(f'Unsupported kwargs: {", ".join(map(repr, bad_kwargs))}')
@@ -109,3 +120,37 @@ def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
 def mdtm_to_string(mtime: int) -> str:
     """Convert the last modification date of a file as an iso string"""
     return datetime.utcfromtimestamp(mtime).isoformat() + 'Z'
+
+
+def pd_read(filepath: str, t: str, kwargs: dict) -> pd.DataFrame:
+    if t is TypeEnum.XML:
+        return read_xml(filepath, **kwargs)
+    else:
+        pd_read = getattr(pd, f'read_{t}')
+        return pd_read(filepath, **kwargs)
+
+
+def read_xml(filepath: str, encoding: str = None, filter: str = None) -> pd.DataFrame:
+    data = xmltodict.parse(open(filepath).read(), encoding=encoding or 'utf-8')
+    if filter is not None:
+        data = transform_with_jq(data, filter)
+    return pd.DataFrame(data)
+
+
+def transform_with_jq(data: Union[dict, list], jq_filter: str) -> list:
+    """Our standard way to apply a jq filter on data before it's passed to a pd.DataFrame"""
+    data = jq(jq_filter).transform(data, multiple_output=True)
+
+    # If the data is already presented as a list of rows,
+    # then undo the nesting caused by "multiple_output" jq option
+    if len(data) == 1 and (
+        isinstance(data[0], list)
+        or (
+            # detects another valid datastructure [{col1:[value, ...], col2:[value, ...]}]
+            isinstance(data[0], dict)
+            and isinstance(list(data[0].values())[0], list)
+        )
+    ):
+        return data[0]  # type: ignore
+    else:
+        return data  # type: ignore

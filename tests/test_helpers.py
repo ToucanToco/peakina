@@ -17,11 +17,12 @@ def test_detect_type_no_regex():
     """It should find the right type of a file and raise an exception if not supported"""
     assert detect_type('file.csv') == 'csv'
     assert detect_type('file.tsv') == 'csv'
+    assert detect_type('file.xml') == 'xml'
     with pytest.raises(ValueError) as e:
-        detect_type('file.xml')
+        detect_type('file.doc')
     assert (
-        str(e.value) == "Unsupported mimetype 'application/xml'. "
-        "Supported types are: 'csv', 'excel', 'json'."
+        str(e.value) == "Unsupported mimetype 'application/msword'. "
+        "Supported types are: 'csv', 'excel', 'json', 'xml'."
     )
     with pytest.raises(ValueError):
         detect_type('file*.csv$')
@@ -33,7 +34,7 @@ def test_detect_type_with_regex():
     """It should find the type of a regex and not raise an error if it coulnd't be guessed"""
     assert detect_type('file*.csv$', is_regex=True) == 'csv'
     with pytest.raises(ValueError):
-        detect_type('file*.xml$', is_regex=True)
+        detect_type('file*.doc$', is_regex=True)
     assert detect_type('file*', is_regex=True) is None
 
 

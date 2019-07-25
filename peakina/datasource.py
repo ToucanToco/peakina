@@ -25,6 +25,7 @@ from .helpers import (
     validate_encoding,
     validate_kwargs,
     validate_sep,
+    pd_read,
 )
 from .io import Fetcher, MatchEnum
 
@@ -85,9 +86,8 @@ class DataSource:
             if not validate_sep(stream.name, encoding=encoding):
                 kwargs['sep'] = detect_sep(stream.name, encoding)
 
-        pd_read = getattr(pd, f'read_{filetype}')
         try:
-            df = pd_read(stream.name, **kwargs)
+            df = pd_read(stream.name, filetype, kwargs)
         finally:
             stream.close()
 
@@ -127,8 +127,11 @@ class DataSource:
                     continue
 
             stream = self.fetcher.open(datasource.uri)
-            df = self._get_single_df(stream, self.type, **self.extra_kwargs)
-            dfs = df if by_chunk else [df]
+            try:
+                df = self._get_single_df(stream, self.type, **self.extra_kwargs)
+                dfs = df if by_chunk else [df]
+            except pd.errors.EmptyDataError:
+                dfs = [pd.DataFrame()]
 
             for df in dfs:
                 if self.match:
