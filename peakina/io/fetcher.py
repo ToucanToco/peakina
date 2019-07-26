@@ -73,16 +73,21 @@ class Fetcher(metaclass=ABCMeta):
     def mtime(self, filepath: str) -> Optional[int]:
         """Get last modification time of a file"""
 
+    def is_matching(self, filename: str) -> bool:
+        if self.match is None:
+            return self.basename == filename
+        elif self.match is MatchEnum.GLOB:
+            return fnmatch.fnmatch(filename, self.pattern.pattern)
+        else:
+            return bool(self.pattern.match(filename))
+
     def get_filepath_list(self) -> List[str]:
         """Methods to retrieve all the pathes to open"""
         if self.match is None:
             return [self.filepath]
 
         all_filenames = self.listdir(self.dirpath)
-        if self.match is MatchEnum.GLOB:
-            matching_filenames = fnmatch.filter(all_filenames, self.pattern.pattern)
-        else:
-            matching_filenames = [f for f in all_filenames if self.pattern.match(f)]
+        matching_filenames = [f for f in all_filenames if self.is_matching(f)]
         return [os.path.join(self.dirpath, f) for f in sorted(matching_filenames)]
 
     def get_str_mtime(self, filepath: str) -> Optional[str]:

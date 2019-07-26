@@ -99,6 +99,9 @@ class DataSource:
 
         return df
 
+    def is_matching(self, filename: str) -> bool:
+        return self.fetcher.is_matching(filename)
+
     def get_matched_datasources(self) -> Generator:
         my_args = asdict(self)
         for uri in self.fetcher.get_filepath_list():
