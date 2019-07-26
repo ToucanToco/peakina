@@ -86,7 +86,10 @@ class Fetcher(metaclass=ABCMeta):
         return [os.path.join(self.dirpath, f) for f in sorted(matching_filenames)]
 
     def get_str_mtime(self, filepath: str) -> Optional[str]:
-        mdtime = self.mtime(filepath)
+        try:
+            mdtime = self.mtime(filepath)
+        except (NotImplementedError, KeyError, OSError):
+            mdtime = None
         return mdtm_to_string(mdtime) if mdtime else None
 
     def get_mtime_dict(self, dirpath: str) -> Dict[str, Optional[str]]:
