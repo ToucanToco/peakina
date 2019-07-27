@@ -179,12 +179,14 @@ def test_cache(path, mocker):
     assert ds.get_df().shape == (2, 2)  # without cache: read from disk
     assert ds.get_df(cache=cache).shape == (3, 1)  # retrieved from cache
 
-    mocker.patch('peakina.cache.time').return_value = time.time() + 15  # fake 15s elapsed
-    assert ds.get_df(cache=cache).shape == (2, 2)  # cache is expired/invalidated: read from disk
+    mock_time = mocker.patch('peakina.cache.time')
+    mock_time.return_value = time.time() + 15  # fake 15s elapsed
+    assert ds.get_df(cache=cache).shape == (2, 2)  # 15 > 10: cache expires: read from disk
     assert cache.get(ds.hash).shape == (2, 2)  # cache has been updated with the new data
 
-    cache.set(ds.hash, value=df, mtime=mtime + 15)  # put back the fake df with an updated mtime
+    mock_time.reset_mock()
+    cache.set(ds.hash, value=df, mtime=mtime)  # put back the fake df
     assert ds.get_df(cache=cache).shape == (3, 1)  # back to "retrieved from cache"
-    # fake a more recent file:
-    mocker.patch('peakina.io.local.file_fetcher.os.path.getmtime').return_value = mtime + 16
-    assert ds.get_df(cache=cache).shape == (2, 2)  # cache expired/invalidated again
+    # fake a file with a different mtime (e.g: a new file has been uploaded):
+    mocker.patch('peakina.io.local.file_fetcher.os.path.getmtime').return_value = mtime - 1
+    assert ds.get_df(cache=cache).shape == (2, 2)  # cache has been invalidated

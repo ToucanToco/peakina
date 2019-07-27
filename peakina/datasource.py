@@ -140,7 +140,7 @@ class DataSource:
                 if self.match:
                     df['__filename__'] = os.path.basename(datasource.uri)
                 if with_cache:
-                    cache.set(key=cache_key, value=df, mtime=time.time())
+                    cache.set(key=cache_key, value=df, mtime=cache_mtime)
                 yield df
 
     def get_df(self, cache: Cache = None) -> pd.DataFrame:
