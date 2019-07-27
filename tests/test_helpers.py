@@ -6,6 +6,7 @@ from peakina.helpers import (
     detect_sep,
     detect_type,
     mdtm_to_string,
+    pd_read,
     str_head,
     validate_encoding,
     validate_kwargs,
@@ -92,8 +93,15 @@ def test_validate_kwargs():
         validate_kwargs({'sheet_name': 0}, 'csv')
     assert str(e.value) == "Unsupported kwargs: 'sheet_name'"
     assert validate_kwargs({'sheet_name': 0}, None)
+    assert validate_kwargs({'filter': '.'}, 'xml')
 
 
 def test_mdtm_to_string():
     """It should convert a timestamp as an iso string"""
     assert mdtm_to_string(0) == '1970-01-01T00:00:00Z'
+
+
+def test_pd_read(path):
+    """It should call the right pandas method for reading file"""
+    assert pd_read(path('0_0.csv'), 'csv', kwargs={}).shape == (2, 2)
+    assert pd_read(path('fixture.xml'), 'xml', kwargs={}).shape == (1, 1)

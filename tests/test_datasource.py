@@ -28,10 +28,10 @@ def test_scheme():
 
 def test_type():
     """It should be able to set type if possible"""
-    assert DataSource('myfile.csv').type is TypeEnum.CSV
+    assert DataSource('myfile.csv').type == TypeEnum.CSV
     with pytest.raises(ValueError):
         DataSource('myfile.csv$')
-    assert DataSource('myfile.tsv$', match='glob').type is TypeEnum.CSV
+    assert DataSource('myfile.tsv$', match='glob').type == TypeEnum.CSV
     assert DataSource('myfile.*', match='glob').type is None
 
 
@@ -100,6 +100,13 @@ def test_match_different_file_types(path):
     assert df.shape == (8, 3)
 
 
+def test_is_matching(path):
+    assert DataSource(path('a.csv')).is_matching('a.csv')
+    assert not DataSource(path('a.csv')).is_matching('b.csv')
+    assert DataSource(path('a.*'), match='glob').is_matching('a.xlsx')
+    assert DataSource(path(r'\d{4}.\.*'), match='regex').is_matching('2019.xlsx')
+
+
 @pytest.mark.flaky(reruns=5)
 def test_ftp(ftp_path):
     ds = DataSource(f'{ftp_path}/sales.csv')
@@ -120,10 +127,30 @@ def test_basic_excel(path):
 
 
 def test_multi_sheets_excel(path):
-    """It should not add a __sheet__ column when retrieving a single sheet"""
+    """It should add a __sheet__ column when retrieving multiple sheet"""
     ds = DataSource(path('fixture-multi-sheet.xlsx'), extra_kwargs={'sheet_name': None})
     df = pd.DataFrame({'Month': [1, 2], 'Year': [2019, 2019], '__sheet__': ['January', 'February']})
     assert ds.get_df().equals(df)
+
+
+def test_basic_xml(path):
+    """It should apply optional jq filter when extracting an xml datasource"""
+    # No jq filter -> everything is in one cell
+    assert DataSource(path('fixture.xml')).get_df().shape == (1, 1)
+
+    jq_filter = '.records'
+    ds = DataSource(path('fixture.xml'), extra_kwargs={'filter': jq_filter})
+    assert ds.get_df().shape == (2, 1)
+
+    jq_filter = '.records .record[] | .["@id"]|=tonumber'
+    ds = DataSource(path('fixture.xml'), extra_kwargs={'filter': jq_filter})
+    df = pd.DataFrame({'@id': [1, 2], 'title': ["Keep on dancin'", 'Small Talk']})
+    assert ds.get_df().equals(df)
+
+
+def test_empty_file(path):
+    """It should return an empty dataframe if the file is empty"""
+    assert DataSource(path('empty.csv')).get_df().equals(pd.DataFrame())
 
 
 def test_chunk(path):

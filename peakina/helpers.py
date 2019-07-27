@@ -104,7 +104,7 @@ def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
     Validate that kwargs are at least in one signature of the methods
     Raises an error if it's not the case
     """
-    if t is TypeEnum.XML:
+    if t == TypeEnum.XML:
         allowed_kwargs = {'filter', 'encoding'}
     else:
         types = [t] if t else [t for t in TypeEnum if t not in CUSTOM_READ_TYPES]
@@ -123,7 +123,7 @@ def mdtm_to_string(mtime: int) -> str:
 
 
 def pd_read(filepath: str, t: str, kwargs: dict) -> pd.DataFrame:
-    if t is TypeEnum.XML:
+    if t == TypeEnum.XML:
         return read_xml(filepath, **kwargs)
     else:
         pd_read = getattr(pd, f'read_{t}')

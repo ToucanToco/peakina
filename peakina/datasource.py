@@ -82,7 +82,7 @@ class DataSource:
         kwargs['encoding'] = encoding
 
         # Check separator for CSV files if it's not set
-        if filetype is TypeEnum.CSV and 'sep' not in kwargs:
+        if filetype == TypeEnum.CSV and 'sep' not in kwargs:
             if not validate_sep(stream.name, encoding=encoding):
                 kwargs['sep'] = detect_sep(stream.name, encoding)
 
