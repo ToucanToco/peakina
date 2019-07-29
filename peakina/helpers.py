@@ -111,6 +111,9 @@ def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
         methods = [getattr(pd, f'read_{t}') for t in types]
         allowed_kwargs = {kw for method in methods for kw in inspect.signature(method).parameters}
 
+    if t is None or t == TypeEnum.EXCEL:
+        # this option is missing from read_excel signature in pandas 0.23:
+        allowed_kwargs.add('keep_default_na')
     bad_kwargs = set(kwargs) - allowed_kwargs
     if bad_kwargs:
         raise ValueError(f'Unsupported kwargs: {", ".join(map(repr, bad_kwargs))}')

@@ -93,6 +93,7 @@ def test_validate_kwargs():
         validate_kwargs({'sheet_name': 0}, 'csv')
     assert str(e.value) == "Unsupported kwargs: 'sheet_name'"
     assert validate_kwargs({'sheet_name': 0}, None)
+    assert validate_kwargs({'keep_default_na': False}, 'excel')
     assert validate_kwargs({'filter': '.'}, 'xml')
 
 
