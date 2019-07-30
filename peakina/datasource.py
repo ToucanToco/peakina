@@ -29,7 +29,8 @@ from .helpers import (
 )
 from .io import Fetcher, MatchEnum
 
-PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | set(Fetcher.registry)
+AVAILABLE_SCHEMES = set(Fetcher.registry) - {''}  # discard the empty string scheme
+PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | AVAILABLE_SCHEMES
 NOTSET = object()
 
 
