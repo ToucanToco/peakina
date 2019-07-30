@@ -99,3 +99,7 @@ class Fetcher(metaclass=ABCMeta):
 
     def get_mtime_dict(self, dirpath: str) -> Dict[str, Optional[str]]:
         return {f: self.get_str_mtime(os.path.join(dirpath, f)) for f in self.listdir(dirpath)}
+
+
+def fetch(uri: str) -> IO:
+    return Fetcher.get_fetcher(uri).open(uri)
