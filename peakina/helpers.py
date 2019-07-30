@@ -12,8 +12,8 @@ from itertools import islice
 from typing import Optional, Union
 
 import chardet
-import xmltodict
 import pandas as pd
+import xmltodict
 from jq import jq
 
 
@@ -148,11 +148,9 @@ def transform_with_jq(data: Union[dict, list], jq_filter: str) -> list:
     # then undo the nesting caused by "multiple_output" jq option
     if len(data) == 1 and (
         isinstance(data[0], list)
-        or (
-            # detects another valid datastructure [{col1:[value, ...], col2:[value, ...]}]
-            isinstance(data[0], dict)
-            and isinstance(list(data[0].values())[0], list)
-        )
+        or
+        # detects another valid datastructure [{col1:[value, ...], col2:[value, ...]}]
+        (isinstance(data[0], dict) and isinstance(list(data[0].values())[0], list))
     ):
         return data[0]  # type: ignore
     else:

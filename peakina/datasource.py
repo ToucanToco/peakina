@@ -6,7 +6,7 @@ the given parameters.
 """
 import os
 from contextlib import suppress
-from dataclasses import field, asdict
+from dataclasses import asdict, field
 from datetime import timedelta
 from hashlib import md5
 from typing import IO, Generator, Iterable, Optional, Union
@@ -22,10 +22,10 @@ from .helpers import (
     detect_encoding,
     detect_sep,
     detect_type,
+    pd_read,
     validate_encoding,
     validate_kwargs,
     validate_sep,
-    pd_read,
 )
 from .io import Fetcher, MatchEnum
 
