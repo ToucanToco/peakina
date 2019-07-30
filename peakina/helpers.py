@@ -50,10 +50,11 @@ SUPPORTED_TYPES = {
     'xml': TypeInfos(['application/xml'], read_xml),
 }
 
-TypeEnum = StrEnum('TypeEnum', {v.upper(): v for v in SUPPORTED_TYPES})
+
+TypeEnum = StrEnum('TypeEnum', {v.upper(): v for v in SUPPORTED_TYPES})  # type: ignore
 
 
-def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
+def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:  # type: ignore
     """
     Detects the type of a file, which can be a regex or not!
     Can return None in case of generic extension (filepath='...*') with is_regex=True.
@@ -126,7 +127,7 @@ def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
     Raises an error if it's not the case
     """
     types = [t] if t else [t for t in TypeEnum]
-    allowed_kwargs = []
+    allowed_kwargs: List[str] = []
     for t in types:
         reader = SUPPORTED_TYPES[t].reader
         allowed_kwargs += [kw for kw in inspect.signature(reader).parameters]
