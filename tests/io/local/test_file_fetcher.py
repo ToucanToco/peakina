@@ -1,9 +1,4 @@
-from peakina import fetch
 from peakina.io.local.file_fetcher import FileFetcher
-
-
-def test_file_fetch(path):
-    assert fetch(path('0_0.csv')).read() == 'a,b\n0,0\n0,1'
 
 
 def test_file_fetcher(path):

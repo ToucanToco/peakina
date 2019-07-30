@@ -49,6 +49,7 @@ class Fetcher(metaclass=ABCMeta):
     def __init__(self, filepath: str, match: Optional[str] = None):
         self.filepath = filepath
         self.dirpath, self.basename = os.path.split(self.filepath)
+        self.scheme = urlparse(filepath).scheme
         if match is None:
             self.match = None
             self.pattern = None
@@ -101,5 +102,33 @@ class Fetcher(metaclass=ABCMeta):
         return {f: self.get_str_mtime(os.path.join(dirpath, f)) for f in self.listdir(dirpath)}
 
 
-def fetch(uri: str) -> IO:
-    return Fetcher.get_fetcher(uri).open(uri)
+class fetch:
+    """class providing shortcuts for some Fetcher operations"""
+
+    def __init__(self, uri: str):
+        self.fetcher = Fetcher.get_fetcher(uri)
+
+    @property
+    def uri(self):
+        return self.fetcher.filepath
+
+    @property
+    def dirpath(self):
+        return self.fetcher.dirpath
+
+    @property
+    def basename(self):
+        return self.fetcher.basename
+
+    @property
+    def scheme(self):
+        return self.fetcher.scheme
+
+    def open(self):
+        return self.fetcher.open(self.uri)
+
+    def get_str_mtime(self):
+        return self.fetcher.get_str_mtime(self.uri)
+
+    def get_mtime_dict(self):
+        return self.fetcher.get_mtime_dict(self.dirpath)
