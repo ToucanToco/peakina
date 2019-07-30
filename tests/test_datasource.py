@@ -28,10 +28,10 @@ def test_scheme():
 
 def test_type():
     """It should be able to set type if possible"""
-    assert DataSource('myfile.csv').type == TypeEnum.CSV
+    assert DataSource('myfile.csv').type is TypeEnum.CSV
     with pytest.raises(ValueError):
         DataSource('myfile.csv$')
-    assert DataSource('myfile.tsv$', match='glob').type == TypeEnum.CSV
+    assert DataSource('myfile.tsv$', match='glob').type is TypeEnum.CSV
     assert DataSource('myfile.*', match='glob').type is None
 
 

@@ -64,11 +64,12 @@ def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
     if is_regex and mimetype is None:  # generic extension with `is_regex=True`
         return None
     try:
-        return [
+        detected_type = [
             type_
             for type_, type_infos in SUPPORTED_TYPES.items()
             if mimetype in type_infos.mime_types
         ][0]
+        return TypeEnum(detected_type)
     except IndexError:
         raise ValueError(
             f'Unsupported mimetype {mimetype!r}. '
