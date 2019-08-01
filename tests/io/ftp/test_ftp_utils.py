@@ -37,7 +37,7 @@ def test_open(ftp_client, mocker):
     ret.close()
     assert not os.path.exists(ret.name)  # tmp file is deleted on .close()
     ftp_listdir(url='foo')
-    ftp_client.listdir.assert_called_once()
+    ftp_client.listdir.assert_called_once_with('path')
 
     mocker.patch('peakina.io.ftp.ftp_utils.retry_pasv').side_effect = ftplib.error_perm
     with raises(Exception) as e:
@@ -132,3 +132,8 @@ def test_sftp_client(mocker):
     cl_ftp.sendcmd.side_effect = AttributeError
     ftp_mtime(url)
     cl_ftp.stat.assert_called_once_with('/pika/chu.csv')
+
+    cl_ftp.nlst.side_effect = AttributeError
+    url = 'sftp://id#de@me*de:randompass@atat.com:666'
+    ftp_listdir(url)
+    cl_ftp.listdir.assert_called_once_with('.')
