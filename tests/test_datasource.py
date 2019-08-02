@@ -148,6 +148,17 @@ def test_basic_xml(path):
     assert ds.get_df().equals(df)
 
 
+def test_basic_json(path):
+    """It should apply optional jq filter when extracting a json datasource"""
+    # No jq filter -> everything is in one cell
+    assert DataSource(path('fixture.json')).get_df().shape == (1, 1)
+
+    jq_filter = '.records .record[] | .["@id"]|=tonumber'
+    ds = DataSource(path('fixture.json'), extra_kwargs={'filter': jq_filter, 'lines': True})
+    df = pd.DataFrame({'@id': [1, 2], 'title': ["Keep on dancin'", 'Small Talk']})
+    assert ds.get_df().equals(df)
+
+
 def test_empty_file(path):
     """It should return an empty dataframe if the file is empty"""
     assert DataSource(path('empty.csv')).get_df().equals(pd.DataFrame())

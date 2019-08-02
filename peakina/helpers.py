@@ -18,7 +18,7 @@ from typing import Callable, List, NamedTuple, Optional
 import chardet
 import pandas as pd
 
-from .readers import read_xml
+from .readers import read_json, read_xml
 
 
 class StrEnum(str, Enum):
@@ -46,7 +46,11 @@ SUPPORTED_TYPES = {
         pd.read_excel,
         ['keep_default_na'],  # this option is missing from read_excel signature in pandas 0.23
     ),
-    'json': TypeInfos(['application/json'], pd.read_json),
+    'json': TypeInfos(
+        ['application/json'],
+        read_json,
+        ['filter'],  # this option comes from read_json, which @wraps(pd.read_json)
+    ),
     'xml': TypeInfos(['application/xml'], read_xml),
 }
 
