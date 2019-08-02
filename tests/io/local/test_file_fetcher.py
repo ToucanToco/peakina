@@ -12,3 +12,9 @@ def test_file_fetcher(path):
     str_mtime = fetcher.get_str_mtime(filepath)
     assert len(str_mtime) == 20
     assert fetcher.get_mtime_dict(dirpath)['0_0.csv'] == str_mtime
+
+
+def test_file_fetcher_mtime_oserror(mocker):
+    fetcher = FileFetcher('')
+    mocker.patch.object(fetcher, 'mtime').side_effect = OSError('oops')
+    assert fetcher.get_str_mtime('whatever') is None

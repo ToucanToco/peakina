@@ -49,6 +49,7 @@ class Fetcher(metaclass=ABCMeta):
     def __init__(self, filepath: str, match: Optional[str] = None):
         self.filepath = filepath
         self.dirpath, self.basename = os.path.split(self.filepath)
+        self.scheme = urlparse(filepath).scheme
         if match is None:
             self.match = None
             self.pattern = None
@@ -73,21 +74,61 @@ class Fetcher(metaclass=ABCMeta):
     def mtime(self, filepath: str) -> Optional[int]:
         """Get last modification time of a file"""
 
+    def is_matching(self, filename: str) -> bool:
+        if self.match is None:
+            return self.basename == filename
+        elif self.match is MatchEnum.GLOB:
+            return fnmatch.fnmatch(filename, self.pattern.pattern)
+        else:
+            return bool(self.pattern.match(filename))
+
     def get_filepath_list(self) -> List[str]:
         """Methods to retrieve all the pathes to open"""
         if self.match is None:
             return [self.filepath]
 
         all_filenames = self.listdir(self.dirpath)
-        if self.match is MatchEnum.GLOB:
-            matching_filenames = fnmatch.filter(all_filenames, self.pattern.pattern)
-        else:
-            matching_filenames = [f for f in all_filenames if self.pattern.match(f)]
+        matching_filenames = [f for f in all_filenames if self.is_matching(f)]
         return [os.path.join(self.dirpath, f) for f in sorted(matching_filenames)]
 
     def get_str_mtime(self, filepath: str) -> Optional[str]:
-        mdtime = self.mtime(filepath)
+        try:
+            mdtime = self.mtime(filepath)
+        except (NotImplementedError, KeyError, OSError):
+            mdtime = None
         return mdtm_to_string(mdtime) if mdtime else None
 
     def get_mtime_dict(self, dirpath: str) -> Dict[str, Optional[str]]:
         return {f: self.get_str_mtime(os.path.join(dirpath, f)) for f in self.listdir(dirpath)}
+
+
+class fetch:
+    """class providing shortcuts for some Fetcher operations"""
+
+    def __init__(self, uri: str):
+        self.fetcher = Fetcher.get_fetcher(uri)
+
+    @property
+    def uri(self):
+        return self.fetcher.filepath
+
+    @property
+    def dirpath(self):
+        return self.fetcher.dirpath
+
+    @property
+    def basename(self):
+        return self.fetcher.basename
+
+    @property
+    def scheme(self):
+        return self.fetcher.scheme
+
+    def open(self):
+        return self.fetcher.open(self.uri)
+
+    def get_str_mtime(self):
+        return self.fetcher.get_str_mtime(self.uri)
+
+    def get_mtime_dict(self):
+        return self.fetcher.get_mtime_dict(self.dirpath)

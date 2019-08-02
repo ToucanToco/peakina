@@ -100,6 +100,13 @@ def test_match_different_file_types(path):
     assert df.shape == (8, 3)
 
 
+def test_is_matching(path):
+    assert DataSource(path('a.csv')).is_matching('a.csv')
+    assert not DataSource(path('a.csv')).is_matching('b.csv')
+    assert DataSource(path('a.*'), match='glob').is_matching('a.xlsx')
+    assert DataSource(path(r'\d{4}.\.*'), match='regex').is_matching('2019.xlsx')
+
+
 @pytest.mark.flaky(reruns=5)
 def test_ftp(ftp_path):
     ds = DataSource(f'{ftp_path}/sales.csv')
@@ -120,10 +127,41 @@ def test_basic_excel(path):
 
 
 def test_multi_sheets_excel(path):
-    """It should not add a __sheet__ column when retrieving a single sheet"""
+    """It should add a __sheet__ column when retrieving multiple sheet"""
     ds = DataSource(path('fixture-multi-sheet.xlsx'), extra_kwargs={'sheet_name': None})
     df = pd.DataFrame({'Month': [1, 2], 'Year': [2019, 2019], '__sheet__': ['January', 'February']})
     assert ds.get_df().equals(df)
+
+
+def test_basic_xml(path):
+    """It should apply optional jq filter when extracting an xml datasource"""
+    # No jq filter -> everything is in one cell
+    assert DataSource(path('fixture.xml')).get_df().shape == (1, 1)
+
+    jq_filter = '.records'
+    ds = DataSource(path('fixture.xml'), extra_kwargs={'filter': jq_filter})
+    assert ds.get_df().shape == (2, 1)
+
+    jq_filter = '.records .record[] | .["@id"]|=tonumber'
+    ds = DataSource(path('fixture.xml'), extra_kwargs={'filter': jq_filter})
+    df = pd.DataFrame({'@id': [1, 2], 'title': ["Keep on dancin'", 'Small Talk']})
+    assert ds.get_df().equals(df)
+
+
+def test_basic_json(path):
+    """It should apply optional jq filter when extracting a json datasource"""
+    # No jq filter -> everything is in one cell
+    assert DataSource(path('fixture.json')).get_df().shape == (1, 1)
+
+    jq_filter = '.records .record[] | .["@id"]|=tonumber'
+    ds = DataSource(path('fixture.json'), extra_kwargs={'filter': jq_filter, 'lines': True})
+    df = pd.DataFrame({'@id': [1, 2], 'title': ["Keep on dancin'", 'Small Talk']})
+    assert ds.get_df().equals(df)
+
+
+def test_empty_file(path):
+    """It should return an empty dataframe if the file is empty"""
+    assert DataSource(path('empty.csv')).get_df().equals(pd.DataFrame())
 
 
 def test_chunk(path):
@@ -152,12 +190,14 @@ def test_cache(path, mocker):
     assert ds.get_df().shape == (2, 2)  # without cache: read from disk
     assert ds.get_df(cache=cache).shape == (3, 1)  # retrieved from cache
 
-    mocker.patch('peakina.cache.time').return_value = time.time() + 15  # fake 15s elapsed
-    assert ds.get_df(cache=cache).shape == (2, 2)  # cache is expired/invalidated: read from disk
+    mock_time = mocker.patch('peakina.cache.time')
+    mock_time.return_value = time.time() + 15  # fake 15s elapsed
+    assert ds.get_df(cache=cache).shape == (2, 2)  # 15 > 10: cache expires: read from disk
     assert cache.get(ds.hash).shape == (2, 2)  # cache has been updated with the new data
 
-    cache.set(ds.hash, value=df, mtime=mtime + 15)  # put back the fake df with an updated mtime
+    mock_time.reset_mock()
+    cache.set(ds.hash, value=df, mtime=mtime)  # put back the fake df
     assert ds.get_df(cache=cache).shape == (3, 1)  # back to "retrieved from cache"
-    # fake a more recent file:
-    mocker.patch('peakina.io.local.file_fetcher.os.path.getmtime').return_value = mtime + 16
-    assert ds.get_df(cache=cache).shape == (2, 2)  # cache expired/invalidated again
+    # fake a file with a different mtime (e.g: a new file has been uploaded):
+    mocker.patch('peakina.io.local.file_fetcher.os.path.getmtime').return_value = mtime - 1
+    assert ds.get_df(cache=cache).shape == (2, 2)  # cache has been invalidated

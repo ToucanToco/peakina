@@ -5,9 +5,8 @@ encoding, separator...and its only method is `get_df` to retrieve the pandas Dat
 the given parameters.
 """
 import os
-import time
 from contextlib import suppress
-from dataclasses import field, asdict
+from dataclasses import asdict, field
 from datetime import timedelta
 from hashlib import md5
 from typing import IO, Generator, Iterable, Optional, Union
@@ -15,6 +14,7 @@ from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
 from pydantic.dataclasses import dataclass
+from slugify import slugify
 
 from .cache import Cache
 from .helpers import (
@@ -22,13 +22,15 @@ from .helpers import (
     detect_encoding,
     detect_sep,
     detect_type,
+    pd_read,
     validate_encoding,
     validate_kwargs,
     validate_sep,
 )
 from .io import Fetcher, MatchEnum
 
-PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | set(Fetcher.registry)
+AVAILABLE_SCHEMES = set(Fetcher.registry) - {''}  # discard the empty string scheme
+PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | AVAILABLE_SCHEMES
 NOTSET = object()
 
 
@@ -60,7 +62,9 @@ class DataSource:
     def hash(self):
         identifier = asdict(self)
         del identifier['expire']
-        return md5(str(identifier).encode('utf-8')).hexdigest()
+        hash_ = md5(str(identifier).encode('utf-8')).hexdigest()
+        filename = slugify(os.path.basename(self.uri), separator='_')
+        return f'_{filename}_{hash_}'
 
     @staticmethod
     def _get_single_df(
@@ -85,9 +89,8 @@ class DataSource:
             if not validate_sep(stream.name, encoding=encoding):
                 kwargs['sep'] = detect_sep(stream.name, encoding)
 
-        pd_read = getattr(pd, f'read_{filetype}')
         try:
-            df = pd_read(stream.name, **kwargs)
+            df = pd_read(stream.name, filetype, kwargs)
         finally:
             stream.close()
 
@@ -98,6 +101,9 @@ class DataSource:
             df = pd.concat(df.values(), sort=False)
 
         return df
+
+    def is_matching(self, filename: str) -> bool:
+        return self.fetcher.is_matching(filename)
 
     def get_matched_datasources(self) -> Generator:
         my_args = asdict(self)
@@ -127,14 +133,17 @@ class DataSource:
                     continue
 
             stream = self.fetcher.open(datasource.uri)
-            df = self._get_single_df(stream, self.type, **self.extra_kwargs)
-            dfs = df if by_chunk else [df]
+            try:
+                df = self._get_single_df(stream, self.type, **self.extra_kwargs)
+                dfs = df if by_chunk else [df]
+            except pd.errors.EmptyDataError:
+                dfs = [pd.DataFrame()]
 
             for df in dfs:
                 if self.match:
                     df['__filename__'] = os.path.basename(datasource.uri)
                 if with_cache:
-                    cache.set(key=cache_key, value=df, mtime=time.time())
+                    cache.set(key=cache_key, value=df, mtime=cache_mtime)
                 yield df
 
     def get_df(self, cache: Cache = None) -> pd.DataFrame:

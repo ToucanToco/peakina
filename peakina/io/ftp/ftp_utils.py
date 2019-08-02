@@ -139,6 +139,8 @@ def _get_all_files(c, path) -> List[str]:
         # retry_pasv returns path + the file
         return [basename(x) for x in retry_pasv(c, 'nlst', path)]
     except AttributeError:
+        if not path:
+            path = '.'
         return c.listdir(path)
 
 

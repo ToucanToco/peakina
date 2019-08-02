@@ -6,6 +6,7 @@ from peakina.helpers import (
     detect_sep,
     detect_type,
     mdtm_to_string,
+    pd_read,
     str_head,
     validate_encoding,
     validate_kwargs,
@@ -17,11 +18,12 @@ def test_detect_type_no_regex():
     """It should find the right type of a file and raise an exception if not supported"""
     assert detect_type('file.csv') == 'csv'
     assert detect_type('file.tsv') == 'csv'
+    assert detect_type('file.xml') == 'xml'
     with pytest.raises(ValueError) as e:
-        detect_type('file.xml')
+        detect_type('file.doc')
     assert (
-        str(e.value) == "Unsupported mimetype 'application/xml'. "
-        "Supported types are: 'csv', 'excel', 'json'."
+        str(e.value) == "Unsupported mimetype 'application/msword'. "
+        "Supported types are: 'csv', 'excel', 'json', 'xml'."
     )
     with pytest.raises(ValueError):
         detect_type('file*.csv$')
@@ -33,7 +35,7 @@ def test_detect_type_with_regex():
     """It should find the type of a regex and not raise an error if it coulnd't be guessed"""
     assert detect_type('file*.csv$', is_regex=True) == 'csv'
     with pytest.raises(ValueError):
-        detect_type('file*.xml$', is_regex=True)
+        detect_type('file*.doc$', is_regex=True)
     assert detect_type('file*', is_regex=True) is None
 
 
@@ -91,8 +93,16 @@ def test_validate_kwargs():
         validate_kwargs({'sheet_name': 0}, 'csv')
     assert str(e.value) == "Unsupported kwargs: 'sheet_name'"
     assert validate_kwargs({'sheet_name': 0}, None)
+    assert validate_kwargs({'keep_default_na': False}, 'excel')
+    assert validate_kwargs({'filter': '.'}, 'xml')
 
 
 def test_mdtm_to_string():
     """It should convert a timestamp as an iso string"""
     assert mdtm_to_string(0) == '1970-01-01T00:00:00Z'
+
+
+def test_pd_read(path):
+    """It should call the right pandas method for reading file"""
+    assert pd_read(path('0_0.csv'), 'csv', kwargs={}).shape == (2, 2)
+    assert pd_read(path('fixture.xml'), 'xml', kwargs={}).shape == (1, 1)

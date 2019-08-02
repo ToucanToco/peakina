@@ -8,7 +8,7 @@ install:
 .PHONY: format
 format:
 	isort -rc -w 100 peakina tests
-	black -S -l 100 --py36 peakina tests
+	black -S -l 100 --target-version py36 peakina tests
 
 .PHONY: lint
 lint:

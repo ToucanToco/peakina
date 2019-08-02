@@ -1,6 +1,10 @@
 """
 This module provides mainly methods to validate and detect
 the type (CSV, Excel...), the encoding and the separator (for CSV) of a file.
+It's also where the reference of all supported types is done.
+In order to support a new type, you need to create a reader in the `readers`
+package and add the MIME types and the name of the method in `SUPPORTED_TYPES`
+The reader needs to take a filepath as first parameter and return a dataframe
 """
 
 import csv
@@ -9,28 +13,52 @@ import mimetypes
 from datetime import datetime
 from enum import Enum
 from itertools import islice
-from typing import Optional
+from typing import Callable, List, NamedTuple, Optional
 
 import chardet
 import pandas as pd
 
-
-class TypeEnum(str, Enum):
-    CSV = 'csv'
-    EXCEL = 'excel'
-    JSON = 'json'
+from .readers import read_json, read_xml
 
 
-MIMETYPE_TYPE_MAPPING = {
-    'text/csv': TypeEnum.CSV,
-    'text/tab-separated-values': TypeEnum.CSV,
-    'application/vnd.ms-excel': TypeEnum.EXCEL,
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': TypeEnum.EXCEL,
-    'application/json': TypeEnum.JSON,
+class StrEnum(str, Enum):
+    """Generic class to support string enums"""
+
+
+class TypeInfos(NamedTuple):
+    # All the MIME types for a given type of file
+    mime_types: List[str]
+    # The method to open a given type of file with the `filepath` as first parameter
+    # It needs to return a dataframe
+    reader: Callable[..., pd.DataFrame]
+    # If the default reader has some missing declared kwargs, it's useful
+    # to declare them for `validate_kwargs` method
+    extra_kwargs: List[str] = []
+
+
+SUPPORTED_TYPES = {
+    'csv': TypeInfos(['text/csv', 'text/tab-separated-values'], pd.read_csv),
+    'excel': TypeInfos(
+        [
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ],
+        pd.read_excel,
+        ['keep_default_na'],  # this option is missing from read_excel signature in pandas 0.23
+    ),
+    'json': TypeInfos(
+        ['application/json'],
+        read_json,
+        ['filter'],  # this option comes from read_json, which @wraps(pd.read_json)
+    ),
+    'xml': TypeInfos(['application/xml'], read_xml),
 }
 
 
-def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
+TypeEnum = StrEnum('TypeEnum', {v.upper(): v for v in SUPPORTED_TYPES})  # type: ignore
+
+
+def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:  # type: ignore
     """
     Detects the type of a file, which can be a regex or not!
     Can return None in case of generic extension (filepath='...*') with is_regex=True.
@@ -41,8 +69,13 @@ def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
     if is_regex and mimetype is None:  # generic extension with `is_regex=True`
         return None
     try:
-        return MIMETYPE_TYPE_MAPPING[mimetype]
-    except KeyError:
+        detected_type = [
+            type_
+            for type_, type_infos in SUPPORTED_TYPES.items()
+            if mimetype in type_infos.mime_types
+        ][0]
+        return TypeEnum(detected_type)
+    except IndexError:
         raise ValueError(
             f'Unsupported mimetype {mimetype!r}. '
             f'Supported types are: {", ".join(map(lambda x: repr(x.value), TypeEnum))}.'
@@ -98,9 +131,13 @@ def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
     Raises an error if it's not the case
     """
     types = [t] if t else [t for t in TypeEnum]
-    methods = [getattr(pd, f'read_{t}') for t in types]
-    allowed_kwargs = {kw for method in methods for kw in inspect.signature(method).parameters}
-    bad_kwargs = set(kwargs) - allowed_kwargs
+    allowed_kwargs: List[str] = []
+    for t in types:
+        reader = SUPPORTED_TYPES[t].reader
+        allowed_kwargs += [kw for kw in inspect.signature(reader).parameters]
+        # Add extra allowed kwargs
+        allowed_kwargs += SUPPORTED_TYPES[t].extra_kwargs
+    bad_kwargs = set(kwargs) - set(allowed_kwargs)
     if bad_kwargs:
         raise ValueError(f'Unsupported kwargs: {", ".join(map(repr, bad_kwargs))}')
     return True
@@ -109,3 +146,7 @@ def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
 def mdtm_to_string(mtime: int) -> str:
     """Convert the last modification date of a file as an iso string"""
     return datetime.utcfromtimestamp(mtime).isoformat() + 'Z'
+
+
+def pd_read(filepath: str, t: str, kwargs: dict) -> pd.DataFrame:
+    return SUPPORTED_TYPES[t].reader(filepath, **kwargs)

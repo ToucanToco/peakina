@@ -31,7 +31,7 @@ class Cache(metaclass=ABCMeta):
         is_newer_version = False
         is_expired = False
         if mtime is not None:
-            is_newer_version = mtime > cached_mtime
+            is_newer_version = mtime != cached_mtime
         if expire is not None:
             is_expired = now > cached_created_at + expire.total_seconds()
         return is_newer_version or is_expired
