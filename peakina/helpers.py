@@ -44,7 +44,8 @@ SUPPORTED_TYPES = {
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ],
         pd.read_excel,
-        ['keep_default_na'],  # this option is missing from read_excel signature in pandas 0.23
+        # these options are missing from read_excel signature in pandas 0.23:
+        ['keep_default_na', 'encoding'],
     ),
     'json': TypeInfos(
         ['application/json'],
