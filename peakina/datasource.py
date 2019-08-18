@@ -22,6 +22,7 @@ from .helpers import (
     detect_encoding,
     detect_sep,
     detect_type,
+    get_reader_allowed_params,
     pd_read,
     validate_encoding,
     validate_kwargs,
@@ -77,15 +78,17 @@ class DataSource:
         """
         if filetype is None:
             filetype = TypeEnum(detect_type(stream.name))
+        allowed_params = get_reader_allowed_params(filetype)
 
         # Check encoding
         encoding = kwargs.get('encoding')
-        if not validate_encoding(stream.name, encoding):
-            encoding = detect_encoding(stream.name)
-        kwargs['encoding'] = encoding
+        if 'encoding' in allowed_params:
+            if not validate_encoding(stream.name, encoding):
+                encoding = detect_encoding(stream.name)
+            kwargs['encoding'] = encoding
 
         # Check separator for CSV files if it's not set
-        if filetype is TypeEnum.CSV and 'sep' not in kwargs:
+        if 'sep' in allowed_params and 'sep' not in kwargs:
             if not validate_sep(stream.name, encoding=encoding):
                 kwargs['sep'] = detect_sep(stream.name, encoding)
 
