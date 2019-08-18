@@ -166,6 +166,16 @@ def test_basic_json(path):
     assert ds.get_df().equals(df)
 
 
+def test_basic_parquet(path):
+    """It should open a basic parquet file"""
+    df = DataSource(path('userdata.parquet')).get_df()
+    assert df.shape == (1000, 13)
+    df = DataSource(
+        path('userdata.parquet'), type='parquet', extra_kwargs={'columns': ['title', 'country']}
+    ).get_df()
+    assert df.shape == (1000, 2)
+
+
 def test_empty_file(path):
     """It should return an empty dataframe if the file is empty"""
     assert DataSource(path('empty.csv')).get_df().equals(pd.DataFrame())

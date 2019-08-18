@@ -10,6 +10,7 @@ The reader needs to take a filepath as first parameter and return a dataframe
 import csv
 import inspect
 import mimetypes
+import os
 from datetime import datetime
 from enum import Enum
 from itertools import islice
@@ -36,6 +37,10 @@ class TypeInfos(NamedTuple):
     extra_kwargs: List[str] = []
 
 
+# For files without MIME types, we make fake MIME types based on detected extension
+CUSTOM_MIMETYPES = {'.parquet': 'peakina/parquet'}
+
+
 SUPPORTED_TYPES = {
     'csv': TypeInfos(['text/csv', 'text/tab-separated-values'], pd.read_csv),
     'excel': TypeInfos(
@@ -52,6 +57,7 @@ SUPPORTED_TYPES = {
         read_json,
         ['filter'],  # this option comes from read_json, which @wraps(pd.read_json)
     ),
+    'parquet': TypeInfos(['peakina/parquet'], pd.read_parquet),
     'xml': TypeInfos(['application/xml'], read_xml),
 }
 
@@ -67,6 +73,13 @@ def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:  #
     if is_regex:
         filepath = filepath.rstrip('$')
     mimetype, _ = mimetypes.guess_type(filepath)
+
+    # Fallback on custom MIME types
+    if mimetype is None:
+        _, fileext = os.path.splitext(filepath)
+        if fileext in CUSTOM_MIMETYPES:
+            mimetype = CUSTOM_MIMETYPES[fileext]
+
     if is_regex and mimetype is None:  # generic extension with `is_regex=True`
         return None
     try:
@@ -126,6 +139,11 @@ def validate_sep(filepath: str, sep: str = ',', encoding: str = None) -> bool:
         return False
 
 
+def get_reader_allowed_params(t: str) -> List[str]:
+    reader = SUPPORTED_TYPES[t].reader
+    return [kw for kw in inspect.signature(reader).parameters]
+
+
 def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
     """
     Validate that kwargs are at least in one signature of the methods
@@ -134,8 +152,7 @@ def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
     types = [t] if t else [t for t in TypeEnum]
     allowed_kwargs: List[str] = []
     for t in types:
-        reader = SUPPORTED_TYPES[t].reader
-        allowed_kwargs += [kw for kw in inspect.signature(reader).parameters]
+        allowed_kwargs += get_reader_allowed_params(t)
         # Add extra allowed kwargs
         allowed_kwargs += SUPPORTED_TYPES[t].extra_kwargs
     bad_kwargs = set(kwargs) - set(allowed_kwargs)
