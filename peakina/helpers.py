@@ -45,7 +45,7 @@ SUPPORTED_TYPES = {
         ],
         pd.read_excel,
         # these options are missing from read_excel signature in pandas 0.23:
-        ['keep_default_na', 'encoding'],
+        ['keep_default_na', 'encoding', 'decimal'],
     ),
     'json': TypeInfos(
         ['application/json'],
