@@ -22,6 +22,7 @@ from .helpers import (
     detect_encoding,
     detect_sep,
     detect_type,
+    get_metadata,
     get_reader_allowed_params,
     pd_read,
     validate_encoding,
@@ -66,6 +67,10 @@ class DataSource:
         hash_ = md5(str(identifier).encode('utf-8')).hexdigest()
         filename = slugify(os.path.basename(self.uri), separator='_')
         return f'_{filename}_{hash_}'
+
+    def get_metadata(self):
+        with self.fetcher.open(self.uri) as f:
+            return get_metadata(f.name, self.type)
 
     @staticmethod
     def _get_single_df(
