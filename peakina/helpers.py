@@ -52,7 +52,7 @@ SUPPORTED_TYPES = {
         pd.read_excel,
         # these options are missing from read_excel signature in pandas 0.23:
         ['keep_default_na', 'encoding', 'decimal'],
-        lambda f: {'sheetnames': pd.ExcelFile(f).sheet_names}
+        lambda f: {'sheetnames': pd.ExcelFile(f).sheet_names},
     ),
     'json': TypeInfos(
         ['application/json'],
