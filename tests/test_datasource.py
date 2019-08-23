@@ -131,6 +131,7 @@ def test_basic_excel(path):
     ds = DataSource(path('fixture-multi-sheet.xlsx'))
     df = pd.DataFrame({'Month': [1], 'Year': [2019]})
     assert ds.get_df().equals(df)
+    assert ds.get_metadata() == {'sheetnames': ['January', 'February']}
 
 
 def test_multi_sheets_excel(path):

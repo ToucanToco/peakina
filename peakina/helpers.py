@@ -35,6 +35,7 @@ class TypeInfos(NamedTuple):
     # If the default reader has some missing declared kwargs, it's useful
     # to declare them for `validate_kwargs` method
     extra_kwargs: List[str] = []
+    metadata_reader: Callable[..., dict] = None
 
 
 # For files without MIME types, we make fake MIME types based on detected extension
@@ -51,6 +52,7 @@ SUPPORTED_TYPES = {
         pd.read_excel,
         # these options are missing from read_excel signature in pandas 0.23:
         ['keep_default_na', 'encoding', 'decimal'],
+        lambda f: {'sheetnames': pd.ExcelFile(f).sheet_names},
     ),
     'json': TypeInfos(
         ['application/json'],
@@ -168,3 +170,8 @@ def mdtm_to_string(mtime: int) -> str:
 
 def pd_read(filepath: str, t: str, kwargs: dict) -> pd.DataFrame:
     return SUPPORTED_TYPES[t].reader(filepath, **kwargs)
+
+
+def get_metadata(filepath: str, t: str) -> dict:
+    read = SUPPORTED_TYPES[t].metadata_reader
+    return read(filepath) if read else {}
