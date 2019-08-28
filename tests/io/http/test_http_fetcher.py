@@ -15,7 +15,12 @@ def test_http_fetcher(http_path, mocker):
         fetcher.listdir(http_path)
 
     stub_headers = {"last-modified": "Mon, 25 Jun 1984 11:22:33 GMT"}
-    mocker.patch(
-        "peakina.io.http.http_fetcher.PoolManager"
-    ).return_value.request.return_value.headers = stub_headers
+    mocker.patch.object(fetcher.pool_manager, 'request').return_value.headers = stub_headers
     assert fetcher.mtime(http_path) == 457010553
+
+
+def test_http_mtime_error(mocker):
+    """It should return None as default value in case of unexpected exception"""
+    fetcher = HttpFetcher('')
+    mocker.patch.object(fetcher.pool_manager, 'request').side_effect = TimeoutError
+    assert fetcher.mtime('') is None
