@@ -68,7 +68,10 @@ class DataSource:
         filename = slugify(os.path.basename(self.uri), separator='_')
         return f'_{filename}_{hash_}'
 
-    def get_metadata(self):
+    def get_metadata(self) -> dict:
+        """Return datasource metadata (e.g. excel sheetnames)"""
+        if self.match:
+            return {}  # no metadata for matched datasources
         with self.fetcher.open(self.uri) as f:
             return get_metadata(f.name, self.type)
 
