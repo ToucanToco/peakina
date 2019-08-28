@@ -133,6 +133,9 @@ def test_basic_excel(path):
     assert ds.get_df().equals(df)
     assert ds.get_metadata() == {'sheetnames': ['January', 'February']}
 
+    # On match datasources, no metadata is returned:
+    assert DataSource(path('fixture-multi-sh*t.xlsx'), match='glob').get_metadata() == {}
+
 
 def test_multi_sheets_excel(path):
     """It should add a __sheet__ column when retrieving multiple sheet"""
