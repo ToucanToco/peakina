@@ -1,10 +1,10 @@
-import ftplib
 import os
+import ftplib
 import socket
 
-from pytest import fixture, raises
+from pytest import raises, fixture
 
-from peakina.io.ftp.ftp_utils import dir_mtimes, ftp_listdir, ftp_mtime, ftp_open
+from peakina.io.ftp.ftp_utils import ftp_open, ftp_mtime, dir_mtimes, ftp_listdir
 
 
 @fixture

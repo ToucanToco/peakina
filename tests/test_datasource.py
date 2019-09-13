@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from peakina.cache import InMemoryCache
-from peakina.datasource import DataSource, TypeEnum, read_pandas
+from peakina.datasource import TypeEnum, DataSource, read_pandas
 
 
 @pytest.fixture

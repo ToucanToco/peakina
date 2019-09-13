@@ -1,16 +1,16 @@
 import pytest
 
 from peakina.helpers import (
-    bytes_head,
-    detect_encoding,
-    detect_sep,
-    detect_type,
-    mdtm_to_string,
     pd_read,
     str_head,
-    validate_encoding,
-    validate_kwargs,
+    bytes_head,
+    detect_sep,
+    detect_type,
     validate_sep,
+    mdtm_to_string,
+    detect_encoding,
+    validate_kwargs,
+    validate_encoding,
 )
 
 

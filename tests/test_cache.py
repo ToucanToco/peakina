@@ -3,8 +3,8 @@ from datetime import timedelta
 
 import pandas as pd
 import pytest
-from pandas.util.testing import assert_frame_equal
 from pytest_cases import THIS_MODULE, CaseData, CaseDataGetter, cases_data
+from pandas.util.testing import assert_frame_equal
 
 from peakina.cache import Cache, CacheEnum
 
