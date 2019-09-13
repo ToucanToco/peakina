@@ -88,7 +88,13 @@ class HDFCache(Cache):
         If metadata file is not found or is corrupted, an empty one is recreated.
         """
         try:
-            metadata = pd.read_hdf(self.cache_dir / self.META_DF_KEY)
+            # We manually instantiate the HDFStore to be able to close it no matter what
+            # See https://github.com/pandas-dev/pandas/pull/28429 for more infos
+            store = pd.HDFStore(self.cache_dir / self.META_DF_KEY, mode='r')
+            try:
+                metadata = pd.read_hdf(store)
+            finally:
+                store.close()
         except Exception:  # catch all, on purpose
             metadata = pd.DataFrame(columns=['key', 'mtime', 'created_at'])
             self.set_metadata(metadata)

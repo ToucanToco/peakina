@@ -79,3 +79,19 @@ def test_cache_expiration(df_test, mocker, tmp_path, case_data: CaseDataGetter):
     assert_frame_equal(c.get('key', expire=timedelta(days=10)), df_test)
     with pytest.raises(KeyError):
         c.get('key', expire=timedelta(days=8))
+
+
+def test_hdf_store_closed_on_error(df_test, mocker, tmp_path):
+    """it should not crash if HDF is not valid
+
+    i.e. if `read_hdf` raises an AssertionError and doesn't close the HDF store
+    """
+    c1 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
+    c1.set('key', df_test)
+    c1.set_metadata(df_test)
+    # cf. https://github.com/pandas-dev/pandas/issues/28430: an exception might
+    # occur in `read_hdf` leaving the HDF store opened.
+    mocker.patch('pandas.io.pytables.HDFStore.select').side_effect = AssertionError(
+        'gaps in blocks ref_loc'
+    )
+    assert c1.get_metadata().shape == (0, 3)
