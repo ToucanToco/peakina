@@ -64,7 +64,7 @@ def test_cache_invalidation(df_test, tmp_path, case_data: CaseDataGetter):
     """it should invalidate cache when new mtime is more recent"""
     cache_args = case_data.get(tmp_path)
     c = Cache.get_cache(*cache_args)
-    c.set('key', df_test, mtime=10)
+    c.set('key', df_test, mtime = 10)
     with pytest.raises(KeyError):
         c.get('key', mtime=15)
 
