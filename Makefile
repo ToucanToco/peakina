@@ -13,7 +13,6 @@ format:
 .PHONY: lint
 lint:
 	flake8 peakina/ tests/
-#	pytest tests -p no:sugar -q
 	black -S -l 100 --target-version py36 --check peakina tests
 
 .PHONY: mypy
