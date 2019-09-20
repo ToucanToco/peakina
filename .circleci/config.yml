@@ -1,13 +1,20 @@
 version: 2
 
 jobs:
+  lint:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run: sudo make install
+      - run: make lint mypy
   py36:
     docker:
       - image: circleci/python:3.6
     steps:
       - checkout
       - run: sudo make install
-      - run: make all
+      - run: make test
       - run: sudo pip install codecov
       - run: codecov --token=556fb2ac-7fe9-4798-9d58-ad3f22be4aca
   py37:
@@ -22,5 +29,6 @@ workflows:
   version: 2
   build:
     jobs:
+      - lint
       - py36
       - py37
