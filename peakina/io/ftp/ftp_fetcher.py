@@ -7,7 +7,7 @@ from .ftp_utils import FTP_SCHEMES, dir_mtimes, ftp_mtime, ftp_open
 
 @register(schemes=FTP_SCHEMES)
 class FTPFetcher(Fetcher):
-    def open(self, filepath) -> BinaryIO:
+    def open(self, filepath, **fetcher_kwargs) -> BinaryIO:
         return ftp_open(filepath)
 
     def listdir(self, dirpath) -> List[str]:

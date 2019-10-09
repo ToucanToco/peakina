@@ -67,7 +67,7 @@ class Fetcher(metaclass=ABCMeta):
         """List all the files in a directory"""
 
     @abstractmethod
-    def open(self, filepath: str) -> IO:
+    def open(self, filepath: str, **fetcher_kwargs) -> IO:
         """Same as builtins `open` method in text mode"""
 
     @abstractmethod

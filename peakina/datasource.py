@@ -43,6 +43,7 @@ class DataSource:
     match: Optional[MatchEnum] = None
     expire: Optional[timedelta] = None
     extra_kwargs: dict = field(default_factory=dict)
+    fetcher_kwargs: dict = field(default_factory=dict)
 
     def __post_init_post_parse__(self):
         self._fetcher = None
@@ -146,7 +147,7 @@ class DataSource:
                     yield df
                     continue
 
-            stream = self.fetcher.open(datasource.uri)
+            stream = self.fetcher.open(datasource.uri, **self.fetcher_kwargs)
             try:
                 df = self._get_single_df(stream, self.type, **self.extra_kwargs)
                 dfs = df if by_chunk else [df]
@@ -170,8 +171,14 @@ def read_pandas(
     type: TypeEnum = None,
     match: MatchEnum = None,
     expire: timedelta = None,
+    fetcher_kwargs: dict = None,
     **extra_kwargs,
 ) -> pd.DataFrame:
     return DataSource(
-        uri=uri, type=type, match=match, expire=expire, extra_kwargs=extra_kwargs
+        uri=uri,
+        type=type,
+        match=match,
+        expire=expire,
+        fetcher_kwargs=fetcher_kwargs or {},
+        extra_kwargs=extra_kwargs,
     ).get_df()

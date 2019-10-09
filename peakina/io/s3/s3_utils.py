@@ -46,10 +46,12 @@ def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], str, str]:
     return access_key, secret, urlchunks.hostname, objectname
 
 
-def s3_open(url: str) -> BinaryIO:
+def s3_open(url: str, **fetcher_kwargs) -> BinaryIO:
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
-    fs = s3fs.S3FileSystem(key=access_key, secret=secret)
+    fs = s3fs.S3FileSystem(
+        key=access_key, secret=secret, client_kwargs=fetcher_kwargs.get('client_kwargs')
+    )
     ret = tempfile.NamedTemporaryFile(suffix='.s3tmp')
     file = fs.open(f'{bucketname}/{objectname}')
     ret.write(file.read())
