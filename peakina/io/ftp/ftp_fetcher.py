@@ -1,5 +1,5 @@
 import os
-from typing import BinaryIO, List
+from typing import BinaryIO, List, Optional
 
 from ..fetcher import Fetcher, register
 from .ftp_utils import FTP_SCHEMES, dir_mtimes, ftp_mtime, ftp_open
@@ -20,7 +20,7 @@ class FTPFetcher(Fetcher):
         self._mtimes_cache = dir_mtimes(dirpath)
         return list(self._mtimes_cache.keys())
 
-    def mtime(self, filepath) -> int:
+    def mtime(self, filepath) -> Optional[int]:
         filename = os.path.basename(filepath)
         if hasattr(self, '_mtimes_cache') and filename in self._mtimes_cache:
             return self._mtimes_cache[filename]

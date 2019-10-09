@@ -12,7 +12,7 @@ class DataPool:
         self.cache = cache
         self.datasources: dict = {}
         for ds_id, ds_conf in config.items():
-            ds = DataSource(**ds_conf)  # type: ignore
+            ds = DataSource(**ds_conf)
 
             # change local path into absolute path
             if ds.scheme == '' and not path.isabs(ds.uri):

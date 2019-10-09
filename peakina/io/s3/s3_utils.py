@@ -1,6 +1,6 @@
 """This module gathers misc convenience functions to handle s3 objects"""
 import tempfile
-from typing import Tuple
+from typing import Optional, Tuple
 from typing.io import BinaryIO
 from urllib.parse import unquote, urlparse
 
@@ -9,7 +9,7 @@ import s3fs
 S3_SCHEMES = ['s3', 's3n', 's3a']
 
 
-def parse_s3_url(url) -> Tuple[str, str, str, str]:
+def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], str, str]:
     """parses a s3 url and extract credentials and s3 object path.
 
     A S3 URL looks like s3://aws_key:aws_secret@bucketname/objectname where
@@ -29,6 +29,10 @@ def parse_s3_url(url) -> Tuple[str, str, str, str]:
     assert not urlchunks.params, f's3 url should not have params, got {urlchunks.params}'
     assert not urlchunks.query, f's3 url should not have query, got {urlchunks.query}'
     assert not urlchunks.fragment, f's3 url should not have fragment, got {urlchunks.fragment}'
+
+    access_key: Optional[str] = None
+    secret: Optional[str] = None
+
     # if either username or password is specified, we have credentials
     if urlchunks.username or urlchunks.password:
         # and they should both not be empty
@@ -36,10 +40,9 @@ def parse_s3_url(url) -> Tuple[str, str, str, str]:
         assert urlchunks.password, 's3 secret should not be empty'
         access_key = unquote(urlchunks.username)
         secret = unquote(urlchunks.password)
-    else:
-        access_key = secret = None
     objectname = urlchunks.path.lstrip('/')  # remove leading /, it's not part of the objectname
     assert objectname, f"s3 objectname can't be empty"
+
     return access_key, secret, urlchunks.hostname, objectname
 
 

@@ -17,7 +17,7 @@ lint:
 
 .PHONY: mypy
 mypy:
-	mypy --follow-imports=skip --ignore-missing-imports --no-strict-optional peakina
+	mypy peakina
 
 .PHONY: test
 test:
