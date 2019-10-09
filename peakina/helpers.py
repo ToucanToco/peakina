@@ -30,7 +30,7 @@ class TypeInfos(NamedTuple):
     reader: Callable[..., pd.DataFrame]
     # If the default reader has some missing declared kwargs, it's useful
     # to declare them for `validate_kwargs` method
-    extra_kwargs: List[str] = []
+    reader_kwargs: List[str] = []
     metadata_reader: Optional[Callable[..., dict]] = None
 
 
@@ -160,7 +160,7 @@ def validate_kwargs(kwargs: dict, t: Optional[TypeEnum]) -> bool:
     for t in types:
         allowed_kwargs += get_reader_allowed_params(t)
         # Add extra allowed kwargs
-        allowed_kwargs += SUPPORTED_FILE_TYPES[t].extra_kwargs
+        allowed_kwargs += SUPPORTED_FILE_TYPES[t].reader_kwargs
     bad_kwargs = set(kwargs) - set(allowed_kwargs)
     if bad_kwargs:
         raise ValueError(f'Unsupported kwargs: {", ".join(map(repr, bad_kwargs))}')

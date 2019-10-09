@@ -24,7 +24,6 @@ def test_s3_fetcher_custom_endpoint(mocker):
 
     m = mocker.patch('peakina.io.s3.s3_utils.s3fs.S3FileSystem')
 
-    # TODO not this but a datasource here
     dirpath = 's3://aws_key:aws_secret@bucketname'
     filepath = f'{dirpath}/objectname.csv'
     with suppress(TypeError):

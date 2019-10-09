@@ -50,7 +50,7 @@ def test_validation_kwargs(mocker):
 
 def test_simple_csv(path):
     """It should be able to detect type if not set"""
-    ds = DataSource(path('0_0.csv'), extra_kwargs={'encoding': 'utf8', 'sep': ','})
+    ds = DataSource(path('0_0.csv'), reader_kwargs={'encoding': 'utf8', 'sep': ','})
     assert ds.get_df().shape == (2, 2)
 
     with pytest.raises(Exception):
@@ -62,7 +62,7 @@ def test_csv_with_sep(path):
     ds = DataSource(path('0_0_sep.csv'))
     assert ds.get_df().shape == (2, 2)
 
-    ds = DataSource(path('0_0_sep.csv'), extra_kwargs={'sep': ','})
+    ds = DataSource(path('0_0_sep.csv'), reader_kwargs={'sep': ','})
     assert ds.get_df().shape == (2, 1)
 
 
@@ -139,7 +139,7 @@ def test_basic_excel(path):
 
 def test_multi_sheets_excel(path):
     """It should add a __sheet__ column when retrieving multiple sheet"""
-    ds = DataSource(path('fixture-multi-sheet.xlsx'), extra_kwargs={'sheet_name': None})
+    ds = DataSource(path('fixture-multi-sheet.xlsx'), reader_kwargs={'sheet_name': None})
     df = pd.DataFrame({'Month': [1, 2], 'Year': [2019, 2019], '__sheet__': ['January', 'February']})
     assert ds.get_df().equals(df)
 
@@ -150,11 +150,11 @@ def test_basic_xml(path):
     assert DataSource(path('fixture.xml')).get_df().shape == (1, 1)
 
     jq_filter = '.records'
-    ds = DataSource(path('fixture.xml'), extra_kwargs={'filter': jq_filter})
+    ds = DataSource(path('fixture.xml'), reader_kwargs={'filter': jq_filter})
     assert ds.get_df().shape == (2, 1)
 
     jq_filter = '.records .record[] | .["@id"]|=tonumber'
-    ds = DataSource(path('fixture.xml'), extra_kwargs={'filter': jq_filter})
+    ds = DataSource(path('fixture.xml'), reader_kwargs={'filter': jq_filter})
     df = pd.DataFrame({'@id': [1, 2], 'title': ["Keep on dancin'", 'Small Talk']})
     assert ds.get_df().equals(df)
 
@@ -165,7 +165,7 @@ def test_basic_json(path):
     assert DataSource(path('fixture.json')).get_df().shape == (1, 1)
 
     jq_filter = '.records .record[] | .["@id"]|=tonumber'
-    ds = DataSource(path('fixture.json'), extra_kwargs={'filter': jq_filter, 'lines': True})
+    ds = DataSource(path('fixture.json'), reader_kwargs={'filter': jq_filter, 'lines': True})
     df = pd.DataFrame({'@id': [1, 2], 'title': ["Keep on dancin'", 'Small Talk']})
     assert ds.get_df().equals(df)
 
@@ -175,7 +175,7 @@ def test_basic_parquet(path):
     df = DataSource(path('userdata.parquet')).get_df()
     assert df.shape == (1000, 13)
     df = DataSource(
-        path('userdata.parquet'), type='parquet', extra_kwargs={'columns': ['title', 'country']}
+        path('userdata.parquet'), type='parquet', reader_kwargs={'columns': ['title', 'country']}
     ).get_df()
     assert df.shape == (1000, 2)
 
@@ -187,14 +187,14 @@ def test_empty_file(path):
 
 def test_chunk(path):
     """It should be able to retrieve a dataframe with chunks"""
-    ds = DataSource(path('0_0.csv'), extra_kwargs={'chunksize': 1})
+    ds = DataSource(path('0_0.csv'), reader_kwargs={'chunksize': 1})
     assert all(df.shape == (1, 2) for df in ds.get_dfs())
     assert ds.get_df().shape == (2, 2)
 
 
 def test_chunk_match(path):
     """It should be able to retrieve a dataframe with chunks and match"""
-    ds = DataSource(path('0_*.csv'), match='glob', extra_kwargs={'chunksize': 1})
+    ds = DataSource(path('0_*.csv'), match='glob', reader_kwargs={'chunksize': 1})
     assert all(df.shape == (1, 3) for df in ds.get_dfs())
     df = ds.get_df()
     assert df.shape == (6, 3)
