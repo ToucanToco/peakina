@@ -155,7 +155,7 @@ def _get_mtime(c, path) -> Optional[int]:
         mdtm = c.sendcmd('MDTM ' + path)
         # mdtm-response = "213" SP time-val CRLF (e.g. '20180101203000')
         # some FTP servers response include the milliseconds (e.g. '20180101203000.123')
-        mdtm = re.search(r'^213 (\d+)(\.\d+)?$', mdtm).group(1)
+        mdtm = re.search(r'^213 (\d+)(\.\d+)?$', mdtm).group(1)  # type: ignore
         dt = datetime.strptime(mdtm, '%Y%m%d%H%M%S')
         return int((dt - datetime(1970, 1, 1)).total_seconds())
     except AttributeError:

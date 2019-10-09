@@ -78,9 +78,9 @@ class Fetcher(metaclass=ABCMeta):
         if self.match is None:
             return self.basename == filename
         elif self.match is MatchEnum.GLOB:
-            return fnmatch.fnmatch(filename, self.pattern.pattern)
+            return fnmatch.fnmatch(filename, self.pattern.pattern)  # type: ignore
         else:
-            return bool(self.pattern.match(filename))
+            return bool(self.pattern.match(filename))  # type: ignore
 
     def get_filepath_list(self) -> List[str]:
         """Methods to retrieve all the pathes to open"""

@@ -22,10 +22,6 @@ import pandas as pd
 from .readers import read_json, read_xml
 
 
-class StrEnum(str, Enum):
-    """Generic class to support string enums"""
-
-
 class TypeInfos(NamedTuple):
     # All the MIME types for a given type of file
     mime_types: List[str]
@@ -35,7 +31,7 @@ class TypeInfos(NamedTuple):
     # If the default reader has some missing declared kwargs, it's useful
     # to declare them for `validate_kwargs` method
     extra_kwargs: List[str] = []
-    metadata_reader: Callable[..., dict] = None
+    metadata_reader: Optional[Callable[..., dict]] = None
 
 
 # For files without MIME types, we make fake MIME types based on detected extension
@@ -64,10 +60,18 @@ SUPPORTED_TYPES = {
 }
 
 
-TypeEnum = StrEnum('TypeEnum', {v.upper(): v for v in SUPPORTED_TYPES})  # type: ignore
+# FIXME: Right now mypy does not handle properly the Enum API to generate TypeEnum
+#        We would like to have something like:
+#        > TypeEnum = Enum('TypeEnum', names={v.upper(): v for v in SUPPORTED_TYPES}, type=str)
+class TypeEnum(str, Enum):
+    CSV = 'csv'
+    EXCEL = 'excel'
+    JSON = 'json'
+    PARQUET = 'parquet'
+    XML = 'xml'
 
 
-def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:  # type: ignore
+def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
     """
     Detects the type of a file, which can be a regex or not!
     Can return None in case of generic extension (filepath='...*') with is_regex=True.
@@ -151,7 +155,7 @@ def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
     Validate that kwargs are at least in one signature of the methods
     Raises an error if it's not the case
     """
-    types = [t] if t else [t for t in TypeEnum]
+    types: List[str] = [t] if t is not None else [t for t in TypeEnum]
     allowed_kwargs: List[str] = []
     for t in types:
         allowed_kwargs += get_reader_allowed_params(t)

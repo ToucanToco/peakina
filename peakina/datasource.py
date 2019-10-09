@@ -39,9 +39,9 @@ NOTSET = object()
 @dataclass
 class DataSource:
     uri: str
-    type: TypeEnum = None
-    match: MatchEnum = None
-    expire: timedelta = None
+    type: Optional[TypeEnum] = None
+    match: Optional[MatchEnum] = None
+    expire: Optional[timedelta] = None
     extra_kwargs: dict = field(default_factory=dict)
 
     def __post_init_post_parse__(self):
@@ -73,7 +73,7 @@ class DataSource:
         if self.match:
             return {}  # no metadata for matched datasources
         with self.fetcher.open(self.uri) as f:
-            return get_metadata(f.name, self.type)
+            return get_metadata(f.name, self.type)  # type: ignore
 
     @staticmethod
     def _get_single_df(
@@ -120,9 +120,9 @@ class DataSource:
         my_args = asdict(self)
         for uri in self.fetcher.get_filepath_list():
             overriden_args = {**my_args, "uri": uri, "match": None}
-            yield DataSource(**overriden_args)  # type: ignore
+            yield DataSource(**overriden_args)
 
-    def get_dfs(self, cache: Cache = None) -> Generator[pd.DataFrame, None, None]:
+    def get_dfs(self, cache: Optional[Cache] = None) -> Generator[pd.DataFrame, None, None]:
         """
         From the conf of the datasource, returns a generator
         with all the dataframes
@@ -138,8 +138,11 @@ class DataSource:
                 cache_mtime = None
                 with suppress(NotImplementedError, KeyError, OSError):
                     cache_mtime = self.fetcher.mtime(datasource.uri)
+
                 with suppress(KeyError):
-                    df = cache.get(key=cache_key, mtime=cache_mtime, expire=self.expire)
+                    df = cache.get(  # type: ignore
+                        key=cache_key, mtime=cache_mtime, expire=self.expire
+                    )
                     yield df
                     continue
 
@@ -154,7 +157,7 @@ class DataSource:
                 if self.match:
                     df['__filename__'] = os.path.basename(datasource.uri)
                 if with_cache:
-                    cache.set(key=cache_key, value=df, mtime=cache_mtime)
+                    cache.set(key=cache_key, value=df, mtime=cache_mtime)  # type: ignore
                 yield df
 
     def get_df(self, cache: Cache = None) -> pd.DataFrame:
@@ -169,6 +172,6 @@ def read_pandas(
     expire: timedelta = None,
     **extra_kwargs,
 ) -> pd.DataFrame:
-    return DataSource(  # type: ignore
+    return DataSource(
         uri=uri, type=type, match=match, expire=expire, extra_kwargs=extra_kwargs
     ).get_df()

@@ -4,7 +4,7 @@ from datetime import timedelta
 from enum import Enum
 from pathlib import Path
 from time import time
-from typing import Union
+from typing import Optional, Union
 
 import pandas as pd
 
@@ -22,9 +22,9 @@ class Cache(metaclass=ABCMeta):
     @staticmethod
     def should_invalidate(
         *,
-        mtime: float = None,
+        mtime: Optional[float] = None,
         cached_mtime: float,
-        expire: timedelta = None,
+        expire: Optional[timedelta] = None,
         cached_created_at: float,
     ):
         now = time()
@@ -38,12 +38,12 @@ class Cache(metaclass=ABCMeta):
 
     @abstractmethod
     def get(
-        self, key: str, mtime=None, expire: timedelta = None
+        self, key: str, mtime: Optional[float] = None, expire: Optional[timedelta] = None
     ) -> pd.DataFrame:  # pragma: no cover
         pass
 
     @abstractmethod
-    def set(self, key: str, value: pd.DataFrame, mtime=None):  # pragma: no cover
+    def set(self, key: str, value: pd.DataFrame, mtime: Optional[float] = None):  # pragma: no cover
         pass
 
     @abstractmethod
@@ -55,7 +55,9 @@ class InMemoryCache(Cache):
     def __init__(self):
         self._cache = {}
 
-    def get(self, key: str, mtime=None, expire: timedelta = None) -> pd.DataFrame:
+    def get(
+        self, key: str, mtime: Optional[float] = None, expire: Optional[timedelta] = None
+    ) -> pd.DataFrame:
         cached = self._cache[key]
         if self.should_invalidate(
             mtime=mtime,
@@ -66,7 +68,7 @@ class InMemoryCache(Cache):
             self.delete(key)
         return self._cache[key]['value']
 
-    def set(self, key: str, value: pd.DataFrame, mtime=None):
+    def set(self, key: str, value: pd.DataFrame, mtime: Optional[float] = None):
         mtime = mtime or time()
         self._cache[key] = {'value': value, 'mtime': mtime, 'created_at': time()}
 
@@ -103,7 +105,9 @@ class HDFCache(Cache):
     def set_metadata(self, df: pd.DataFrame):
         df.to_hdf(self.cache_dir / self.META_DF_KEY, self.META_DF_KEY, mode='w')
 
-    def get(self, key: str, mtime=None, expire: timedelta = None) -> pd.DataFrame:
+    def get(
+        self, key: str, mtime: Optional[float] = None, expire: Optional[timedelta] = None
+    ) -> pd.DataFrame:
         metadata = self.get_metadata()
         try:
             # look for the row concerning the desired key in the metadata dataframe:
@@ -124,7 +128,7 @@ class HDFCache(Cache):
         except FileNotFoundError:
             raise KeyError(key)
 
-    def set(self, key: str, value: pd.DataFrame, mtime=None):
+    def set(self, key: str, value: pd.DataFrame, mtime: Optional[float] = None):
         mtime = mtime or time()
         infos = {'key': key, 'mtime': mtime, 'created_at': time()}
         metadata = self.get_metadata()
