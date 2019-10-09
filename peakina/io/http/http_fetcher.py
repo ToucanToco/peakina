@@ -15,7 +15,7 @@ class HttpFetcher(Fetcher):
         self.pool_manager = urllib3.PoolManager(cert_reqs='CERT_NONE', assert_hostname=False)
         super().__init__(*args, **kwargs)
 
-    def open(self, filepath) -> IO:
+    def open(self, filepath, **fetcher_kwargs) -> IO:
         r = self.pool_manager.request('GET', filepath, preload_content=False)
         ret = tempfile.NamedTemporaryFile(suffix='.httptmp')
         for chunk in r.stream():

@@ -6,7 +6,7 @@ from ..fetcher import Fetcher, register
 
 @register(schemes='')
 class FileFetcher(Fetcher):
-    def open(self, filepath) -> TextIO:
+    def open(self, filepath, **fetcher_kwargs) -> TextIO:
         return open(filepath)
 
     def listdir(self, dirpath) -> List[str]:
