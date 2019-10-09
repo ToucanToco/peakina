@@ -42,7 +42,7 @@ class DataSource:
     type: Optional[TypeEnum] = None
     match: Optional[MatchEnum] = None
     expire: Optional[timedelta] = None
-    extra_kwargs: dict = field(default_factory=dict)
+    reader_kwargs: dict = field(default_factory=dict)
     fetcher_kwargs: dict = field(default_factory=dict)
 
     def __post_init_post_parse__(self):
@@ -53,7 +53,7 @@ class DataSource:
 
         self.type = self.type or detect_type(self.uri, is_regex=bool(self.match))
 
-        validate_kwargs(self.extra_kwargs, self.type)
+        validate_kwargs(self.reader_kwargs, self.type)
 
     @property
     def fetcher(self):
@@ -130,7 +130,7 @@ class DataSource:
         The generator can have a single dataframe (single file as input
         without options) or many (e.g. with `match` or `chunksize`)
         """
-        by_chunk = self.extra_kwargs.get('chunksize') is not None
+        by_chunk = self.reader_kwargs.get('chunksize') is not None
         with_cache = cache is not None and self.expire and not by_chunk
 
         for datasource in self.get_matched_datasources():
@@ -149,7 +149,7 @@ class DataSource:
 
             stream = self.fetcher.open(datasource.uri, **self.fetcher_kwargs)
             try:
-                df = self._get_single_df(stream, self.type, **self.extra_kwargs)
+                df = self._get_single_df(stream, self.type, **self.reader_kwargs)
                 dfs = df if by_chunk else [df]
             except pd.errors.EmptyDataError:
                 dfs = [pd.DataFrame()]
@@ -172,7 +172,7 @@ def read_pandas(
     match: MatchEnum = None,
     expire: timedelta = None,
     fetcher_kwargs: dict = None,
-    **extra_kwargs,
+    **reader_kwargs,
 ) -> pd.DataFrame:
     return DataSource(
         uri=uri,
@@ -180,5 +180,5 @@ def read_pandas(
         match=match,
         expire=expire,
         fetcher_kwargs=fetcher_kwargs or {},
-        extra_kwargs=extra_kwargs,
+        reader_kwargs=reader_kwargs,
     ).get_df()

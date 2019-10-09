@@ -11,7 +11,7 @@ def templatize(d, real_ftp_path):
         'uri': d.pop('file'),
         'type': d.pop('type', None),
         'match': d.pop('match', None),
-        'extra_kwargs': {**d},
+        'reader_kwargs': {**d},
     }
     with suppress(IndexError):
         res['uri'] = res['uri'].format(ftp_path=real_ftp_path)
