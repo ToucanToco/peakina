@@ -7,13 +7,13 @@ install:
 
 .PHONY: format
 format:
-	isort -rc -w 100 peakina tests
-	black -S -l 100 --target-version py36 peakina tests
+	isort -rc peakina tests setup.py
+	black peakina tests setup.py
 
 .PHONY: lint
 lint:
-	flake8 peakina/ tests/
-	black -S -l 100 --target-version py36 --check peakina tests
+	flake8 peakina tests setup.py
+	black --check peakina tests setup.py
 
 .PHONY: mypy
 mypy:
