@@ -3,7 +3,7 @@ This module provides mainly methods to validate and detect
 the type (CSV, Excel...), the encoding and the separator (for CSV) of a file.
 It's also where the reference of all supported types is done.
 In order to support a new type, you need to create a reader in the `readers`
-package and add the MIME types and the name of the method in `SUPPORTED_TYPES`
+package and add the MIME types and the name of the method in `SUPPORTED_FILE_TYPES`
 The reader needs to take a filepath as first parameter and return a dataframe
 """
 
@@ -38,7 +38,7 @@ class TypeInfos(NamedTuple):
 CUSTOM_MIMETYPES = {'.parquet': 'peakina/parquet'}
 
 
-SUPPORTED_TYPES = {
+SUPPORTED_FILE_TYPES = {
     'csv': TypeInfos(['text/csv', 'text/tab-separated-values'], pd.read_csv),
     'excel': TypeInfos(
         [
@@ -91,14 +91,14 @@ def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
     try:
         detected_type = [
             type_
-            for type_, type_infos in SUPPORTED_TYPES.items()
+            for type_, type_infos in SUPPORTED_FILE_TYPES.items()
             if mimetype in type_infos.mime_types
         ][0]
         return TypeEnum(detected_type)
     except IndexError:
         raise ValueError(
             f'Unsupported mimetype {mimetype!r}. '
-            f'Supported types are: {", ".join(map(lambda x: repr(x.value), TypeEnum))}.'
+            f'Supported types are: {", ".join(map(repr, SUPPORTED_FILE_TYPES))}.'
         )
 
 
@@ -145,22 +145,22 @@ def validate_sep(filepath: str, sep: str = ',', encoding: str = None) -> bool:
         return False
 
 
-def get_reader_allowed_params(t: str) -> List[str]:
-    reader = SUPPORTED_TYPES[t].reader
+def get_reader_allowed_params(t: TypeEnum) -> List[str]:
+    reader = SUPPORTED_FILE_TYPES[t].reader
     return [kw for kw in inspect.signature(reader).parameters]
 
 
-def validate_kwargs(kwargs: dict, t: Optional[str]) -> bool:
+def validate_kwargs(kwargs: dict, t: Optional[TypeEnum]) -> bool:
     """
     Validate that kwargs are at least in one signature of the methods
     Raises an error if it's not the case
     """
-    types: List[str] = [t] if t is not None else [t for t in TypeEnum]
+    types: List[TypeEnum] = [t] if t is not None else [TypeEnum(t) for t in SUPPORTED_FILE_TYPES]
     allowed_kwargs: List[str] = []
     for t in types:
         allowed_kwargs += get_reader_allowed_params(t)
         # Add extra allowed kwargs
-        allowed_kwargs += SUPPORTED_TYPES[t].extra_kwargs
+        allowed_kwargs += SUPPORTED_FILE_TYPES[t].extra_kwargs
     bad_kwargs = set(kwargs) - set(allowed_kwargs)
     if bad_kwargs:
         raise ValueError(f'Unsupported kwargs: {", ".join(map(repr, bad_kwargs))}')
@@ -173,9 +173,9 @@ def mdtm_to_string(mtime: int) -> str:
 
 
 def pd_read(filepath: str, t: str, kwargs: dict) -> pd.DataFrame:
-    return SUPPORTED_TYPES[t].reader(filepath, **kwargs)
+    return SUPPORTED_FILE_TYPES[t].reader(filepath, **kwargs)
 
 
 def get_metadata(filepath: str, t: str) -> dict:
-    read = SUPPORTED_TYPES[t].metadata_reader
+    read = SUPPORTED_FILE_TYPES[t].metadata_reader
     return read(filepath) if read else {}
