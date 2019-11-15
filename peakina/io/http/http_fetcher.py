@@ -16,7 +16,7 @@ class HttpFetcher(Fetcher):
         super().__init__(*args, **kwargs)
 
     def open(self, filepath, **fetcher_kwargs) -> IO:
-        r = self.pool_manager.request('GET', filepath, preload_content=False)
+        r = self.pool_manager.request('GET', filepath, preload_content=False, **fetcher_kwargs)
         ret = tempfile.NamedTemporaryFile(suffix='.httptmp')
         for chunk in r.stream():
             ret.write(chunk)
