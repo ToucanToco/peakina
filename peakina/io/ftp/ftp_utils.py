@@ -38,9 +38,9 @@ class FTPS(ftplib.FTP_TLS):
 def ftps_client(params: ParseResult):
     ftps = FTPS()
     try:
-        ftps.connect(host=params.hostname, port=params.port, timeout=3)
+        ftps.connect(host=params.hostname or '', port=params.port, timeout=3)
         ftps.prot_p()
-        ftps.login(user=params.username, passwd=params.password)
+        ftps.login(user=params.username or '', passwd=params.password or '')
         yield ftps, params.path
 
     finally:
@@ -52,8 +52,8 @@ def ftp_client(params: ParseResult):
     port = params.port or 21
     ftp = ftplib.FTP()
     try:
-        ftp.connect(host=params.hostname, port=port, timeout=3)
-        ftp.login(user=params.username, passwd=params.password)
+        ftp.connect(host=params.hostname or '', port=port, timeout=3)
+        ftp.login(user=params.username or '', passwd=params.password or '')
         yield ftp, params.path
 
     finally:

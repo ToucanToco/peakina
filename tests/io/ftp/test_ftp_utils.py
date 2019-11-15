@@ -102,7 +102,7 @@ def test_ftp_client(mocker):
     ftp_open(url)
 
     mock_ftp_client.connect.assert_called_once_with(host='ondine.com', port=123, timeout=3)
-    mock_ftp_client.login.assert_called_once_with(passwd=None, user='sacha')
+    mock_ftp_client.login.assert_called_once_with(passwd='', user='sacha')
     mock_ftp_client.quit.assert_called_once()
 
 
@@ -112,7 +112,7 @@ def test_ftps_client(mocker):
     ftp_open(url)
 
     mock_ftps_client.connect.assert_called_once_with(host='ondine.com', port=123, timeout=3)
-    mock_ftps_client.login.assert_called_once_with(passwd=None, user='sacha')
+    mock_ftps_client.login.assert_called_once_with(passwd='', user='sacha')
     mock_ftps_client.quit.assert_called_once()
 
 
