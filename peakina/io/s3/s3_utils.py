@@ -9,7 +9,7 @@ import s3fs
 S3_SCHEMES = ['s3', 's3n', 's3a']
 
 
-def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], str, str]:
+def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], Optional[str], str]:
     """parses a s3 url and extract credentials and s3 object path.
 
     A S3 URL looks like s3://aws_key:aws_secret@bucketname/objectname where
