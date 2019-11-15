@@ -24,3 +24,13 @@ def test_http_mtime_error(mocker):
     fetcher = HttpFetcher('')
     mocker.patch.object(fetcher.pool_manager, 'request').side_effect = TimeoutError
     assert fetcher.mtime('') is None
+
+
+def test_http_fetcher_kwargs(http_path, mocker):
+    """It should pass fetcher_kwargs to `pool_manager.request`"""
+    fetcher = HttpFetcher('')
+    request_mock = mocker.patch.object(fetcher.pool_manager, 'request')
+    fetcher.open(http_path, headers={'X-Foo': 'bar'})
+    request_mock.assert_called_once_with(
+        'GET', http_path, preload_content=False, headers={'X-Foo': 'bar'}
+    )
