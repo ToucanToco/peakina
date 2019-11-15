@@ -24,6 +24,13 @@ jobs:
       - checkout
       - run: sudo make install
       - run: make test
+  py38:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - checkout
+      - run: sudo make install
+      - run: make test
 
 workflows:
   version: 2
@@ -32,3 +39,4 @@ workflows:
       - lint
       - py36
       - py37
+      - py38
