@@ -2,17 +2,22 @@ import tempfile
 from email.utils import parsedate_to_datetime
 from typing import IO, List, Optional
 
+import certifi
 import urllib3
 
 from ..fetcher import Fetcher, register
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 
 @register(schemes=['http', 'https'])
 class HttpFetcher(Fetcher):
-    def __init__(self, *args, **kwargs):
-        self.pool_manager = urllib3.PoolManager(cert_reqs='CERT_NONE', assert_hostname=False)
+    def __init__(self, *args, verify=True, **kwargs):
+        if verify:
+            self.pool_manager = urllib3.PoolManager(
+                cert_reqs='CERT_REQUIRED', ca_certs=certifi.where()
+            )
+        else:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            self.pool_manager = urllib3.PoolManager(cert_reqs='CERT_NONE', assert_hostname=False)
         super().__init__(*args, **kwargs)
 
     def open(self, filepath, **fetcher_kwargs) -> IO:
