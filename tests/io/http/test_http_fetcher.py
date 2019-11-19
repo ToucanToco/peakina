@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from urllib3.exceptions import SSLError
 
 from peakina.io.http.http_fetcher import HttpFetcher
 
@@ -34,3 +35,29 @@ def test_http_fetcher_kwargs(http_path, mocker):
     request_mock.assert_called_once_with(
         'GET', http_path, preload_content=False, headers={'X-Foo': 'bar'}
     )
+
+
+def test_http_fetcher_verify(http_path):
+    """It should check certificate and get results"""
+    fetcher = HttpFetcher('', verify=True)
+    tmpfile = fetcher.open(http_path)
+    assert pd.read_csv(tmpfile).shape == (800, 13)
+
+
+def test_http_fetcher_verify_no_ca_certs(http_path, path, mocker):
+    """Make sure certificates are checked with `verify=True`
+
+    Provide an empty set of root CA and make sure certifcate verification fails.
+    """
+    mocker.patch('certifi.where', return_value=path('dummy_cert.crt'))
+    fetcher = HttpFetcher('', verify=True)
+    with pytest.raises(SSLError) as err:
+        fetcher.open(http_path, retries=False)
+    assert 'CERTIFICATE_VERIFY_FAILED' in str(err.value)
+
+
+def test_http_fetcher_no_verify(http_path):
+    """It should not check certificate and still get results"""
+    fetcher = HttpFetcher('', verify=False)
+    tmpfile = fetcher.open(http_path)
+    assert pd.read_csv(tmpfile).shape == (800, 13)
