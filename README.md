@@ -9,14 +9,18 @@
 
 Wrapper around `pandas` library, which detects separator, encoding
 and type of the file. It allows to get a group of files with a matching pattern (python or glob regex).
-It can read local but also FTP/FTPS/SFTP and S3/S3N/S3A files.
+It can read both local and remote files (HTTP/HTTPS, FTP/FTPS/SFTP or S3/S3N/S3A).
+
+The supported file types are `csv`, `excel`, `json`, `parquet` and `xml`.
+
+:information_source: If the desired type is not yet supported, feel free to open an issue or to directly open a PR with the code !
 
 # Installation
 
 `pip install peakina`
 
 # Usage
-Considering a file 'file.csv'
+Considering a file `file.csv`
 ```
 a;b
 0;0
