@@ -15,7 +15,37 @@
 
 ## [0.3.0] - 2019-10-10
 
+### Added
+
+- Added parquet support
+- Added 'encoding' and 'decimal' parameters for excel
+- Added `fetcher_kwargs` and use it for s3 endpoint
+
+### Changed
+
+- Switch to `strict_optional = True` for `mypy`
+- Rename `extra_kwargs` into `reader_kwargs`
+
 ## [0.2.0] - 2019-08-02
+
+### Added
+
+- Added 'keep_default_na' for excel
+- Added `peakina.datasource.Datasource.get_metadata`
+- Added JQ filter support for JSON datasources
+
+## [0.1.0] - 2019-07-11
+
+### Added
+
+- Added excel sheetnames support
+- Added HTTP fetcher
+- Added cache (in memory or HDF file)
+- Added validation for `extra_kwargs` passed to `DataSource`
+
+### Changed
+
+- Clearer API: `reader` becomes `fetcher`
 
 ## [0.0.1] - 2018-11-16
 
@@ -24,3 +54,7 @@
 - Initial version, showtime!
 
 [0.4.0]: https://github.com/ToucanToco/peakina/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/ToucanToco/peakina/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/ToucanToco/peakina/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/ToucanToco/peakina/compare/v0.0.1...v0.1.0
+[0.0.1]: https://github.com/ToucanToco/peakina/tree/v0.0.1
