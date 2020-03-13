@@ -1,6 +1,7 @@
 import io
 
-from pytest import raises
+import boto3
+from pytest import fixture, raises
 
 from peakina.io.s3.s3_utils import parse_s3_url as pu, s3_open
 
@@ -51,3 +52,22 @@ def test_s3_open(mocker):
     tmpfile = s3_open('s3://mybucket/file.csv')
     assert tmpfile.name.endswith('.s3tmp')
     assert tmpfile.read() == b'a,b\n0,1\n'
+
+
+@fixture(scope='module')
+def s3_bucket(s3_container):
+    session = boto3.session.Session()
+    s3_client = session.client(
+        service_name='s3',
+        aws_access_key_id='newAccessKey',
+        aws_secret_access_key='newSecretKey',
+        endpoint_url=f'http://localhost:{s3_container["port"]}',
+    )
+    s3_client.create_bucket(Bucket='mybucket')
+    return s3_client
+
+
+@fixture(scope='module')
+def s3_container(service_container):
+    # Return a docker container with a S3
+    return service_container('s3')

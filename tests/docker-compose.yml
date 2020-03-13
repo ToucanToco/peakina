@@ -1,0 +1,10 @@
+s3:
+  image: scality/s3server:mem-latest
+  environment:
+    - SCALITY_ACCESS_KEY_ID=newAccessKey
+    - SCALITY_SECRET_ACCESS_KEY=newSecretKey
+  ports:
+    - 8000:8000
+  volumes:
+    ## Mounting volume with /fixtures files
+    - ./fixtures/:/usr/src/app/localData/
