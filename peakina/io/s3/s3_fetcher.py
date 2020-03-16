@@ -1,7 +1,7 @@
 from typing import BinaryIO, List
 
 from ..fetcher import Fetcher, register
-from .s3_utils import S3_SCHEMES, s3_list_dir, s3_mtime, s3_open, s3_read
+from .s3_utils import S3_SCHEMES, s3_list_dir, s3_mtime, s3_read
 
 
 @register(schemes=S3_SCHEMES)
@@ -16,4 +16,4 @@ class S3Fetcher(Fetcher):
 
     @staticmethod
     def mtime(s3_url, **kwargs) -> int:
-        return s3_mtime(s3_url)
+        return s3_mtime(s3_url, **kwargs)

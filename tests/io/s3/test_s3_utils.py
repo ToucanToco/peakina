@@ -1,12 +1,8 @@
-import io
 import os
-from collections import namedtuple
 
-import boto3
-import s3fs
 from pytest import fixture, raises
 
-from peakina.io.s3.s3_utils import create_s3_client, parse_s3_url as pu, s3_open
+from peakina.io.s3.s3_utils import create_s3_client, parse_s3_url as pu
 
 _BUCKET_NAME = 'mybucket'
 _PREFIX = 'localData/'
@@ -52,7 +48,7 @@ def test_empty_object_name_raise_exception():
         pu('s3://a/')
 
 
-def test_s3_container(mocker, s3_bucket):
+def test_s3_bucket(mocker, s3_bucket):
     s3_list_objects = s3_bucket.list_objects(Bucket='mybucket')
     assert s3_list_objects['ResponseMetadata']['HTTPStatusCode'] == 200
     s3_object = s3_bucket.get_object(Bucket='mybucket', Key='0_0.csv')
@@ -68,6 +64,11 @@ def s3_container(service_container):
 
 @fixture(scope='module')
 def s3_bucket(s3_container):
+    """
+    Create an Amazon S3 bucket with a S3 client
+    Arguments:
+        s3_container -- docker service container
+    """
     s3_bucket = create_s3_client(
         aws_access_key_id='newAccessKey',
         aws_secret_access_key='newSecretKey',

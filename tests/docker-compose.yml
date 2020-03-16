@@ -9,3 +9,11 @@ s3:
   volumes:
     ## Mounting volume with /fixtures files
     - ./fixtures/:/usr/src/app/localData/
+
+s3-latest:
+  image: zenko/cloudserver
+  ports:
+    - 8000:8000
+  environment:
+    - AWS_ACCESS_KEY_ID=newAccessKey
+    - AWS_SECRET_ACCESS_KEY=newSecretKey
