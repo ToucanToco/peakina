@@ -1,9 +1,15 @@
 import io
+import os
 
 import boto3
+import s3fs
 from pytest import fixture, raises
+from collections import namedtuple
 
-from peakina.io.s3.s3_utils import parse_s3_url as pu, s3_open
+from peakina.io.s3.s3_utils import create_s3_client, s3_open, parse_s3_url as pu
+
+_BUCKET_NAME = 'mybucket'
+_PREFIX = 'localData/'
 
 
 def test_parse_s3_url_no_credentials():
@@ -46,28 +52,36 @@ def test_empty_object_name_raise_exception():
         pu('s3://a/')
 
 
-def test_s3_open(mocker):
-    fs_mock = mocker.patch('s3fs.S3FileSystem').return_value
-    fs_mock.open.return_value = io.BytesIO(b'a,b\n0,1\n')
-    tmpfile = s3_open('s3://mybucket/file.csv')
-    assert tmpfile.name.endswith('.s3tmp')
-    assert tmpfile.read() == b'a,b\n0,1\n'
-
-
-@fixture(scope='module')
-def s3_bucket(s3_container):
-    session = boto3.session.Session()
-    s3_client = session.client(
-        service_name='s3',
-        aws_access_key_id='newAccessKey',
-        aws_secret_access_key='newSecretKey',
-        endpoint_url=f'http://localhost:{s3_container["port"]}',
-    )
-    s3_client.create_bucket(Bucket='mybucket')
-    return s3_client
+def test_s3_open(mocker, s3_bucket):
+    s3_list_objects = s3_bucket.list_objects(Bucket='mybucket')
+    assert s3_list_objects['ResponseMetadata']['HTTPStatusCode'] == 200
+    s3_object = s3_bucket.get_object(Bucket='mybucket', Key='0_0.csv')
+    s3_object['ResponseMetadata']['HTTPStatusCode'] == 200
+    s3_object['Body'].read() == b'a,b\n0,0\n0,1'
 
 
 @fixture(scope='module')
 def s3_container(service_container):
     # Return a docker container with a S3
     return service_container('s3')
+
+
+@fixture(scope='module')
+def s3_bucket(s3_container):
+    s3_bucket = create_s3_client(
+        aws_access_key_id='newAccessKey',
+        aws_secret_access_key='newSecretKey',
+        endpoint_url=f'http://localhost:{s3_container["port"]}',
+    )
+    s3_bucket.create_bucket(Bucket='mybucket')
+
+    def check_and_feed(s3_bucket):
+        directory = os.getcwd() + '/tests/fixtures/'
+        for file in os.listdir(directory):
+            filename = os.fsdecode(file)
+            if filename.endswith(".csv"):
+                s3_bucket.upload_file(f'{directory}{filename}', 'mybucket', filename)
+
+    check_and_feed(s3_bucket)
+    return s3_bucket
+

@@ -1,12 +1,13 @@
 """This module gathers misc convenience functions to handle s3 objects"""
 import tempfile
-from typing import Optional, Tuple
-from typing.io import BinaryIO
+from typing import Optional, Tuple, BinaryIO
 from urllib.parse import unquote, urlparse
+from pydantic import BaseModel
 
+import boto3
 import s3fs
 
-S3_SCHEMES = ['s3', 's3n', 's3a']
+S3_SCHEMES = ['s3', 's3n', 's3a', 'localhost']
 
 
 def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], Optional[str], str]:
@@ -46,7 +47,7 @@ def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], Optional[str],
     return access_key, secret, urlchunks.hostname, objectname
 
 
-def s3_open(url: str, **fetcher_kwargs) -> BinaryIO:
+def s3_open(self, **fetcher_kwargs) -> BinaryIO:
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
     fs = s3fs.S3FileSystem(
@@ -57,3 +58,42 @@ def s3_open(url: str, **fetcher_kwargs) -> BinaryIO:
     ret.write(file.read())
     ret.seek(0)
     return ret
+
+
+def create_s3_client(
+    aws_access_key_id: str, aws_secret_access_key: str, endpoint_url: str, **kwargs
+):
+    ##
+    session = boto3.session.Session()
+    s3_client = session.client(
+        service_name='s3',
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+        endpoint_url=endpoint_url,
+        **kwargs,
+    )
+    return s3_client
+
+
+def s3_read(key, client_parameters) -> BinaryIO:
+    ## Read a file from a s3 path
+    ## Return:
+    # I/O file
+    ## The key to find in the directory
+    aws_secret_access_key, bucket_name = parse_s3_url(self.filepath)
+
+    ## Create a s3_client:
+    # aws_access_key_id :: The access key for your AWS account :: str
+    # aws_secret_access_key :: The secret key for your AWS account :: str,
+    # aws_session_token :: The session key for your AWS account. :: str,
+    ### More informations: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html
+    s3 = create_s3_client(client_parameters)
+
+    ## Get object from a bucket
+    # Bucket :: Amazon bucket name :: str
+    # Key :: The key / filepath to find in the bucket :: str
+    ### More informations: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.get_object
+    s3_object = s3.get_object(Bucket=bucket_name, Key=key)
+    body = s3_object["Body"]
+    return body.read()
+
