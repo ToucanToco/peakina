@@ -1,11 +1,17 @@
 """This module gathers misc convenience functions to handle s3 objects"""
 import tempfile
-from typing import Optional, Tuple, BinaryIO
+from typing import Optional, Tuple, BinaryIO, List
 from urllib.parse import unquote, urlparse
-from pydantic import BaseModel
-
 import boto3
+from botocore.exceptions import (
+    BotoCoreError,
+    DataNotFoundError,
+    NoCredentialsError,
+    ClientError,
+    ParamValidationError,
+)
 import s3fs
+from datetime import datetime
 
 S3_SCHEMES = ['s3', 's3n', 's3a', 'localhost']
 
@@ -42,7 +48,6 @@ def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], Optional[str],
         access_key = unquote(urlchunks.username)
         secret = unquote(urlchunks.password)
     objectname = urlchunks.path.lstrip('/')  # remove leading /, it's not part of the objectname
-    assert objectname, f"s3 objectname can't be empty"
 
     return access_key, secret, urlchunks.hostname, objectname
 
@@ -60,40 +65,76 @@ def s3_open(self, **fetcher_kwargs) -> BinaryIO:
     return ret
 
 
-def create_s3_client(
-    aws_access_key_id: str, aws_secret_access_key: str, endpoint_url: str, **kwargs
-):
-    ##
-    session = boto3.session.Session()
-    s3_client = session.client(
-        service_name='s3',
-        aws_access_key_id=aws_access_key_id,
-        aws_secret_access_key=aws_secret_access_key,
-        endpoint_url=endpoint_url,
-        **kwargs,
-    )
+def create_s3_client(**kwargs):
+    # Create s3_client:
+    # aws_access_key_id :: The access key for your AWS account :: str
+    # aws_secret_access_key :: The secret key for your AWS account :: str,
+    # More informations: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html
+    try:
+        session = boto3.session.Session()
+        s3_client = session.client(service_name='s3', **kwargs,)
+    except (NoCredentialsError, ClientError, ParamValidationError) as e:
+        print(e)
     return s3_client
 
 
-def s3_read(key, client_parameters) -> BinaryIO:
+def s3_read(url: str, **kwargs) -> BinaryIO:
     ## Read a file from a s3 path
-    ## Return:
-    # I/O file
-    ## The key to find in the directory
-    aws_secret_access_key, bucket_name = parse_s3_url(self.filepath)
+    #  Parameters:
+    #   url :: s3 path
+    #   kwargs:
 
-    ## Create a s3_client:
-    # aws_access_key_id :: The access key for your AWS account :: str
-    # aws_secret_access_key :: The secret key for your AWS account :: str,
-    # aws_session_token :: The session key for your AWS account. :: str,
-    ### More informations: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html
-    s3 = create_s3_client(client_parameters)
+    aws_access_key, aws_secret, bucket_name, key = parse_s3_url(url)
+    assert key, f"Cannot retrieve file without an empty path/key"
+    s3 = create_s3_client(
+        aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret, **kwargs,
+    )
 
     ## Get object from a bucket
     # Bucket :: Amazon bucket name :: str
-    # Key :: The key / filepath to find in the bucket :: str
-    ### More informations: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.get_object
-    s3_object = s3.get_object(Bucket=bucket_name, Key=key)
-    body = s3_object["Body"]
-    return body.read()
+    # Key    :: Retrieve the key/key_path or object / object_name:: str
+    ### More informations:
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.get_object
+    try:
+        response = s3.get_object(Bucket=bucket_name, Key=key)
+        response_body = response["Body"]
+    except DataNotFoundError as e:
+        print(e)
+    return response_body.read()
 
+
+def s3_list_dir(url: str, **kwargs) -> List:
+    aws_access_key, aws_secret, bucket_name, object_name = parse_s3_url(url)
+    s3 = create_s3_client(**kwargs)
+    try:
+        response = s3.list_objects(Bucket=bucket_name)
+    except DataNotFoundError as e:
+        print(e)
+    return response['Contents']
+
+
+def s3_mtime(url: str, **kwargs) -> int:
+    ## Get the last modification of a S3 file
+    # url :: A S3 URL looks like s3://aws_key:aws_secret@bucketname/objectname where credentials are optional
+    # key    :: Retrieve the key/key_path or object / object_name:: str
+    ### More informations
+    aws_access_key, aws_secret, bucket_name, key = parse_s3_url(url)
+    assert (
+        key
+    ), f"Cannot retrieve file without an empty key in the url. E.G: 's3://aws_key:aws_secret@bucketname/key' "
+    s3 = create_s3_client(**kwargs)
+
+    ## Get object and return his last date of modification
+    # Bucket :: Amazon bucket name :: str
+    # Key :: Retrieve the key/key_path or object / object_name in the bucket :: str
+    ### More informations:
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.get_object
+    try:
+        response = s3.get_object(Bucket=bucket_name, Key=key)
+    except DataNotFoundError as e:
+        print(e)
+
+    def datetime_to_timestamp(datetime):
+        return datetime.timestamp()
+
+    return int(datetime_to_timestamp(response['LastModified']))

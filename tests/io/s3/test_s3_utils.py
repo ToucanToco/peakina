@@ -52,7 +52,7 @@ def test_empty_object_name_raise_exception():
         pu('s3://a/')
 
 
-def test_s3_open(mocker, s3_bucket):
+def test_s3_container(mocker, s3_bucket):
     s3_list_objects = s3_bucket.list_objects(Bucket='mybucket')
     assert s3_list_objects['ResponseMetadata']['HTTPStatusCode'] == 200
     s3_object = s3_bucket.get_object(Bucket='mybucket', Key='0_0.csv')
