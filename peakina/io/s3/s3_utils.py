@@ -1,22 +1,23 @@
 """This module gathers misc convenience functions to handle s3 objects"""
 import tempfile
-from typing import Optional, Tuple, BinaryIO, List
+from datetime import datetime
+from typing import BinaryIO, List, Optional, Tuple
 from urllib.parse import unquote, urlparse
+
 import boto3
+import s3fs
 from botocore.exceptions import (
     BotoCoreError,
+    ClientError,
     DataNotFoundError,
     NoCredentialsError,
-    ClientError,
     ParamValidationError,
 )
-import s3fs
-from datetime import datetime
 
 S3_SCHEMES = ['s3', 's3n', 's3a', 'localhost']
 
 
-def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], Optional[str], str]:
+def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
     """parses a s3 url and extract credentials and s3 object path.
 
     A S3 URL looks like s3://aws_key:aws_secret@bucketname/objectname where

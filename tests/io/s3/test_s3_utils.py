@@ -1,12 +1,12 @@
 import io
 import os
+from collections import namedtuple
 
 import boto3
 import s3fs
 from pytest import fixture, raises
-from collections import namedtuple
 
-from peakina.io.s3.s3_utils import create_s3_client, s3_open, parse_s3_url as pu
+from peakina.io.s3.s3_utils import create_s3_client, parse_s3_url as pu, s3_open
 
 _BUCKET_NAME = 'mybucket'
 _PREFIX = 'localData/'
@@ -84,4 +84,3 @@ def s3_bucket(s3_container):
 
     check_and_feed(s3_bucket)
     return s3_bucket
-

@@ -1,7 +1,7 @@
 from typing import BinaryIO, List
 
 from ..fetcher import Fetcher, register
-from .s3_utils import S3_SCHEMES, s3_open, s3_read, s3_list_dir, s3_mtime
+from .s3_utils import S3_SCHEMES, s3_list_dir, s3_mtime, s3_open, s3_read
 
 
 @register(schemes=S3_SCHEMES)

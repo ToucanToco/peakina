@@ -1,15 +1,22 @@
+from collections import namedtuple
 from contextlib import suppress
+from typing import BinaryIO
 
+import boto3
 from pytest import raises
 
 import peakina as pk
-import boto3
-from typing import BinaryIO
 from peakina.io.s3.s3_fetcher import S3Fetcher
-from peakina.io.s3.s3_utils import s3_read, parse_s3_url, s3_list_dir, s3_mtime
-from peakina.io.s3.s3_utils import s3_open, create_s3_client
-from tests.io.s3.test_s3_utils import s3_bucket, s3_container
-from collections import namedtuple
+from peakina.io.s3.s3_utils import (
+    create_s3_client,
+    parse_s3_url,
+    s3_bucket,
+    s3_container,
+    s3_list_dir,
+    s3_mtime,
+    s3_open,
+    s3_read,
+)
 
 
 def test_s3_read(mocker, s3_bucket):
