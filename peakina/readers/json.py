@@ -1,15 +1,16 @@
 """
 Module to enhance pandas.read_json with JQ filter
 """
+import json
 from functools import wraps
 
 import pandas as pd
-from jq import jq
+import pyjq
 
 
 def transform_with_jq(json_input: str, jq_filter: str) -> str:
     """Apply a jq filter on raw json input, outputs raw json (may be on several lines)"""
-    return jq(jq_filter).transform(text=json_input, text_output=True)
+    return '\n'.join(json.dumps(x) for x in pyjq.all(jq_filter, json.loads(json_input)))
 
 
 @wraps(pd.read_json)
