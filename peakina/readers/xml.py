@@ -4,13 +4,13 @@ Module to add xml support
 from typing import Union
 
 import pandas as pd
+import pyjq
 import xmltodict
-from jq import jq
 
 
 def transform_with_jq(data: Union[dict, list], jq_filter: str) -> list:
     """Apply a jq filter on data before it's passed to a pd.DataFrame"""
-    data = jq(jq_filter).transform(data, multiple_output=True)
+    data = pyjq.all(jq_filter, data)
 
     # If the data is already presented as a list of rows,
     # then undo the nesting caused by "multiple_output" jq option
