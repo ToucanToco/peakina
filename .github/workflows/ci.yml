@@ -1,0 +1,35 @@
+name: CI
+
+on: [push]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: install
+      run: make install
+
+    - name: lint
+      run: make lint
+
+    - name: test
+      run: make test
+      env:
+        FTP_PATH: ${{ secrets.FTP_PATH }}
+
+    - name: mypy
+      run: make mypy
+
+    - name: coverage
+      run: pip install codecov && codecov --token=556fb2ac-7fe9-4798-9d58-ad3f22be4aca
