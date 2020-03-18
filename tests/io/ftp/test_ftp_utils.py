@@ -30,7 +30,7 @@ def test_open(ftp_client, mocker):
         ftp_listdir(url='foo')
 
     mocker.patch('peakina.io.ftp.ftp_utils.retry_pasv').side_effect = AttributeError
-    ret = ftp_open(url="foo")
+    ret = ftp_open(url='foo')
     assert ret.name.endswith('.ftptmp')  # check the suffix is the expected one
     assert os.path.exists(ret.name)
     ftp_client.getfo.assert_called_once()
@@ -41,7 +41,7 @@ def test_open(ftp_client, mocker):
 
     mocker.patch('peakina.io.ftp.ftp_utils.retry_pasv').side_effect = ftplib.error_perm
     with raises(Exception) as e:
-        ftp_open(url="foo")
+        ftp_open(url='foo')
     assert str(e.value) == "Can't open file path. Please make sure the file exists"
 
 
@@ -62,7 +62,7 @@ def test_retry_open(mocker):
     ]
     mock_sleep = mocker.patch('peakina.io.ftp.ftp_utils.sleep')
 
-    ret = ftp_open(url="foo")
+    ret = ftp_open(url='foo')
     calls = [mocker.call(2), mocker.call(8), mocker.call(18)]
     mock_sleep.assert_has_calls(calls)
     assert ret == 'ok'

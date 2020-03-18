@@ -29,7 +29,7 @@ def test_s3_fetcher_custom_endpoint(mocker):
     with suppress(TypeError):
         pk.read_pandas(
             filepath,
-            fetcher_kwargs={"client_kwargs": {"endpoint_url": "https://internal.domain:8080/truc"}},
+            fetcher_kwargs={'client_kwargs': {'endpoint_url': 'https://internal.domain:8080/truc'}},
         )
 
     kwargs = m.call_args[1]

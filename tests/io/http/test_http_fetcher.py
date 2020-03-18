@@ -15,7 +15,7 @@ def test_http_fetcher(http_path, mocker):
     with pytest.raises(NotImplementedError):
         fetcher.listdir(http_path)
 
-    stub_headers = {"last-modified": "Mon, 25 Jun 1984 11:22:33 GMT"}
+    stub_headers = {'last-modified': 'Mon, 25 Jun 1984 11:22:33 GMT'}
     mocker.patch.object(fetcher.pool_manager, 'request').return_value.headers = stub_headers
     assert fetcher.mtime(http_path) == 457010553
 

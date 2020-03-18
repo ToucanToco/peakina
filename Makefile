@@ -1,4 +1,6 @@
 .DEFAULT_GOAL := all
+isort = isort -rc peakina tests setup.py
+black = black -S -l 100 --target-version py36 peakina tests setup.py
 
 .PHONY: install
 install:
@@ -7,13 +9,14 @@ install:
 
 .PHONY: format
 format:
-	isort -rc peakina tests setup.py
-	black peakina tests setup.py
+	$(isort)
+	$(black)
 
 .PHONY: lint
 lint:
 	flake8 peakina tests setup.py
-	black --check peakina tests setup.py
+	$(isort) --check-only
+	$(black) --check
 
 .PHONY: mypy
 mypy:
@@ -24,7 +27,7 @@ test:
 	pytest --cov=peakina --cov-report term-missing
 
 .PHONY: all
-all: test mypy lint
+all: lint mypy test
 
 .PHONY: clean
 clean:
