@@ -24,7 +24,7 @@ mypy:
 
 .PHONY: test
 test:
-	pytest --cov=peakina --cov-report term-missing
+	pytest --pull --cov=peakina --cov-report term-missing
 
 .PHONY: all
 all: lint mypy test

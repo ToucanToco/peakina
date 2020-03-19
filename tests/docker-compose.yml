@@ -1,0 +1,6 @@
+s3:
+  image: zenko/cloudserver:8.1.20
+  ports:
+    - 8000:8000
+  environment:
+    - S3BACKEND=mem
