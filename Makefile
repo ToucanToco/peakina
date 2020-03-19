@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
 isort = isort -rc peakina tests setup.py
-black = black -S -l 100 --target-version py36 peakina tests setup.py
+black = black peakina tests setup.py
 
 .PHONY: install
 install:
