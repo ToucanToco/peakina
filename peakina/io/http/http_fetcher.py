@@ -28,10 +28,10 @@ class HttpFetcher(Fetcher):
         ret.seek(0)
         return ret
 
-    def listdir(self, dirpath) -> List[str]:
+    def listdir(self, dirpath, **fetcher_kwargs) -> List[str]:
         raise NotImplementedError
 
-    def mtime(self, filepath) -> Optional[int]:
+    def mtime(self, filepath, **fetcher_kwargs) -> Optional[int]:
         try:
             r = self.pool_manager.request('HEAD', filepath)
         except Exception:

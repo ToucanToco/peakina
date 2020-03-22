@@ -119,7 +119,7 @@ class DataSource:
 
     def get_matched_datasources(self) -> Generator:
         my_args = asdict(self)
-        for uri in self.fetcher.get_filepath_list():
+        for uri in self.fetcher.get_filepath_list(**self.fetcher_kwargs):
             overriden_args = {**my_args, 'uri': uri, 'match': None}
             yield DataSource(**overriden_args)
 
