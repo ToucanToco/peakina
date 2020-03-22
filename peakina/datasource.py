@@ -58,7 +58,7 @@ class DataSource:
     @property
     def fetcher(self):
         if self._fetcher is None:
-            self._fetcher = Fetcher.get_fetcher(self.uri, self.match)
+            self._fetcher = Fetcher.get_fetcher(self.uri, **self.fetcher_kwargs)
         return self._fetcher
 
     @property
@@ -114,12 +114,9 @@ class DataSource:
 
         return df
 
-    def is_matching(self, filename: str) -> bool:
-        return self.fetcher.is_matching(filename)
-
     def get_matched_datasources(self) -> Generator:
         my_args = asdict(self)
-        for uri in self.fetcher.get_filepath_list(**self.fetcher_kwargs):
+        for uri in self.fetcher.get_filepath_list(self.uri, self.match):
             overriden_args = {**my_args, 'uri': uri, 'match': None}
             yield DataSource(**overriden_args)
 
@@ -147,7 +144,7 @@ class DataSource:
                     yield df
                     continue
 
-            stream = self.fetcher.open(datasource.uri, **self.fetcher_kwargs)
+            stream = self.fetcher.open(datasource.uri)
             try:
                 df = self._get_single_df(stream, self.type, **self.reader_kwargs)
                 dfs = df if by_chunk else [df]

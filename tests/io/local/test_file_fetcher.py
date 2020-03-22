@@ -2,7 +2,7 @@ from peakina.io.local.file_fetcher import FileFetcher
 
 
 def test_file_fetcher(path):
-    fetcher = FileFetcher('')
+    fetcher = FileFetcher()
     dirpath = path('')
     filepath = path('0_0.csv')
 
@@ -15,6 +15,6 @@ def test_file_fetcher(path):
 
 
 def test_file_fetcher_mtime_oserror(mocker):
-    fetcher = FileFetcher('')
+    fetcher = FileFetcher()
     mocker.patch.object(fetcher, 'mtime').side_effect = OSError('oops')
     assert fetcher.get_str_mtime('whatever') is None

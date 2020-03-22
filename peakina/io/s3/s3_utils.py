@@ -65,9 +65,7 @@ def s3_mtime(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> int
     return fs.info(f'{bucketname}/{objectname}')['LastModified'].timestamp()
 
 
-def dir_mtimes(
-    url: str, *, client_kwargs: Optional[Dict[str, Any]] = None
-) -> Dict[str, Optional[int]]:
+def dir_mtimes(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> Dict[str, int]:
     access_key, secret, bucketname, objectname = parse_s3_url(url, file=False)
     fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
     return {

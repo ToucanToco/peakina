@@ -10,7 +10,7 @@ import os
 import re
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import IO, Dict, List, Optional, Union
+from typing import IO, Dict, List, Optional, Pattern, Type, Union
 from urllib.parse import urlparse
 
 from peakina.helpers import mdtm_to_string
@@ -44,52 +44,45 @@ class Fetcher(metaclass=ABCMeta):
     All the `Fetcher` subclasses need to implement basic methods in order to be used properly.
     """
 
-    registry: dict = {}
+    registry: Dict[str, Type['Fetcher']] = {}
 
-    def __init__(self, filepath: str, match: Optional[str] = None):
-        self.filepath = filepath
-        self.dirpath, self.basename = os.path.split(self.filepath)
-        self.scheme = urlparse(filepath).scheme
-        if match is None:
-            self.match = None
-            self.pattern = None
-        else:
-            self.match = MatchEnum(match)
-            self.pattern = re.compile(self.basename)
+    def __init__(self, **kwargs):
+        self.extra_kwargs = kwargs
 
     @classmethod
-    def get_fetcher(cls, filepath: str, match: Optional[str] = None) -> 'Fetcher':
+    def get_fetcher(cls, filepath: str, **fetcher_kwargs) -> 'Fetcher':
         scheme = urlparse(filepath).scheme
-        return cls.registry[scheme](filepath, match)
+        return cls.registry[scheme](**fetcher_kwargs)
 
     @abstractmethod
-    def listdir(self, dirpath: str, **fetcher_kwargs) -> List[str]:
+    def listdir(self, dirpath: str) -> List[str]:
         """List all the files in a directory"""
 
     @abstractmethod
-    def open(self, filepath: str, **fetcher_kwargs) -> IO:
+    def open(self, filepath: str) -> IO:
         """Same as builtins `open` method in text mode"""
 
     @abstractmethod
-    def mtime(self, filepath: str, **fetcher_kwargs) -> Optional[int]:
+    def mtime(self, filepath: str) -> Optional[int]:
         """Get last modification time of a file"""
 
-    def is_matching(self, filename: str) -> bool:
-        if self.match is None:
-            return self.basename == filename
-        elif self.match is MatchEnum.GLOB:
-            return fnmatch.fnmatch(filename, self.pattern.pattern)  # type: ignore
+    @staticmethod
+    def is_matching(filename: str, match: MatchEnum, pattern: Pattern) -> bool:
+        if match is MatchEnum.GLOB:
+            return bool(fnmatch.fnmatch(filename, pattern.pattern))
         else:
-            return bool(self.pattern.match(filename))  # type: ignore
+            return bool(pattern.match(filename))
 
-    def get_filepath_list(self, **fetcher_kwargs) -> List[str]:
+    def get_filepath_list(self, filepath: str, match: Optional[MatchEnum] = None) -> List[str]:
         """Methods to retrieve all the pathes to open"""
-        if self.match is None:
-            return [self.filepath]
+        if match is None:
+            return [filepath]
 
-        all_filenames = self.listdir(self.dirpath, **fetcher_kwargs)
-        matching_filenames = [f for f in all_filenames if self.is_matching(f)]
-        return [os.path.join(self.dirpath, f) for f in sorted(matching_filenames)]
+        dirpath, basename = os.path.split(filepath)
+        pattern = re.compile(basename)
+        all_filenames = self.listdir(dirpath)
+        matching_filenames = [f for f in all_filenames if self.is_matching(f, match, pattern)]
+        return [os.path.join(dirpath, f) for f in sorted(matching_filenames)]
 
     def get_str_mtime(self, filepath: str) -> Optional[str]:
         try:
@@ -105,30 +98,28 @@ class Fetcher(metaclass=ABCMeta):
 class fetch:
     """class providing shortcuts for some Fetcher operations"""
 
-    def __init__(self, uri: str):
-        self.fetcher = Fetcher.get_fetcher(uri)
-
-    @property
-    def uri(self):
-        return self.fetcher.filepath
-
-    @property
-    def dirpath(self):
-        return self.fetcher.dirpath
-
-    @property
-    def basename(self):
-        return self.fetcher.basename
+    def __init__(self, uri: str, **fetcher_kwargs):
+        self.uri = uri
+        self.fetcher = Fetcher.get_fetcher(uri, **fetcher_kwargs)
 
     @property
     def scheme(self):
-        return self.fetcher.scheme
+        return urlparse(self.uri).scheme
 
-    def open(self):
+    @property
+    def dirpath(self):
+        return os.path.dirname(self.uri)
+
+    @property
+    def basename(self):
+        return os.path.basename(self.uri)
+
+    def open(self) -> IO:
         return self.fetcher.open(self.uri)
 
-    def get_str_mtime(self):
+    def get_str_mtime(self) -> Optional[str]:
         return self.fetcher.get_str_mtime(self.uri)
 
-    def get_mtime_dict(self):
-        return self.fetcher.get_mtime_dict(self.dirpath)
+    def get_mtime_dict(self) -> Dict[str, Optional[str]]:
+        dirpath, basename = os.path.split(self.uri)
+        return self.fetcher.get_mtime_dict(dirpath)

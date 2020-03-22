@@ -107,13 +107,6 @@ def test_match_different_file_types(path):
     assert df.shape == (8, 3)
 
 
-def test_is_matching(path):
-    assert DataSource(path('a.csv')).is_matching('a.csv')
-    assert not DataSource(path('a.csv')).is_matching('b.csv')
-    assert DataSource(path('a.*'), match='glob').is_matching('a.xlsx')
-    assert DataSource(path(r'\d{4}.\.*'), match='regex').is_matching('2019.xlsx')
-
-
 @pytest.mark.flaky(reruns=5)
 def test_ftp(ftp_path):
     ds = DataSource(f'{ftp_path}/sales.csv')

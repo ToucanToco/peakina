@@ -10,7 +10,8 @@ from ..fetcher import Fetcher, register
 
 @register(schemes=['http', 'https'])
 class HttpFetcher(Fetcher):
-    def __init__(self, *args, verify=True, **kwargs):
+    def __init__(self, *, verify=True, **kwargs):
+        super().__init__(**kwargs)
         if verify:
             self.pool_manager = urllib3.PoolManager(
                 cert_reqs='CERT_REQUIRED', ca_certs=certifi.where()
@@ -18,20 +19,19 @@ class HttpFetcher(Fetcher):
         else:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             self.pool_manager = urllib3.PoolManager(cert_reqs='CERT_NONE', assert_hostname=False)
-        super().__init__(*args, **kwargs)
 
-    def open(self, filepath, **fetcher_kwargs) -> IO:
-        r = self.pool_manager.request('GET', filepath, preload_content=False, **fetcher_kwargs)
+    def open(self, filepath) -> IO:
+        r = self.pool_manager.request('GET', filepath, preload_content=False, **self.extra_kwargs)
         ret = tempfile.NamedTemporaryFile(suffix='.httptmp')
         for chunk in r.stream():
             ret.write(chunk)
         ret.seek(0)
         return ret
 
-    def listdir(self, dirpath, **fetcher_kwargs) -> List[str]:
+    def listdir(self, dirpath) -> List[str]:
         raise NotImplementedError
 
-    def mtime(self, filepath, **fetcher_kwargs) -> Optional[int]:
+    def mtime(self, filepath) -> Optional[int]:
         try:
             r = self.pool_manager.request('HEAD', filepath)
         except Exception:
