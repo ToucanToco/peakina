@@ -3,6 +3,7 @@ import socket
 import time
 from contextlib import suppress
 
+import boto3
 import pytest
 import yaml
 from docker import APIClient
@@ -37,6 +38,41 @@ def http_path():
     )
 
 
+@pytest.fixture(scope='session')
+def s3_container(service_container):
+    def check(host_port):
+        session = boto3.session.Session()
+        s3_url = f'http://localhost:{host_port}'
+        s3_client = session.client(
+            service_name='s3',
+            aws_access_key_id='accessKey1',
+            aws_secret_access_key='verySecretKey1',
+            endpoint_url=s3_url,
+        )
+        s3_client.list_buckets()
+
+    return service_container('s3', check)
+
+
+@pytest.fixture(scope='session')
+def s3_endpoint_url(s3_container):
+    session = boto3.session.Session()
+    s3_url = f'http://localhost:{s3_container["port"]}'
+    s3_client = session.client(
+        service_name='s3',
+        aws_access_key_id='accessKey1',
+        aws_secret_access_key='verySecretKey1',
+        endpoint_url=s3_url,
+    )
+    s3_client.create_bucket(Bucket='mybucket')
+    s3_client.upload_file('tests/fixtures/0_0.csv', 'mybucket', '0_0.csv')
+    s3_client.upload_file('tests/fixtures/0_1.csv', 'mybucket', '0_1.csv')
+    return s3_url
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~ DOCKER RELATED FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def pytest_addoption(parser):
     parser.addoption('--pull', action='store_true', default=False, help='Pull docker images')
 
@@ -84,7 +120,7 @@ def wait_for_container(checker_callable, host_port, image, skip_exception=None, 
         pytest.fail(f'Cannot start {image} server')
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def container_starter(request, docker, docker_pull):
     def f(
         image,
@@ -142,7 +178,7 @@ def container_starter(request, docker, docker_pull):
     return f
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def service_container(unused_port, container_starter):
     def f(service_name, checker_callable=None, skip_exception=None, timeout=60):
         with open(f'{os.path.dirname(__file__)}/docker-compose.yml') as docker_comppse_yml:

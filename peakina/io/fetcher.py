@@ -63,7 +63,7 @@ class Fetcher(metaclass=ABCMeta):
         return cls.registry[scheme](filepath, match)
 
     @abstractmethod
-    def listdir(self, dirpath: str) -> List[str]:
+    def listdir(self, dirpath: str, **fetcher_kwargs) -> List[str]:
         """List all the files in a directory"""
 
     @abstractmethod
@@ -71,7 +71,7 @@ class Fetcher(metaclass=ABCMeta):
         """Same as builtins `open` method in text mode"""
 
     @abstractmethod
-    def mtime(self, filepath: str) -> Optional[int]:
+    def mtime(self, filepath: str, **fetcher_kwargs) -> Optional[int]:
         """Get last modification time of a file"""
 
     def is_matching(self, filename: str) -> bool:
@@ -82,12 +82,12 @@ class Fetcher(metaclass=ABCMeta):
         else:
             return bool(self.pattern.match(filename))  # type: ignore
 
-    def get_filepath_list(self) -> List[str]:
+    def get_filepath_list(self, **fetcher_kwargs) -> List[str]:
         """Methods to retrieve all the pathes to open"""
         if self.match is None:
             return [self.filepath]
 
-        all_filenames = self.listdir(self.dirpath)
+        all_filenames = self.listdir(self.dirpath, **fetcher_kwargs)
         matching_filenames = [f for f in all_filenames if self.is_matching(f)]
         return [os.path.join(self.dirpath, f) for f in sorted(matching_filenames)]
 

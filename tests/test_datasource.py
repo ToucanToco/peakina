@@ -126,6 +126,22 @@ def test_ftp_match(ftp_path):
     assert ds.get_df().shape == (8, 3)
 
 
+def test_s3(s3_endpoint_url):
+    dirpath = 's3://accessKey1:verySecretKey1@mybucket'
+
+    ds = DataSource(
+        f'{dirpath}/0_0.csv', fetcher_kwargs={'client_kwargs': {'endpoint_url': s3_endpoint_url}},
+    )
+    assert ds.get_df().shape == (2, 2)
+
+    ds = DataSource(
+        f'{dirpath}/0_*.csv',
+        match='glob',
+        fetcher_kwargs={'client_kwargs': {'endpoint_url': s3_endpoint_url}},
+    )
+    assert ds.get_df().shape == (4, 3)
+
+
 def test_basic_excel(path):
     """It should not add a __sheet__ column when retrieving a single sheet"""
     ds = DataSource(path('fixture-multi-sheet.xlsx'))

@@ -1,6 +1,7 @@
 """This module gathers misc convenience functions to handle s3 objects"""
+import re
 import tempfile
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 from typing.io import BinaryIO
 from urllib.parse import unquote, urlparse
 
@@ -9,7 +10,7 @@ import s3fs
 S3_SCHEMES = ['s3', 's3n', 's3a']
 
 
-def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], Optional[str], str]:
+def parse_s3_url(url: str, file=True) -> Tuple[Optional[str], Optional[str], Optional[str], str]:
     """parses a s3 url and extract credentials and s3 object path.
 
     A S3 URL looks like s3://aws_key:aws_secret@bucketname/objectname where
@@ -41,19 +42,35 @@ def parse_s3_url(url: str) -> Tuple[Optional[str], Optional[str], Optional[str],
         access_key = unquote(urlchunks.username)
         secret = unquote(urlchunks.password)
     objectname = urlchunks.path.lstrip('/')  # remove leading /, it's not part of the objectname
-    assert objectname, f"s3 objectname can't be empty"
+    if file:
+        assert objectname, "s3 objectname can't be empty"
 
     return access_key, secret, urlchunks.hostname, objectname
 
 
-def s3_open(url: str, **fetcher_kwargs) -> BinaryIO:
+def s3_open(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> BinaryIO:
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
-    fs = s3fs.S3FileSystem(
-        key=access_key, secret=secret, client_kwargs=fetcher_kwargs.get('client_kwargs')
-    )
+    fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
     ret = tempfile.NamedTemporaryFile(suffix='.s3tmp')
     file = fs.open(f'{bucketname}/{objectname}')
     ret.write(file.read())
     ret.seek(0)
     return ret
+
+
+def s3_mtime(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> int:
+    access_key, secret, bucketname, objectname = parse_s3_url(url, file=True)
+    fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
+    return fs.info(f'{bucketname}/{objectname}')['LastModified'].timestamp()
+
+
+def dir_mtimes(
+    url: str, *, client_kwargs: Optional[Dict[str, Any]] = None
+) -> Dict[str, Optional[int]]:
+    access_key, secret, bucketname, objectname = parse_s3_url(url, file=False)
+    fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
+    return {
+        re.sub(rf'^{bucketname}/', '', x['name']): x['LastModified'].timestamp()
+        for x in fs.listdir(bucketname)
+    }
