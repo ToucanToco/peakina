@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0] - 2020-03-23
+
+### Added
+
+- Added `listdir` and `mtime` on S3 fetcher to support `match` and `cache`
+
+### Changed
+
+- Use `pyjq` lib instead of `jq` to work on python 3.8
+- Dev :: linter changes and switch CI from CircleCI to Github
+
 ## [0.4.0] - 2019-11-19
 
 ### Added
@@ -53,6 +64,7 @@
 
 - Initial version, showtime!
 
+[0.5.0]: https://github.com/ToucanToco/peakina/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/ToucanToco/peakina/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/ToucanToco/peakina/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ToucanToco/peakina/compare/v0.1.0...v0.2.0
