@@ -23,8 +23,11 @@ def test_s3_fetcher_listdir(s3_fetcher, mocker):
     assert s3_fetcher.listdir(dirpath) == [
         '0_0.csv',
         '0_1.csv',
+        'mydir',
     ]
+
     assert s3_fetcher.mtime(f'{dirpath}/0_0.csv') > 0
+    assert s3_fetcher.mtime(f'{dirpath}/mydir') is None
     s3_mtime_mock.assert_not_called()
 
 

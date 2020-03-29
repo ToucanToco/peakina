@@ -67,6 +67,8 @@ def s3_endpoint_url(s3_container):
     s3_client.create_bucket(Bucket='mybucket')
     s3_client.upload_file('tests/fixtures/0_0.csv', 'mybucket', '0_0.csv')
     s3_client.upload_file('tests/fixtures/0_1.csv', 'mybucket', '0_1.csv')
+    s3_client.upload_file('tests/fixtures/0_0.csv', 'mybucket', 'mydir/0_0.csv')
+    s3_client.upload_file('tests/fixtures/0_1.csv', 'mybucket', 'mydir/0_1.csv')
     return s3_url
 
 
