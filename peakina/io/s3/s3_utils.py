@@ -19,6 +19,7 @@ def parse_s3_url(url: str, file=True) -> Tuple[Optional[str], Optional[str], Opt
 
     Args:
         url (str): the s3 url
+        file (bool): whether or not the url is a file url or a directory one
 
     Returns:
         tuple: (access_key, secret, bucketname, objectname). If credentials
@@ -73,10 +74,12 @@ def s3_mtime(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> Opt
 
 
 def dir_mtimes(
-    url: str, *, client_kwargs: Optional[Dict[str, Any]] = None
+    dirpath: str, *, client_kwargs: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Optional[int]]:
-    access_key, secret, bucketname, objectname = parse_s3_url(url, file=False)
+    access_key, secret, bucketname, objectname = parse_s3_url(dirpath, file=False)
     fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
+    # objectname can be empty or not ('subdir1/subdir2')
+    bucketdir = f'{bucketname}/{objectname}'.rstrip('/')
     return {
-        re.sub(rf'^{bucketname}/', '', x['name']): _get_timestamp(x) for x in fs.listdir(bucketname)
+        re.sub(rf'^{bucketdir}/', '', x['name']): _get_timestamp(x) for x in fs.listdir(bucketdir)
     }
