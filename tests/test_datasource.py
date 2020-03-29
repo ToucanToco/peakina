@@ -134,6 +134,14 @@ def test_s3(s3_endpoint_url):
     )
     assert ds.get_df().shape == (4, 3)
 
+    # With subdirectories
+    ds = DataSource(
+        f'{dirpath}/mydir/0_*.csv',
+        match='glob',
+        fetcher_kwargs={'client_kwargs': {'endpoint_url': s3_endpoint_url}},
+    )
+    assert ds.get_df().shape == (4, 3)
+
 
 def test_basic_excel(path):
     """It should not add a __sheet__ column when retrieving a single sheet"""
