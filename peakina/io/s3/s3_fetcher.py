@@ -10,9 +10,9 @@ class S3Fetcher(Fetcher):
     def __init__(self, *, client_kwargs: Optional[Dict[str, Any]] = None, **kwargs):
         super().__init__(**kwargs)
         self.client_kwargs = client_kwargs
-        self._mtimes_cache: Dict[str, Dict[str, int]] = {}
+        self._mtimes_cache: Dict[str, Dict[str, Optional[int]]] = {}
 
-    def get_dir_mtimes(self, dirpath: str) -> Dict[str, int]:
+    def get_dir_mtimes(self, dirpath: str) -> Dict[str, Optional[int]]:
         if dirpath not in self._mtimes_cache:
             self._mtimes_cache[dirpath] = dir_mtimes(dirpath, client_kwargs=self.client_kwargs)
         return self._mtimes_cache[dirpath]

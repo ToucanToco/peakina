@@ -59,16 +59,24 @@ def s3_open(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> Bina
     return ret
 
 
-def s3_mtime(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> int:
+def _get_timestamp(obj: dict) -> Optional[int]:
+    try:
+        return obj['LastModified'].timestamp()
+    except KeyError:
+        return None
+
+
+def s3_mtime(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> Optional[int]:
     access_key, secret, bucketname, objectname = parse_s3_url(url, file=True)
     fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
-    return fs.info(f'{bucketname}/{objectname}')['LastModified'].timestamp()
+    return _get_timestamp(fs.info(f'{bucketname}/{objectname}'))
 
 
-def dir_mtimes(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> Dict[str, int]:
+def dir_mtimes(
+    url: str, *, client_kwargs: Optional[Dict[str, Any]] = None
+) -> Dict[str, Optional[int]]:
     access_key, secret, bucketname, objectname = parse_s3_url(url, file=False)
     fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
     return {
-        re.sub(rf'^{bucketname}/', '', x['name']): x['LastModified'].timestamp()
-        for x in fs.listdir(bucketname)
+        re.sub(rf'^{bucketname}/', '', x['name']): _get_timestamp(x) for x in fs.listdir(bucketname)
     }
