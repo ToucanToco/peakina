@@ -67,8 +67,10 @@ class Fetcher(metaclass=ABCMeta):
         """Get last modification time of a file"""
 
     @staticmethod
-    def is_matching(filename: str, match: MatchEnum, pattern: Pattern) -> bool:
-        if match is MatchEnum.GLOB:
+    def is_matching(filename: str, match: Optional[MatchEnum], pattern: Pattern) -> bool:
+        if match is None:
+            return filename == pattern.pattern
+        elif match is MatchEnum.GLOB:
             return bool(fnmatch.fnmatch(filename, pattern.pattern))
         else:
             return bool(pattern.match(filename))

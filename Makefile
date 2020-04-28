@@ -20,7 +20,7 @@ lint:
 
 .PHONY: mypy
 mypy:
-	mypy peakina
+	mypy .
 
 .PHONY: test
 test:

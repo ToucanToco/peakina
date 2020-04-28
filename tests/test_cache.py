@@ -52,11 +52,11 @@ def test_hdf_cache(mocker, tmp_path, df_test):
 
 
 def case_inmemory(tmp_path=None) -> CaseData:
-    return (CacheEnum.MEMORY,)
+    return (CacheEnum.MEMORY,)  # type: ignore
 
 
 def case_hdf(tmp_path) -> CaseData:
-    return (CacheEnum.HDF, tmp_path)
+    return (CacheEnum.HDF, tmp_path)  # type: ignore
 
 
 @cases_data(module=THIS_MODULE)

@@ -1,3 +1,6 @@
+import re
+
+from peakina.io.fetcher import MatchEnum
 from peakina.io.local.file_fetcher import FileFetcher
 
 
@@ -18,3 +21,14 @@ def test_file_fetcher_mtime_oserror(mocker):
     fetcher = FileFetcher()
     mocker.patch.object(fetcher, 'mtime').side_effect = OSError('oops')
     assert fetcher.get_str_mtime('whatever') is None
+
+
+def test_file_fetcher_match(path):
+    fetcher = FileFetcher()
+    filename = '2020 Report (6).xlsx'
+    assert fetcher.is_matching(filename, match=None, pattern=re.compile(filename))
+    assert fetcher.is_matching(filename, match=MatchEnum.GLOB, pattern=re.compile(filename))
+    assert not fetcher.is_matching(filename, match=MatchEnum.REGEX, pattern=re.compile(filename))
+    assert fetcher.is_matching(
+        filename, match=MatchEnum.REGEX, pattern=re.compile(r'2020 Report \(6\).xlsx')
+    )
