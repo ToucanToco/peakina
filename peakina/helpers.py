@@ -55,7 +55,7 @@ SUPPORTED_FILE_TYPES = {
         read_json,
         ['filter'],  # this option comes from read_json, which @wraps(pd.read_json)
     ),
-    'parquet': TypeInfos(['peakina/parquet'], pd.read_parquet),
+    'parquet': TypeInfos(['peakina/parquet'], lambda x: pd.read_parquet(x, engine='fastparquet')),
     'xml': TypeInfos(['application/xml'], read_xml),
 }
 
