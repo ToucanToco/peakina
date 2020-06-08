@@ -107,10 +107,11 @@ def test_ftp_client(mocker):
 
 
 def test_ftp_client_quit_resilience(mocker):
+    """it should never crash on ftp connection teardown"""
     mock_ftp_client = mocker.patch('ftplib.FTP').return_value
     mock_ftp_client.quit.side_effect = Exception('test')
 
-    ftp_open('ftp://sacha@ondine.com:123/picha/chu.csv')  # Should not crash
+    ftp_open('ftp://sacha@ondine.com:123/picha/chu.csv')
 
     mock_ftp_client.quit.assert_called_once()
 
