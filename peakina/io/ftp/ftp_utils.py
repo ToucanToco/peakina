@@ -4,7 +4,7 @@ import re
 import socket
 import ssl
 import tempfile
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from datetime import datetime
 from functools import partial
 from os.path import basename, join
@@ -44,7 +44,8 @@ def ftps_client(params: ParseResult):
         yield ftps, params.path
 
     finally:
-        ftps.quit()
+        with suppress(Exception):
+            ftps.quit()
 
 
 @contextmanager
@@ -57,7 +58,8 @@ def ftp_client(params: ParseResult):
         yield ftp, params.path
 
     finally:
-        ftp.quit()
+        with suppress(Exception):
+            ftp.quit()
 
 
 @contextmanager
