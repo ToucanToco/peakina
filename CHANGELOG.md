@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.3] - 2020-06-08
+
+### Changed
+- ftp and ftps resilience to quit() errors
+
 ## [0.5.2] - 2020-04-28
 
 ### Changed
@@ -76,6 +81,7 @@
 
 - Initial version, showtime!
 
+[0.5.3]: https://github.com/ToucanToco/peakina/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/ToucanToco/peakina/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/ToucanToco/peakina/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/ToucanToco/peakina/compare/v0.4.0...v0.5.0
