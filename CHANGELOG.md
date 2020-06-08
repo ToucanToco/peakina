@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.2] - 2020-04-28
+
+### Changed
+- is_matching() should work when match is None
+
+## [0.5.1] - 2020-03-30
+
+### Changed
+- fix linter on python 3.6
+- append subdirectories when listing s3 dirpath
+- listed objects in s3 buckets can have no \'LastModified\' attribute
+
 ## [0.5.0] - 2020-03-23
 
 ### Added
@@ -64,6 +76,8 @@
 
 - Initial version, showtime!
 
+[0.5.2]: https://github.com/ToucanToco/peakina/compare/v0.5.1...v0.5.2
+[0.5.1]: https://github.com/ToucanToco/peakina/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/ToucanToco/peakina/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/ToucanToco/peakina/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/ToucanToco/peakina/compare/v0.2.0...v0.3.0
