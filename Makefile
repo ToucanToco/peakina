@@ -2,6 +2,10 @@
 isort = isort -rc peakina tests setup.py
 black = black peakina tests setup.py
 
+.PHONY: install_system_deps
+install_system_deps:
+	apt install -y libsnappy-dev
+
 .PHONY: install
 install:
 	pip install -U setuptools pip

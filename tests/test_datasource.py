@@ -86,9 +86,7 @@ def test_read_pandas(path):
 
 def test_read_pandas_excel(path):
     """It should be able to detect everything with read_pandas shortcut"""
-    assert read_pandas(
-        path('0_2.xls'), keep_default_na=False, encoding='utf-8', decimal='.'
-    ).shape == (2, 2)
+    assert read_pandas(path('0_2.xls'), keep_default_na=False).shape == (2, 2)
 
 
 def test_match(path):
@@ -123,7 +121,8 @@ def test_s3(s3_endpoint_url):
     dirpath = 's3://accessKey1:verySecretKey1@mybucket'
 
     ds = DataSource(
-        f'{dirpath}/0_0.csv', fetcher_kwargs={'client_kwargs': {'endpoint_url': s3_endpoint_url}},
+        f'{dirpath}/0_0.csv',
+        fetcher_kwargs={'client_kwargs': {'endpoint_url': s3_endpoint_url}},
     )
     assert ds.get_df().shape == (2, 2)
 
