@@ -17,6 +17,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: install_system_deps
+      run: sudo make install_system_deps
+
     - name: install
       run: make install
 
