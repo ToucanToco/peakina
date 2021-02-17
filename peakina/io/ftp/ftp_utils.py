@@ -7,6 +7,7 @@ import tempfile
 from contextlib import contextmanager, suppress
 from datetime import datetime
 from functools import partial
+from ipaddress import ip_address
 from os.path import basename, join
 from time import sleep
 from typing import Dict, List, Optional
@@ -19,6 +20,8 @@ FTP_SCHEMES = ['ftp', 'ftps', 'sftp']
 
 
 class FTPS(ftplib.FTP_TLS):
+    ssl_version = ssl.PROTOCOL_TLSv1
+
     def connect(self, host, port, timeout):
         self.host = host
         self.port = port or 990
@@ -26,12 +29,29 @@ class FTPS(ftplib.FTP_TLS):
 
         self.sock = socket.create_connection((self.host, self.port), self.timeout)
         self.af = self.sock.family
-        self.sock = ssl.wrap_socket(
-            self.sock, self.keyfile, self.certfile, ssl_version=ssl.PROTOCOL_TLSv1
-        )
+        self.sock = self.context.wrap_socket(self.sock, server_hostname=self.host)
         self.file = self.sock.makefile('r')
         self.welcome = self.getresp()
         return self.welcome
+
+    def ntransfercmd(self, cmd, rest=None):
+        # override ntransfercmd so it reuses the sock session, to prevent SSLEOFError.
+        # cf. https://stackoverflow.com/questions/40536061/ssleoferror-on-ftps-using-python-ftplib
+        conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+        if self._prot_p:
+            conn = self.context.wrap_socket(
+                conn, server_hostname=self.host, session=self.sock.session
+            )  # this is the fix
+        return conn, size
+
+    def makepasv(self):
+        # override makepasv so it rewrites the dst address if the server gave a broken one.
+        # Inspired by:
+        # https://github.com/lavv17/lftp/blob/d67fc14d085849a6b0418bb3e912fea2e94c18d1/src/ftpclass.cc#L774
+        host, port = super().makepasv()
+        if self.af == socket.AF_INET and ip_address(host).is_private:
+            host = self.sock.getpeername()[0]
+        return host, port
 
 
 @contextmanager
