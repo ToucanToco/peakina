@@ -49,7 +49,7 @@ class FTPS(ftplib.FTP_TLS):
         # Inspired by:
         # https://github.com/lavv17/lftp/blob/d67fc14d085849a6b0418bb3e912fea2e94c18d1/src/ftpclass.cc#L774
         host, port = super().makepasv()
-        if self.af == socket.AF_INET and ip_address(host).is_private:
+        if self.af == socket.AF_INET and ip_address(host).is_private:  # pragma: no cover
             host = self.sock.getpeername()[0]
         return host, port
 
