@@ -89,7 +89,7 @@ def sftp_client(params: ParseResult):
     try:
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh_client.connect(
-            hostname=params.hostname,
+            hostname=params.hostname,  # type: ignore
             username=params.username,
             password=params.password,
             port=port,
