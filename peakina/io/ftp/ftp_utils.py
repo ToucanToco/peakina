@@ -20,7 +20,7 @@ FTP_SCHEMES = ['ftp', 'ftps', 'sftp']
 
 
 class FTPS(ftplib.FTP_TLS):
-    ssl_version = ssl.PROTOCOL_TLSv1
+    ssl_version = ssl.PROTOCOL_TLSv1_2
 
     def connect(self, host, port, timeout):
         self.host = host
