@@ -9,6 +9,7 @@ import yaml
 from docker import APIClient
 from docker.tls import TLSConfig
 from slugify import slugify
+from yaml import Loader
 
 fixtures_dir = f'{os.path.dirname(__file__)}/fixtures'
 
@@ -184,7 +185,7 @@ def container_starter(request, docker, docker_pull):
 def service_container(unused_port, container_starter):
     def f(service_name, checker_callable=None, skip_exception=None, timeout=60):
         with open(f'{os.path.dirname(__file__)}/docker-compose.yml') as docker_comppse_yml:
-            docker_conf = yaml.load(docker_comppse_yml)
+            docker_conf = yaml.load(docker_comppse_yml, Loader=Loader)
         service_conf = docker_conf[service_name]
         volumes = service_conf.get('volumes')
         if volumes is not None:
