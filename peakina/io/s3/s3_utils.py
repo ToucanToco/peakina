@@ -1,6 +1,8 @@
 """This module gathers misc convenience functions to handle s3 objects"""
+import logging
 import re
 import tempfile
+from time import sleep
 from typing import Any, Dict, Optional, Tuple
 from typing.io import BinaryIO
 from urllib.parse import unquote, urlparse
@@ -8,6 +10,8 @@ from urllib.parse import unquote, urlparse
 import s3fs
 
 S3_SCHEMES = ['s3', 's3n', 's3a']
+
+logger = logging.getLogger(__name__)
 
 
 def parse_s3_url(url: str, file=True) -> Tuple[Optional[str], Optional[str], Optional[str], str]:
@@ -49,14 +53,28 @@ def parse_s3_url(url: str, file=True) -> Tuple[Optional[str], Optional[str], Opt
     return access_key, secret, urlchunks.hostname, objectname
 
 
+def _s3_open_file_with_retries(fs, path, retries):
+    for _ in range(retries):
+        try:
+            logger.info(f'opening {path}')
+            file = fs.open(path)
+            return file
+        except Exception as ex:
+            logger.warn(f'could not open {path}', ex)
+            fs.invalidate_cache(path)
+            sleep(1)
+
+
 def s3_open(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> BinaryIO:
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
     fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
+    path = f'{bucketname}/{objectname}'
     ret = tempfile.NamedTemporaryFile(suffix='.s3tmp')
-    file = fs.open(f'{bucketname}/{objectname}')
+    file = _s3_open_file_with_retries(fs, path, 3)
     ret.write(file.read())
     ret.seek(0)
+    file.close()
     return ret
 
 
