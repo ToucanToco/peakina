@@ -60,7 +60,7 @@ def _s3_open_file_with_retries(fs, path, retries):
             file = fs.open(path)
             return file
         except Exception as ex:
-            logger.warn(f'could not open {path}', ex)
+            logger.warning(f'could not open {path}', ex)
             fs.invalidate_cache(path)
             sleep(1)
 
