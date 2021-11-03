@@ -61,7 +61,11 @@ def _s3_open_file_with_retries(fs, path, retries):
             return file
         except Exception as ex:
             logger.warning(f'could not open {path}', ex)
+            # if the file has just been uploaded, then it might not be visible immediatly
+            # but the fail to open has been cached by s3fs
+            # so, we invalidate the cache
             fs.invalidate_cache(path)
+            # and we give some time to S3 to settle the file status
             sleep(1)
 
 
