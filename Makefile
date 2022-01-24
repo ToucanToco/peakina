@@ -11,11 +11,11 @@ install:
 	pip install -U pip
 	pip install poetry
 	poetry install
+	poetry run pre-commit install
 
 .PHONY: format
 format:
-	${black}
-	${isort}
+	poetry run pre-commit run --all-files
 
 .PHONY: lint
 lint:
