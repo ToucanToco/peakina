@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
-isort = isort -rc peakina tests setup.py
 black = black peakina tests setup.py
+isort = isort peakina tests setup.py
 
 .PHONY: install_system_deps
 install_system_deps:
@@ -13,14 +13,14 @@ install:
 
 .PHONY: format
 format:
-	$(isort)
-	$(black)
+	${black}
+	${isort}
 
 .PHONY: lint
 lint:
 	flake8 peakina tests setup.py
+	$(black) --diff --check
 	$(isort) --check-only
-	$(black) --check
 
 .PHONY: mypy
 mypy:
