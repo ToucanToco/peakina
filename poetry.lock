@@ -673,6 +673,13 @@ description = "Binding for jq JSON processor."
 category = "main"
 optional = false
 python-versions = "*"
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/PrettyWood/pyjq.git"
+reference = "support-310"
+resolved_reference = "89c4ad948ce10c8b4ec15453fe2fc4614dafb06f"
 
 [[package]]
 name = "pynacl"
@@ -1127,7 +1134,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "3e9c37f4c4fcba95052cfb61e435e2a2e883bdb3384d6e40462d8614786e8619"
+content-hash = "82aa6ed5fdb7e270e35f48d20b578354aafaaf315974551c0475b398101b7da6"
 
 [metadata.files]
 aiobotocore = [
@@ -1855,10 +1862,7 @@ pyflakes = [
     {file = "pyflakes-2.4.0-py2.py3-none-any.whl", hash = "sha256:3bb3a3f256f4b7968c9c788781e4ff07dce46bdf12339dcda61053375426ee2e"},
     {file = "pyflakes-2.4.0.tar.gz", hash = "sha256:05a85c2872edf37a4ed30b0cce2f6093e1d0581f8c19d7393122da7e25b2b24c"},
 ]
-pyjq = [
-    {file = "pyjq-2.5.2-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:43f101d13b01632f6918fbcba0403e99dadb1ae712148007a1e207a5c6e107a7"},
-    {file = "pyjq-2.5.2.tar.gz", hash = "sha256:ea006f1dcadc93f114bc944aa8c96889e424d0cfa083f829680734cfe776ed15"},
-]
+pyjq = []
 pynacl = [
     {file = "PyNaCl-1.5.0-cp36-abi3-macosx_10_10_universal2.whl", hash = "sha256:401002a4aaa07c9414132aaed7f6836ff98f59277a234704ff66878c2ee4a0d1"},
     {file = "PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:52cb72a79269189d4e0dc537556f4740f7f0a9ec41c1322598799b0bdad4ef92"},
