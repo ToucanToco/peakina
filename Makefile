@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
-black = black peakina tests setup.py
-isort = isort peakina tests setup.py
+black = poetry run black peakina tests setup.py
+isort = poetry run isort peakina tests setup.py
 
 .PHONY: install_system_deps
 install_system_deps:
@@ -8,8 +8,9 @@ install_system_deps:
 
 .PHONY: install
 install:
-	pip install -U setuptools pip
-	pip install -e '.[test]'
+	pip install -U pip
+	pip install poetry
+	poetry install
 
 .PHONY: format
 format:
@@ -18,17 +19,17 @@ format:
 
 .PHONY: lint
 lint:
-	flake8 peakina tests setup.py
+	poetry run flake8 peakina tests setup.py
 	$(black) --diff --check
 	$(isort) --check-only
 
 .PHONY: mypy
 mypy:
-	mypy .
+	poetry run mypy .
 
 .PHONY: test
 test:
-	pytest --pull --cov=peakina --cov-report term-missing
+	poetry run pytest --pull --cov=peakina --cov-report term-missing
 
 .PHONY: all
 all: lint mypy test
@@ -41,8 +42,8 @@ clean:
 
 .PHONY: build
 build:
-	python setup.py sdist bdist_wheel
+	poetry build
 
 .PHONY: upload
 upload:
-	twine upload dist/*
+	poetry publish

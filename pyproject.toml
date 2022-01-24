@@ -1,3 +1,64 @@
+[tool.poetry]
+name = "peakina"
+version = "0.5.7"
+description = "pandas readers on steroids (remote files, glob patterns, cache, etc.)"
+authors = ["Toucan Toco <dev@toucantoco.com>"]
+readme = "README.md"
+homepage = "https://github.com/ToucanToco/peakina"
+documentation = "https://toucantoco.github.io/peakina"
+repository = "https://github.com/ToucanToco/peakina"
+license = "BSD-3-Clause"
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+certifi = "^2021.10.8"
+chardet = "^4.0.0"
+fastparquet = "^0.7.2"
+pandas = "^1.4.0"
+paramiko = "^2.9.2"
+pydantic = "^1.9.0"
+pyjq = "^2.5.2"
+python-slugify = "^5.0.2"
+python-snappy = "^0.6.0"
+tables = "^3.7.0"
+urllib3 = "^1.26.8"
+xlrd = "^2.0.1"
+xmltodict = "^0.12.0"
+s3fs = "^2022.1.0"
+
+[tool.poetry.dev-dependencies]
+black = "^21.12b0"
+docker = "^5.0.3"
+flake8 = "^4.0.1"
+flake8-quotes = "^3.3.1"
+isort = "^5.10.1"
+mypy = "^0.931"
+openpyxl = "^3.0.9"
+pytest = "5.3.5"
+pytest-cases = "<2"
+pytest-cov = "^3.0.0"
+pytest-mock = "^3.6.1"
+pytest-rerunfailures = "^10.2"
+pytest-sugar = "^0.9.4"
+PyYAML = "^6.0"
+
+types-chardet = "^4.0.3"
+types-certifi = "^2021.10.8"
+types-dataclasses = "^0.6.4"
+types-paramiko = "^2.8.10"
+types-python-slugify = "^5.0.3"
+types-PyYAML = "^6.0.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 target-version = ["py38"]
 line-length = 100

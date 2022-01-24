@@ -86,3 +86,25 @@ If you just want to download a file, without converting it to a pandas dataframe
 ...
 Image size: 60284 bytes
 ```
+
+## Installation on macOS M1 chipset
+
+## install everything
+```console
+brew install hdf5 snappy
+HDF5_DIR="/opt/homebrew/Cellar/hdf5/1.12.1/" CPPFLAGS="-I/opt/homebrew/Cellar/snappy/1.1.9/include -L/opt/homebrew/Cellar/snappy/1.1.9/lib" poetry install
+```
+
+For more details, here is what is needed:
+
+### install pytables
+```console
+brew install hdf5
+HDF5_DIR="/opt/homebrew/Cellar/hdf5/1.12.1/" poetry run pip install tables
+```
+
+### install python-snappy
+```console
+brew install snappy
+CPPFLAGS="-I/opt/homebrew/Cellar/snappy/1.1.9/include -L/opt/homebrew/Cellar/snappy/1.1.9/lib" poetry run pip install python-snappy
+```
