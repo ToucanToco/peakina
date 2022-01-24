@@ -3,8 +3,7 @@ import logging
 import re
 import tempfile
 from time import sleep
-from typing import Any, Dict, Optional, Tuple
-from typing.io import BinaryIO
+from typing import IO, Any, Dict, Optional, Tuple
 from urllib.parse import unquote, urlparse
 
 import s3fs
@@ -69,7 +68,7 @@ def _s3_open_file_with_retries(fs, path, retries):
             sleep(1)
 
 
-def s3_open(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> BinaryIO:
+def s3_open(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> IO[bytes]:
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
     fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)

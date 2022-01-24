@@ -1,5 +1,5 @@
 import os
-from typing import Any, BinaryIO, Dict, List, Optional
+from typing import IO, Any, Dict, List, Optional
 
 from ..fetcher import Fetcher, register
 from .s3_utils import S3_SCHEMES, dir_mtimes, s3_mtime, s3_open
@@ -17,7 +17,7 @@ class S3Fetcher(Fetcher):
             self._mtimes_cache[dirpath] = dir_mtimes(dirpath, client_kwargs=self.client_kwargs)
         return self._mtimes_cache[dirpath]
 
-    def open(self, filepath) -> BinaryIO:
+    def open(self, filepath) -> IO[bytes]:
         return s3_open(filepath, client_kwargs=self.client_kwargs)
 
     def listdir(self, dirpath) -> List[str]:

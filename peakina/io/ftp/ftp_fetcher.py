@@ -1,5 +1,5 @@
 import os
-from typing import BinaryIO, Dict, List, Optional
+from typing import IO, Dict, List, Optional
 
 from ..fetcher import Fetcher, register
 from .ftp_utils import FTP_SCHEMES, dir_mtimes, ftp_mtime, ftp_open
@@ -16,7 +16,7 @@ class FTPFetcher(Fetcher):
             self._mtimes_cache[dirpath] = dir_mtimes(dirpath)
         return self._mtimes_cache[dirpath]
 
-    def open(self, filepath) -> BinaryIO:
+    def open(self, filepath) -> IO[bytes]:
         return ftp_open(filepath)
 
     def listdir(self, dirpath) -> List[str]:

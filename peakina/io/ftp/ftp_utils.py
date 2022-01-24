@@ -10,8 +10,7 @@ from functools import partial
 from ipaddress import ip_address
 from os.path import basename, join
 from time import sleep
-from typing import Dict, List, Optional
-from typing.io import BinaryIO
+from typing import IO, Dict, List, Optional
 from urllib.parse import ParseResult, quote, unquote, urlparse
 
 import paramiko
@@ -132,7 +131,7 @@ def retry_pasv(c, cmd, *args):
         return fun()
 
 
-def _open(url: str) -> BinaryIO:
+def _open(url: str) -> IO[bytes]:
     ret = tempfile.NamedTemporaryFile(suffix='.ftptmp')
     with client(url) as (c, path):
         try:
@@ -146,7 +145,7 @@ def _open(url: str) -> BinaryIO:
     return ret
 
 
-def ftp_open(url: str, retry: int = 4) -> BinaryIO:
+def ftp_open(url: str, retry: int = 4) -> IO[bytes]:  # type: ignore
     for i in range(1, retry + 1):
         try:
             return _open(url)
