@@ -2,3 +2,11 @@
 target-version = ["py38"]
 line-length = 100
 skip-string-normalization = true
+
+[tool.mypy]
+python_version = "3.8"
+plugins = "pydantic.mypy"
+pretty = true
+follow_imports = "silent"
+ignore_missing_imports = true
+allow_redefinition = true
