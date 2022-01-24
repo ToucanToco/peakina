@@ -52,15 +52,15 @@ def test_hdf_cache(mocker, tmp_path, df_test):
 
 @pytest.fixture
 def cache(request, tmpdir) -> Cache:
-    if request.param == 'memory':
+    if request.param == "memory":
         return Cache.get_cache(CacheEnum.MEMORY)
-    elif request.param == 'hdf':
+    elif request.param == "hdf":
         return Cache.get_cache(CacheEnum.HDF, cache_dir=tmpdir)
     else:
-        raise ValueError('invalid internal test config')
+        raise ValueError("invalid internal test config")
 
 
-cache_parametrize = pytest.mark.parametrize('cache', ['memory', 'hdf'], indirect=True)
+cache_parametrize = pytest.mark.parametrize("cache", ["memory", "hdf"], indirect=True)
 
 
 @cache_parametrize
