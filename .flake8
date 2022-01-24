@@ -1,0 +1,5 @@
+[flake8]
+inline-quotes = single
+multiline-quotes = double
+max-line-length = 100
+max-complexity = 10
