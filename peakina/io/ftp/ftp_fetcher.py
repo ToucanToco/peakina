@@ -16,10 +16,10 @@ class FTPFetcher(Fetcher):
             self._mtimes_cache[dirpath] = dir_mtimes(dirpath)
         return self._mtimes_cache[dirpath]
 
-    def open(self, filepath) -> IO[bytes]:
+    def open(self, filepath: str) -> IO[bytes]:
         return ftp_open(filepath)
 
-    def listdir(self, dirpath) -> List[str]:
+    def listdir(self, dirpath: str) -> List[str]:
         """
         Make use of listdir to get all mtimes of remote files at once and
         put this information in cache.
@@ -28,7 +28,7 @@ class FTPFetcher(Fetcher):
         """
         return list(self.get_dir_mtimes(dirpath).keys())
 
-    def mtime(self, filepath) -> Optional[int]:
+    def mtime(self, filepath: str) -> Optional[int]:
         dirpath, filename = os.path.split(filepath)
         if dirpath in self._mtimes_cache:
             return self._mtimes_cache[dirpath][filename]

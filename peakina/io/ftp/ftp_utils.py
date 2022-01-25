@@ -10,7 +10,7 @@ from functools import partial
 from ipaddress import ip_address
 from os.path import basename, join
 from time import sleep
-from typing import IO, Dict, List, Optional
+from typing import IO, Dict, Generator, List, Optional, Tuple, Union, cast
 from urllib.parse import ParseResult, quote, unquote, urlparse
 
 import paramiko
@@ -26,9 +26,9 @@ class FTPS(ftplib.FTP_TLS):
         self.port = port or 990
         self.timeout = timeout
 
-        self.sock = socket.create_connection((self.host, self.port), self.timeout)
-        self.af = self.sock.family
-        self.sock = self.context.wrap_socket(self.sock, server_hostname=self.host)
+        self._sock = socket.create_connection((self.host, self.port), self.timeout)
+        self.af = self._sock.family
+        self.sock: ssl.SSLSocket = self.context.wrap_socket(self._sock, server_hostname=self.host)
         self.file = self.sock.makefile("r")
         self.welcome = self.getresp()
         return self.welcome
@@ -37,7 +37,7 @@ class FTPS(ftplib.FTP_TLS):
         # override ntransfercmd so it reuses the sock session, to prevent SSLEOFError.
         # cf. https://stackoverflow.com/questions/40536061/ssleoferror-on-ftps-using-python-ftplib
         conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
-        if self._prot_p:
+        if self._prot_p:  # type: ignore
             conn = self.context.wrap_socket(
                 conn, server_hostname=self.host, session=self.sock.session
             )  # this is the fix
@@ -48,13 +48,15 @@ class FTPS(ftplib.FTP_TLS):
         # Inspired by:
         # https://github.com/lavv17/lftp/blob/d67fc14d085849a6b0418bb3e912fea2e94c18d1/src/ftpclass.cc#L774
         host, port = super().makepasv()
-        if self.af == socket.AF_INET and ip_address(host).is_private:  # pragma: no cover
+        if (
+            self.af == socket.AF_INET and ip_address(host).is_private and self.sock is not None
+        ):  # pragma: no cover
             host = self.sock.getpeername()[0]
         return host, port
 
 
 @contextmanager
-def ftps_client(params: ParseResult):
+def ftps_client(params: ParseResult) -> Generator[Tuple[FTPS, str], None, None]:
     ftps = FTPS()
     try:
         ftps.connect(host=params.hostname or "", port=params.port, timeout=3)
@@ -68,7 +70,7 @@ def ftps_client(params: ParseResult):
 
 
 @contextmanager
-def ftp_client(params: ParseResult):
+def ftp_client(params: ParseResult) -> Generator[Tuple[ftplib.FTP, str], None, None]:
     port = params.port or 21
     ftp = ftplib.FTP()
     try:
@@ -82,7 +84,7 @@ def ftp_client(params: ParseResult):
 
 
 @contextmanager
-def sftp_client(params: ParseResult):
+def sftp_client(params: ParseResult) -> Generator[Tuple[paramiko.SFTPClient, str], None, None]:
     port = params.port or 22
     ssh_client = paramiko.SSHClient()
     try:
@@ -155,14 +157,14 @@ def ftp_open(url: str, retry: int = 4) -> IO[bytes]:  # type: ignore
             sleep(sleep_time)
 
 
-def _get_all_files(c, path) -> List[str]:
+def _get_all_files(c: Union[ftplib.FTP, paramiko.SFTPClient], path: str) -> List[str]:
     try:
         # retry_pasv returns path + the file
-        return [basename(x) for x in retry_pasv(c, "nlst", path)]
+        return [basename(x) for x in retry_pasv(cast(ftplib.FTP, c), "nlst", path)]
     except AttributeError:
         if not path:
             path = "."
-        return c.listdir(path)
+        return cast(paramiko.SFTPClient, c).listdir(path)
 
 
 def ftp_listdir(url: str) -> List[str]:
@@ -170,17 +172,17 @@ def ftp_listdir(url: str) -> List[str]:
         return _get_all_files(c, path)
 
 
-def _get_mtime(c, path) -> Optional[int]:
+def _get_mtime(c: Union[ftplib.FTP, paramiko.SFTPClient], path: str) -> Optional[int]:
     """Returns timestamp of last modification"""
     try:
-        mdtm = c.sendcmd("MDTM " + path)
+        mdtm = cast(ftplib.FTP, c).sendcmd("MDTM " + path)
         # mdtm-response = "213" SP time-val CRLF (e.g. '20180101203000')
         # some FTP servers response include the milliseconds (e.g. '20180101203000.123')
         mdtm = re.search(r"^213 (\d+)(\.\d+)?$", mdtm).group(1)  # type: ignore
         dt = datetime.strptime(mdtm, "%Y%m%d%H%M%S")
         return int((dt - datetime(1970, 1, 1)).total_seconds())
     except AttributeError:
-        return c.stat(path).st_mtime
+        return cast(paramiko.SFTPClient, c).stat(path).st_mtime
     except ftplib.error_perm as e:
         logging.getLogger(__name__).warning(
             f"Can't open file {path}. Please make sure the file exists: {e}"
