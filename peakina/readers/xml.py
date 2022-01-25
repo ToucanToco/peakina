@@ -1,30 +1,35 @@
 """
 Module to add xml support
 """
-from typing import Union
+from typing import Any, Dict, List, Optional, Union, cast
 
 import pandas as pd
 import pyjq
 import xmltodict
 
+PdDataList = List[Dict[str, Any]]
+PdDataDict = Dict[str, List[Any]]
 
-def transform_with_jq(data: Union[dict, list], jq_filter: str) -> list:
+
+def transform_with_jq(data: Any, jq_filter: str) -> Union[PdDataList, PdDataDict]:
     """Apply a jq filter on data before it's passed to a pd.DataFrame"""
-    data = pyjq.all(jq_filter, data)
+    all_data: Union[List[PdDataList], List[PdDataDict], PdDataList] = pyjq.all(jq_filter, data)
 
     # If the data is already presented as a list of rows,
     # then undo the nesting caused by "multiple_output" jq option
-    if len(data) == 1 and (
-        isinstance(data[0], list)
+    if len(all_data) == 1 and (
+        isinstance(all_data[0], list)  # List[PdDataList]
         # detects another valid datastructure [{col1:[value, ...], col2:[value, ...]}]
-        or (isinstance(data[0], dict) and isinstance(list(data[0].values())[0], list))
+        or (
+            isinstance(all_data[0], dict) and isinstance(list(all_data[0].values())[0], list)
+        )  # List[PdDataDict]
     ):
-        return data[0]  # type: ignore
+        return all_data[0]
     else:
-        return data  # type: ignore
+        return cast(PdDataList, all_data)
 
 
-def read_xml(filepath: str, encoding: str = "utf-8", filter: str = None) -> pd.DataFrame:
+def read_xml(filepath: str, encoding: str = "utf-8", filter: Optional[str] = None) -> pd.DataFrame:
     data = xmltodict.parse(open(filepath).read(), encoding=encoding)
     if filter is not None:
         data = transform_with_jq(data, filter)
