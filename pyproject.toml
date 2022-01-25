@@ -94,5 +94,3 @@ warn_unreachable = true
 show_error_codes = true
 show_column_numbers = true
 show_error_context = true
-implicit_reexport = true
-follow_imports = "silent"
