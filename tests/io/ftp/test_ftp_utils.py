@@ -65,7 +65,7 @@ def test_retry_open(mocker):
     ret = ftp_open(url="foo")
     calls = [mocker.call(2), mocker.call(8), mocker.call(18)]
     mock_sleep.assert_has_calls(calls)
-    assert ret == "ok"
+    assert ret == "ok"  # type: ignore[comparison-overlap]
 
 
 def test_get_mtime(ftp_client):

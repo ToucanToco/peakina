@@ -56,7 +56,7 @@ def test_simple_csv(path):
     assert ds.get_df().shape == (2, 2)
 
     with pytest.raises(Exception):
-        DataSource(path("0_0.csv"), type=TypeEnum.EXCEL, encoding="utf8", sep=",").get_df()  # type: ignore[call-arg]
+        DataSource(path("0_0.csv"), type=TypeEnum.EXCEL, encoding="utf8", sep=",")  # type: ignore
 
 
 def test_csv_with_sep(path):

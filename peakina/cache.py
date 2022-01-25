@@ -25,7 +25,11 @@ class CacheEnum(str, Enum):
 class Cache(metaclass=ABCMeta):
     @staticmethod
     def get_cache(kind: CacheEnum, *args: Any, **kwargs: Any) -> "Cache":
-        return {CacheEnum.MEMORY: InMemoryCache, CacheEnum.HDF: HDFCache}[kind](*args, **kwargs)  # type: ignore
+        ALL_CACHES = {
+            CacheEnum.MEMORY: InMemoryCache,
+            CacheEnum.HDF: HDFCache,
+        }
+        return ALL_CACHES[kind](*args, **kwargs)  # type: ignore[no-any-return]
 
     @staticmethod
     def should_invalidate(
