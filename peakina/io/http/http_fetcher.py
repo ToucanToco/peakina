@@ -1,6 +1,6 @@
 import tempfile
 from email.utils import parsedate_to_datetime
-from typing import IO, List, Optional
+from typing import Any, IO, List, Optional
 
 import certifi
 import urllib3
@@ -10,7 +10,7 @@ from ..fetcher import Fetcher, register
 
 @register(schemes=["http", "https"])
 class HttpFetcher(Fetcher):
-    def __init__(self, *, verify=True, **kwargs):
+    def __init__(self, *, verify: bool = True, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         if verify:
             self.pool_manager = urllib3.PoolManager(
@@ -20,7 +20,7 @@ class HttpFetcher(Fetcher):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             self.pool_manager = urllib3.PoolManager(cert_reqs="CERT_NONE", assert_hostname=False)
 
-    def open(self, filepath) -> IO:
+    def open(self, filepath: str) -> IO[bytes]:
         r = self.pool_manager.request("GET", filepath, preload_content=False, **self.extra_kwargs)
         ret = tempfile.NamedTemporaryFile(suffix=".httptmp")
         for chunk in r.stream():
@@ -28,10 +28,10 @@ class HttpFetcher(Fetcher):
         ret.seek(0)
         return ret
 
-    def listdir(self, dirpath) -> List[str]:
+    def listdir(self, dirpath: str) -> List[str]:
         raise NotImplementedError
 
-    def mtime(self, filepath) -> Optional[int]:
+    def mtime(self, filepath: str) -> Optional[int]:
         try:
             r = self.pool_manager.request("HEAD", filepath)
         except Exception:
