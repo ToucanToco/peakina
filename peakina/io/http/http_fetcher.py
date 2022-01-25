@@ -1,6 +1,6 @@
 import tempfile
 from email.utils import parsedate_to_datetime
-from typing import Any, IO, List, Optional
+from typing import IO, Any, List, Optional
 
 import certifi
 import urllib3

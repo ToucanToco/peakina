@@ -8,7 +8,7 @@ from .datasource import DataSource
 class DataPool:
     def __init__(
         self, config: Dict[Hashable, dict], data_sources_dir: str = "", cache: Cache = None
-    ):
+    ) -> None:
         self.cache = cache
         self.datasources: dict = {}
         for ds_id, ds_conf in config.items():

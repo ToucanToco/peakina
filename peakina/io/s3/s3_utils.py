@@ -3,7 +3,7 @@ import logging
 import re
 import tempfile
 from time import sleep
-from typing import IO, Any, Dict, Optional, Tuple
+from typing import IO, Any, Dict, Optional, Tuple, cast
 from urllib.parse import unquote, urlparse
 
 import s3fs
@@ -13,7 +13,9 @@ S3_SCHEMES = ["s3", "s3n", "s3a"]
 logger = logging.getLogger(__name__)
 
 
-def parse_s3_url(url: str, file=True) -> Tuple[Optional[str], Optional[str], Optional[str], str]:
+def parse_s3_url(
+    url: str, file: bool = True
+) -> Tuple[Optional[str], Optional[str], Optional[str], str]:
     """parses a s3 url and extract credentials and s3 object path.
 
     A S3 URL looks like s3://aws_key:aws_secret@bucketname/objectname where
@@ -81,9 +83,9 @@ def s3_open(url: str, *, client_kwargs: Optional[Dict[str, Any]] = None) -> IO[b
     return ret
 
 
-def _get_timestamp(obj: dict) -> Optional[int]:
+def _get_timestamp(obj: Dict[str, Any]) -> Optional[int]:
     try:
-        return obj["LastModified"].timestamp()
+        return cast(int, obj["LastModified"].timestamp())
     except KeyError:
         return None
 

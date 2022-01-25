@@ -1,5 +1,5 @@
 import os
-from typing import IO, Dict, List, Optional
+from typing import IO, Any, Dict, List, Optional
 
 from ..fetcher import Fetcher, register
 from .ftp_utils import FTP_SCHEMES, dir_mtimes, ftp_mtime, ftp_open
@@ -7,7 +7,7 @@ from .ftp_utils import FTP_SCHEMES, dir_mtimes, ftp_mtime, ftp_open
 
 @register(schemes=FTP_SCHEMES)
 class FTPFetcher(Fetcher):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._mtimes_cache: Dict[str, Dict[str, Optional[int]]] = {}
 
