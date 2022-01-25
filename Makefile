@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
-black = poetry run black peakina tests setup.py
-isort = poetry run isort peakina tests setup.py
+black = poetry run black peakina tests
+isort = poetry run isort peakina tests
 
 .PHONY: install_system_deps
 install_system_deps:
@@ -19,7 +19,7 @@ format:
 
 .PHONY: lint
 lint:
-	poetry run flake8 peakina tests setup.py
+	poetry run flake8 peakina tests
 	$(black) --diff --check
 	$(isort) --check-only
 
