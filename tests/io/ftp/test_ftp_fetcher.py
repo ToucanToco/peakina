@@ -12,12 +12,13 @@ def test_ftp_fetcher(mocker, ftp_path):
     tmpfile = fetcher.open(myfile_path)
     assert pd.read_csv(tmpfile).shape == (2, 2)
 
-    assert fetcher.mtime(myfile_path) > 1e9
+    assert (mtime := fetcher.mtime(myfile_path)) is not None
+    assert mtime > 1e9
     assert mtime_spy.call_count == 1
 
     mtime_spy.reset_mock()
     assert myfile in fetcher.listdir(ftp_path)  # gets all mtimes
-    assert fetcher.mtime(f"{ftp_path}/my_data_2015.csv") > 1e9
-    assert fetcher.mtime(f"{ftp_path}/my_data_2016.csv") > 1e9
-    assert fetcher.mtime(f"{ftp_path}/my_data_2017.csv") > 1e9
+    for year in range(2015, 2018):
+        assert (mtime := fetcher.mtime(f"{ftp_path}/my_data_{year}.csv")) is not None
+        assert mtime > 1e9
     assert mtime_spy.call_count == 0
