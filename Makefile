@@ -29,7 +29,7 @@ mypy:
 
 .PHONY: test
 test:
-	poetry run pytest --pull --cov=peakina --cov-report term-missing
+	poetry run pytest --pull --cov=peakina --cov-report xml --cov-report term-missing
 
 .PHONY: all
 all: lint mypy test
