@@ -10,18 +10,32 @@ from functools import partial
 from ipaddress import ip_address
 from os.path import basename, join
 from time import sleep
-from typing import IO, Dict, Generator, List, Optional, Tuple, Union, cast
+from typing import (
+    IO,
+    Any,
+    Callable,
+    ContextManager,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 from urllib.parse import ParseResult, quote, unquote, urlparse
 
 import paramiko
 
 FTP_SCHEMES = ["ftp", "ftps", "sftp"]
 
+FTPClient = Union[ftplib.FTP, paramiko.SFTPClient]
+
 
 class FTPS(ftplib.FTP_TLS):
     ssl_version = ssl.PROTOCOL_TLSv1_2
 
-    def connect(self, host, port, timeout):
+    def connect(self, host: str, port: int, timeout: float):
         self.host = host
         self.port = port or 990
         self.timeout = timeout
@@ -33,7 +47,7 @@ class FTPS(ftplib.FTP_TLS):
         self.welcome = self.getresp()
         return self.welcome
 
-    def ntransfercmd(self, cmd, rest=None):
+    def ntransfercmd(self, cmd: str, rest=None):
         # override ntransfercmd so it reuses the sock session, to prevent SSLEOFError.
         # cf. https://stackoverflow.com/questions/40536061/ssleoferror-on-ftps-using-python-ftplib
         conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
@@ -114,13 +128,19 @@ def _urlparse(url: str) -> ParseResult:
     return ParseResult(*[unquote(param) for param in url_params])
 
 
-def client(url):
+def client(url: str) -> ContextManager[Tuple[FTPClient, str]]:
     parse_result = _urlparse(url)
-    ftp_client_mapping = {"ftp": ftp_client, "ftps": ftps_client, "sftp": sftp_client}
+    ftp_client_mapping: Dict[
+        str, Callable[[ParseResult], ContextManager[Tuple[FTPClient, str]]]
+    ] = {
+        "ftp": ftp_client,
+        "ftps": ftps_client,
+        "sftp": sftp_client,
+    }
     return ftp_client_mapping[parse_result.scheme](parse_result)
 
 
-def retry_pasv(c, cmd, *args):
+def retry_pasv(c: ftplib.FTP, cmd: str, *args: Any) -> Any:
     """
     Some servers accept the PASV command, but timeout when doing commands using it.
     Solution is to retry a timeout-ed command in active mode.
@@ -137,9 +157,9 @@ def _open(url: str) -> IO[bytes]:
     ret = tempfile.NamedTemporaryFile(suffix=".ftptmp")
     with client(url) as (c, path):
         try:
-            retry_pasv(c, "retrbinary", f"RETR {path}", ret.write)
+            retry_pasv(cast(ftplib.FTP, c), "retrbinary", f"RETR {path}", ret.write)
         except AttributeError:
-            c.getfo(path, ret)
+            cast(paramiko.SFTPClient, c).getfo(path, ret)
         except ftplib.error_perm as e:
             raise Exception(f"Can't open file {path}. Please make sure the file exists") from e
 
@@ -157,7 +177,7 @@ def ftp_open(url: str, retry: int = 4) -> IO[bytes]:  # type: ignore
             sleep(sleep_time)
 
 
-def _get_all_files(c: Union[ftplib.FTP, paramiko.SFTPClient], path: str) -> List[str]:
+def _get_all_files(c: FTPClient, path: str) -> List[str]:
     try:
         # retry_pasv returns path + the file
         return [basename(x) for x in retry_pasv(cast(ftplib.FTP, c), "nlst", path)]
@@ -172,7 +192,7 @@ def ftp_listdir(url: str) -> List[str]:
         return _get_all_files(c, path)
 
 
-def _get_mtime(c: Union[ftplib.FTP, paramiko.SFTPClient], path: str) -> Optional[int]:
+def _get_mtime(c: FTPClient, path: str) -> Optional[int]:
     """Returns timestamp of last modification"""
     try:
         mdtm = cast(ftplib.FTP, c).sendcmd("MDTM " + path)

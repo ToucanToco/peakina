@@ -1,12 +1,13 @@
 import json
 from contextlib import suppress
+from typing import Any, Dict
 
 import pytest
 
 from peakina.datapool import DataPool
 
 
-def templatize(d, real_ftp_path):
+def templatize(d: Dict[str, Any], real_ftp_path: str) -> Dict[str, Any]:
     res = {
         "uri": d.pop("file"),
         "type": d.pop("type", None),
