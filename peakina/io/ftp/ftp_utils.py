@@ -35,7 +35,7 @@ FTPClient = Union[ftplib.FTP, paramiko.SFTPClient]
 class FTPS(ftplib.FTP_TLS):
     ssl_version = ssl.PROTOCOL_TLSv1_2
 
-    def connect(self, host: str, port: int, timeout: float):
+    def connect(self, host: str, port: Optional[int], timeout: float):
         self.host = host
         self.port = port or 990
         self.timeout = timeout
