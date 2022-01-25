@@ -65,7 +65,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-target-version = ["py38"]
+target-version = ["py310"]
 line-length = 100
 
 [tool.isort]
@@ -73,7 +73,7 @@ profile = "black"
 combine_as_imports = true
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 plugins = "pydantic.mypy"
 pretty = true
 follow_imports = "silent"
