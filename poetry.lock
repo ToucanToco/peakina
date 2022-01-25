@@ -302,20 +302,20 @@ python-versions = ">=3.6"
 [[package]]
 name = "fastparquet"
 version = "0.7.2"
-description = "Python support for Parquet file format"
+description = ""
 category = "main"
 optional = false
 python-versions = ">=3.6,"
-
-[package.dependencies]
-cramjam = ">=2.3.0"
-fsspec = "*"
-numpy = ">=1.18"
-pandas = ">=1.1.0"
-thrift = ">=0.11.0"
+develop = false
 
 [package.extras]
 lzo = ["python-lzo"]
+
+[package.source]
+type = "git"
+url = "https://github.com/PrettyWood/fastparquet"
+reference = "add-3.10"
+resolved_reference = "ec8fbb5ea8e69d23cdeefed687a6ed0cf7e9081e"
 
 [[package]]
 name = "filelock"
@@ -928,22 +928,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "thrift"
-version = "0.15.0"
-description = "Python bindings for the Apache Thrift RPC system"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-six = ">=1.7.2"
-
-[package.extras]
-all = ["tornado (>=4.0)", "twisted"]
-tornado = ["tornado (>=4.0)"]
-twisted = ["twisted"]
-
-[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -1134,7 +1118,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "82aa6ed5fdb7e270e35f48d20b578354aafaaf315974551c0475b398101b7da6"
+content-hash = "a48e675dd836f86e32405a1b5fd4974f6057a203f76b8de0b73722224ffd13cc"
 
 [metadata.files]
 aiobotocore = [
@@ -1483,38 +1467,7 @@ et-xmlfile = [
     {file = "et_xmlfile-1.1.0-py3-none-any.whl", hash = "sha256:a2ba85d1d6a74ef63837eed693bcb89c3f752169b0e3e7ae5b16ca5e1b3deada"},
     {file = "et_xmlfile-1.1.0.tar.gz", hash = "sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c"},
 ]
-fastparquet = [
-    {file = "fastparquet-0.7.2-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:88a1fda51c2f92594bb15d24782736a5a949d9f5f68c7bedbfb6d681d392484c"},
-    {file = "fastparquet-0.7.2-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:0cc0ba0c866d1002c3636a510308b805995ee420ae8abc83b6110f57ec9be340"},
-    {file = "fastparquet-0.7.2-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:0d58608432036a4ec29021e7c643ae46dc9de98aed18d97c554bf3ca41b020a2"},
-    {file = "fastparquet-0.7.2-cp36-cp36m-manylinux2010_i686.whl", hash = "sha256:031200ce4b39cb977ff0c3946239af4edd2c9a829b99a0ffa931dbd57253e98c"},
-    {file = "fastparquet-0.7.2-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:51ed176682fc89a3f087056c0162bddcdc44526c80be0c268e1ba4b4ada78178"},
-    {file = "fastparquet-0.7.2-cp36-cp36m-manylinux2014_aarch64.whl", hash = "sha256:1e9b03501b65de8897d3f0e8fdcae99aeee1df07b12bb835d4b55595eb49a681"},
-    {file = "fastparquet-0.7.2-cp36-cp36m-win_amd64.whl", hash = "sha256:9d19414927c49eb3a3fe83d8b2b892121b9fb2003683a0661b181014dd310f2e"},
-    {file = "fastparquet-0.7.2-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:a61022f26cd28a9cf803a1f24c56ca34b5ebdf4d4f7081a49122bcedc53722cf"},
-    {file = "fastparquet-0.7.2-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:074f409dc6b97d07149aeb2e1ce021ecfca8aa5c9ac43d8a76ea2772d11e4b91"},
-    {file = "fastparquet-0.7.2-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:0cf73b1b2259440cee973492214079cd4362a83b3b86a58c17a2e8a163123890"},
-    {file = "fastparquet-0.7.2-cp37-cp37m-manylinux2010_i686.whl", hash = "sha256:ad92d9f9dc6aa25d5e1717736cee06cbf6a789c58436bb9181dafc0da486d759"},
-    {file = "fastparquet-0.7.2-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:c8c4b9aaf8e423bad91826a60c0077a8b666db1cdff0f788f5f94468cf705091"},
-    {file = "fastparquet-0.7.2-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:dae8b89e8d80813a38748176c1ab217959451c4c0edc5e0129e38952890641ae"},
-    {file = "fastparquet-0.7.2-cp37-cp37m-win_amd64.whl", hash = "sha256:c02edf5394e8e01b582a2aebdb1a7e341d0bc71bbe9972bae38eddd25a802e78"},
-    {file = "fastparquet-0.7.2-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:fa4de9731b6f14c9f8c53ba8b197ce11835972108992918d3ef9d621e881ce46"},
-    {file = "fastparquet-0.7.2-cp38-cp38-manylinux1_i686.whl", hash = "sha256:c330210a79d7b4756394e239a38f9c1aab682057063517c774f1daf8b28485b8"},
-    {file = "fastparquet-0.7.2-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:ec4988eee14c896043197ac5e7188f195b365e1405842fc003e55c4b19742167"},
-    {file = "fastparquet-0.7.2-cp38-cp38-manylinux2010_i686.whl", hash = "sha256:1435c52f0b4bd8799bffde9dbfe34159d7b0743729efb75e4f52f4b550129ed8"},
-    {file = "fastparquet-0.7.2-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:64eac8d038902f5a9854e957abb360c802f600c3500f053011c185fe4c0aa1c5"},
-    {file = "fastparquet-0.7.2-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:3d4b6ae6ee415f67e1f538f77662d149a3ab307a2788bcafdfb6a3710c231b78"},
-    {file = "fastparquet-0.7.2-cp38-cp38-win_amd64.whl", hash = "sha256:b0cc3318ee8029221cb05c297b9f554997b24584d28b621ea83733cb5be109c5"},
-    {file = "fastparquet-0.7.2-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:9f262aacc45d5895833ec0ed46dde29d11efb23fd05b2a3f57cd610b29846de9"},
-    {file = "fastparquet-0.7.2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:086366f97bf93f3765d7cfbcab8f846328c6a3db63021c165d5fbc3a4e25c840"},
-    {file = "fastparquet-0.7.2-cp39-cp39-manylinux1_i686.whl", hash = "sha256:752c7d54320c1001881ba4cb623be10e812e881902ed5e25efea86fcd9175bce"},
-    {file = "fastparquet-0.7.2-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:5addb4118b394e0d7c92d238cafcd43e320c7a8fc9ec3170acf3fac80a463f5f"},
-    {file = "fastparquet-0.7.2-cp39-cp39-manylinux2010_i686.whl", hash = "sha256:96f90697b342e889f1abce756f7b06fd1f1c8e8f9965f2f7ea156ffb2d8cf245"},
-    {file = "fastparquet-0.7.2-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:b32d3ce4db8e659c5c1937eb209acb41bd9842029e522962158a617eea36f74b"},
-    {file = "fastparquet-0.7.2-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:a8b98ee1a9940eeb8556adea0f57d1318b4982ba8fb5db0874759b8d649e1e26"},
-    {file = "fastparquet-0.7.2-cp39-cp39-win_amd64.whl", hash = "sha256:e7fbf2118497446f0fe5e90503e12b82f38c45a241cdfc8ea8a1e877c2072d09"},
-    {file = "fastparquet-0.7.2.tar.gz", hash = "sha256:3c4bd638260357df55a9e71d0bd797c12f14f691a61dfd91a66f5b8d2a247683"},
-]
+fastparquet = []
 filelock = [
     {file = "filelock-3.4.2-py3-none-any.whl", hash = "sha256:cf0fc6a2f8d26bd900f19bf33915ca70ba4dd8c56903eeb14e1e7a2fd7590146"},
     {file = "filelock-3.4.2.tar.gz", hash = "sha256:38b4f4c989f9d06d44524df1b24bd19e167d851f19b50bf3e3559952dddc5b80"},
@@ -2081,9 +2034,6 @@ termcolor = [
 text-unidecode = [
     {file = "text-unidecode-1.3.tar.gz", hash = "sha256:bad6603bb14d279193107714b288be206cac565dfa49aa5b105294dd5c4aab93"},
     {file = "text_unidecode-1.3-py2.py3-none-any.whl", hash = "sha256:1311f10e8b895935241623731c2ba64f4c455287888b18189350b67134a822e8"},
-]
-thrift = [
-    {file = "thrift-0.15.0.tar.gz", hash = "sha256:87c8205a71cf8bbb111cb99b1f7495070fbc9cabb671669568854210da5b3e29"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
