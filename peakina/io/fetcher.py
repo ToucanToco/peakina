@@ -17,8 +17,8 @@ from peakina.helpers import mdtm_to_string
 
 
 class MatchEnum(str, Enum):
-    REGEX = 'regex'
-    GLOB = 'glob'
+    REGEX = "regex"
+    GLOB = "glob"
 
 
 def register(schemes: Union[str, List[str]]):
@@ -44,13 +44,13 @@ class Fetcher(metaclass=ABCMeta):
     All the `Fetcher` subclasses need to implement basic methods in order to be used properly.
     """
 
-    registry: Dict[str, Type['Fetcher']] = {}
+    registry: Dict[str, Type["Fetcher"]] = {}
 
     def __init__(self, **kwargs):
         self.extra_kwargs = kwargs
 
     @classmethod
-    def get_fetcher(cls, filepath: str, **fetcher_kwargs) -> 'Fetcher':
+    def get_fetcher(cls, filepath: str, **fetcher_kwargs) -> "Fetcher":
         scheme = urlparse(filepath).scheme
         return cls.registry[scheme](**fetcher_kwargs)
 

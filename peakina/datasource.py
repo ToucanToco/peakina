@@ -31,7 +31,7 @@ from .helpers import (
 )
 from .io import Fetcher, MatchEnum
 
-AVAILABLE_SCHEMES = set(Fetcher.registry) - {''}  # discard the empty string scheme
+AVAILABLE_SCHEMES = set(Fetcher.registry) - {""}  # discard the empty string scheme
 PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | AVAILABLE_SCHEMES
 NOTSET = object()
 
@@ -49,7 +49,7 @@ class DataSource:
         self._fetcher = None
         self.scheme = urlparse(self.uri).scheme
         if self.scheme not in PD_VALID_URLS:
-            raise AttributeError(f'Invalid scheme {self.scheme!r}')
+            raise AttributeError(f"Invalid scheme {self.scheme!r}")
 
         self.type = self.type or detect_type(self.uri, is_regex=bool(self.match))
 
@@ -64,10 +64,10 @@ class DataSource:
     @property
     def hash(self):
         identifier = asdict(self)
-        del identifier['expire']
-        hash_ = md5(str(identifier).encode('utf-8')).hexdigest()
-        filename = slugify(os.path.basename(self.uri), separator='_')
-        return f'_{filename}_{hash_}'
+        del identifier["expire"]
+        hash_ = md5(str(identifier).encode("utf-8")).hexdigest()
+        filename = slugify(os.path.basename(self.uri), separator="_")
+        return f"_{filename}_{hash_}"
 
     def get_metadata(self) -> dict:
         """Return datasource metadata (e.g. excel sheetnames)"""
@@ -90,16 +90,16 @@ class DataSource:
         allowed_params = get_reader_allowed_params(filetype)
 
         # Check encoding
-        encoding = kwargs.get('encoding')
-        if 'encoding' in allowed_params:
+        encoding = kwargs.get("encoding")
+        if "encoding" in allowed_params:
             if not validate_encoding(stream.name, encoding):
                 encoding = detect_encoding(stream.name)
-            kwargs['encoding'] = encoding
+            kwargs["encoding"] = encoding
 
         # Check separator for CSV files if it's not set
-        if 'sep' in allowed_params and 'sep' not in kwargs:
+        if "sep" in allowed_params and "sep" not in kwargs:
             if not validate_sep(stream.name, encoding=encoding):
-                kwargs['sep'] = detect_sep(stream.name, encoding)
+                kwargs["sep"] = detect_sep(stream.name, encoding)
 
         try:
             df = pd_read(stream.name, filetype, kwargs)
@@ -107,9 +107,9 @@ class DataSource:
             stream.close()
 
         # In case of sheets, the df can be a dictionary
-        if kwargs.get('sheet_name', NOTSET) is None:
+        if kwargs.get("sheet_name", NOTSET) is None:
             for sheet_name, _df in df.items():
-                _df['__sheet__'] = sheet_name
+                _df["__sheet__"] = sheet_name
             df = pd.concat(df.values(), sort=False)
 
         return df
@@ -117,7 +117,7 @@ class DataSource:
     def get_matched_datasources(self) -> Generator:
         my_args = asdict(self)
         for uri in self.fetcher.get_filepath_list(self.uri, self.match):
-            overriden_args = {**my_args, 'uri': uri, 'match': None}
+            overriden_args = {**my_args, "uri": uri, "match": None}
             yield DataSource(**overriden_args)
 
     def get_dfs(self, cache: Optional[Cache] = None) -> Generator[pd.DataFrame, None, None]:
@@ -127,7 +127,7 @@ class DataSource:
         The generator can have a single dataframe (single file as input
         without options) or many (e.g. with `match` or `chunksize`)
         """
-        by_chunk = self.reader_kwargs.get('chunksize') is not None
+        by_chunk = self.reader_kwargs.get("chunksize") is not None
         with_cache = cache is not None and self.expire and not by_chunk
 
         for datasource in self.get_matched_datasources():
@@ -153,7 +153,7 @@ class DataSource:
 
             for df in dfs:
                 if self.match:
-                    df['__filename__'] = os.path.basename(datasource.uri)
+                    df["__filename__"] = os.path.basename(datasource.uri)
                 if with_cache:
                     cache.set(key=cache_key, value=df, mtime=cache_mtime)  # type: ignore
                 yield df

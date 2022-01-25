@@ -35,28 +35,28 @@ class TypeInfos(NamedTuple):
 
 
 # For files without MIME types, we make fake MIME types based on detected extension
-CUSTOM_MIMETYPES = {'.parquet': 'peakina/parquet'}
+CUSTOM_MIMETYPES = {".parquet": "peakina/parquet"}
 
 
 SUPPORTED_FILE_TYPES = {
-    'csv': TypeInfos(['text/csv', 'text/tab-separated-values'], pd.read_csv),
-    'excel': TypeInfos(
+    "csv": TypeInfos(["text/csv", "text/tab-separated-values"], pd.read_csv),
+    "excel": TypeInfos(
         [
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ],
         pd.read_excel,
         # these options are missing from read_excel signature in pandas 0.23:
-        ['keep_default_na', 'encoding', 'decimal'],
-        lambda f: {'sheetnames': pd.ExcelFile(f).sheet_names},
+        ["keep_default_na", "encoding", "decimal"],
+        lambda f: {"sheetnames": pd.ExcelFile(f).sheet_names},
     ),
-    'json': TypeInfos(
-        ['application/json'],
+    "json": TypeInfos(
+        ["application/json"],
         read_json,
-        ['filter'],  # this option comes from read_json, which @wraps(pd.read_json)
+        ["filter"],  # this option comes from read_json, which @wraps(pd.read_json)
     ),
-    'parquet': TypeInfos(['peakina/parquet'], pd.read_parquet),
-    'xml': TypeInfos(['application/xml'], read_xml),
+    "parquet": TypeInfos(["peakina/parquet"], pd.read_parquet),
+    "xml": TypeInfos(["application/xml"], read_xml),
 }
 
 
@@ -64,11 +64,11 @@ SUPPORTED_FILE_TYPES = {
 #        We would like to have something like:
 #        > TypeEnum = Enum('TypeEnum', names={v.upper(): v for v in SUPPORTED_TYPES}, type=str)
 class TypeEnum(str, Enum):
-    CSV = 'csv'
-    EXCEL = 'excel'
-    JSON = 'json'
-    PARQUET = 'parquet'
-    XML = 'xml'
+    CSV = "csv"
+    EXCEL = "excel"
+    JSON = "json"
+    PARQUET = "parquet"
+    XML = "xml"
 
 
 def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
@@ -77,7 +77,7 @@ def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
     Can return None in case of generic extension (filepath='...*') with is_regex=True.
     """
     if is_regex:
-        filepath = filepath.rstrip('$')
+        filepath = filepath.rstrip("$")
     mimetype, _ = mimetypes.guess_type(filepath)
 
     # Fallback on custom MIME types
@@ -97,26 +97,26 @@ def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
         return TypeEnum(detected_type)
     except IndexError:
         raise ValueError(
-            f'Unsupported mimetype {mimetype!r}. '
+            f"Unsupported mimetype {mimetype!r}. "
             f'Supported types are: {", ".join(map(repr, SUPPORTED_FILE_TYPES))}.'
         )
 
 
 def bytes_head(filepath: str, n: int) -> bytes:
     """Returns the first `n` lines of a file as a bytes string."""
-    with open(filepath, 'rb') as f:
-        return b''.join(line for line in islice(f, n))
+    with open(filepath, "rb") as f:
+        return b"".join(line for line in islice(f, n))
 
 
 def str_head(filepath: str, n: int, encoding: str = None) -> str:
     """Returns the first `n` lines of a file as a string."""
     with open(filepath, encoding=encoding) as f:
-        return ''.join(line for line in islice(f, n))
+        return "".join(line for line in islice(f, n))
 
 
 def detect_encoding(filepath: str) -> str:
     """Detects the encoding of a file based on its 100 first lines."""
-    return chardet.detect(bytes_head(filepath, 100))['encoding']
+    return chardet.detect(bytes_head(filepath, 100))["encoding"]
 
 
 def validate_encoding(filepath: str, encoding: str = None) -> bool:
@@ -133,7 +133,7 @@ def detect_sep(filepath: str, encoding: str = None) -> str:
     return csv.Sniffer().sniff(str_head(filepath, 100, encoding)).delimiter
 
 
-def validate_sep(filepath: str, sep: str = ',', encoding: str = None) -> bool:
+def validate_sep(filepath: str, sep: str = ",", encoding: str = None) -> bool:
     """
     Validates if the `sep` is a right separator of a CSV file
     (i.e. the dataframe has more than one column).
@@ -169,7 +169,7 @@ def validate_kwargs(kwargs: dict, t: Optional[TypeEnum]) -> bool:
 
 def mdtm_to_string(mtime: int) -> str:
     """Convert the last modification date of a file as an iso string"""
-    return datetime.utcfromtimestamp(mtime).isoformat() + 'Z'
+    return datetime.utcfromtimestamp(mtime).isoformat() + "Z"
 
 
 def pd_read(filepath: str, t: str, kwargs: dict) -> pd.DataFrame:

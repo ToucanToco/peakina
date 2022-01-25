@@ -10,8 +10,8 @@ import pandas as pd
 
 
 class CacheEnum(str, Enum):
-    MEMORY = 'memory'
-    HDF = 'hdf'
+    MEMORY = "memory"
+    HDF = "hdf"
 
 
 class Cache(metaclass=ABCMeta):
@@ -61,16 +61,16 @@ class InMemoryCache(Cache):
         cached = self._cache[key]
         if self.should_invalidate(
             mtime=mtime,
-            cached_mtime=cached['mtime'],
+            cached_mtime=cached["mtime"],
             expire=expire,
-            cached_created_at=cached['created_at'],
+            cached_created_at=cached["created_at"],
         ):
             self.delete(key)
-        return self._cache[key]['value']
+        return self._cache[key]["value"]
 
     def set(self, key: str, value: pd.DataFrame, mtime: Optional[float] = None):
         mtime = mtime or time()
-        self._cache[key] = {'value': value, 'mtime': mtime, 'created_at': time()}
+        self._cache[key] = {"value": value, "mtime": mtime, "created_at": time()}
 
     def delete(self, key: str):
         if key in self._cache:
@@ -78,7 +78,7 @@ class InMemoryCache(Cache):
 
 
 class HDFCache(Cache):
-    META_DF_KEY = '__meta__'
+    META_DF_KEY = "__meta__"
 
     def __init__(self, cache_dir: Union[str, Path]):
         self.cache_dir = Path(cache_dir).resolve()
@@ -92,18 +92,18 @@ class HDFCache(Cache):
         try:
             # We manually instantiate the HDFStore to be able to close it no matter what
             # See https://github.com/pandas-dev/pandas/pull/28429 for more infos
-            store = pd.HDFStore(self.cache_dir / self.META_DF_KEY, mode='r')
+            store = pd.HDFStore(self.cache_dir / self.META_DF_KEY, mode="r")
             try:
                 metadata = pd.read_hdf(store)
             finally:
                 store.close()
         except Exception:  # catch all, on purpose
-            metadata = pd.DataFrame(columns=['key', 'mtime', 'created_at'])
+            metadata = pd.DataFrame(columns=["key", "mtime", "created_at"])
             self.set_metadata(metadata)
         return metadata
 
     def set_metadata(self, df: pd.DataFrame):
-        df.to_hdf(self.cache_dir / self.META_DF_KEY, self.META_DF_KEY, mode='w')
+        df.to_hdf(self.cache_dir / self.META_DF_KEY, self.META_DF_KEY, mode="w")
 
     def get(
         self, key: str, mtime: Optional[float] = None, expire: Optional[timedelta] = None
@@ -117,9 +117,9 @@ class HDFCache(Cache):
 
         if self.should_invalidate(
             mtime=mtime,
-            cached_mtime=infos['mtime'],
+            cached_mtime=infos["mtime"],
             expire=expire,
-            cached_created_at=infos['created_at'],
+            cached_created_at=infos["created_at"],
         ):
             self.delete(key)
 
@@ -130,14 +130,14 @@ class HDFCache(Cache):
 
     def set(self, key: str, value: pd.DataFrame, mtime: Optional[float] = None):
         mtime = mtime or time()
-        infos = {'key': key, 'mtime': mtime, 'created_at': time()}
+        infos = {"key": key, "mtime": mtime, "created_at": time()}
         metadata = self.get_metadata()
         try:
             # add new row to the metadata dataframe:
             metadata = metadata[metadata.key != key]  # drop duplicates
             metadata = metadata.append(infos, ignore_index=True)
             self.set_metadata(metadata)
-            value.to_hdf(self.cache_dir / key, key, mode='w')
+            value.to_hdf(self.cache_dir / key, key, mode="w")
         except OSError:
             self.delete(key)
             raise

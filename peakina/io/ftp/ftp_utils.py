@@ -15,7 +15,7 @@ from urllib.parse import ParseResult, quote, unquote, urlparse
 
 import paramiko
 
-FTP_SCHEMES = ['ftp', 'ftps', 'sftp']
+FTP_SCHEMES = ["ftp", "ftps", "sftp"]
 
 
 class FTPS(ftplib.FTP_TLS):
@@ -29,7 +29,7 @@ class FTPS(ftplib.FTP_TLS):
         self.sock = socket.create_connection((self.host, self.port), self.timeout)
         self.af = self.sock.family
         self.sock = self.context.wrap_socket(self.sock, server_hostname=self.host)
-        self.file = self.sock.makefile('r')
+        self.file = self.sock.makefile("r")
         self.welcome = self.getresp()
         return self.welcome
 
@@ -57,9 +57,9 @@ class FTPS(ftplib.FTP_TLS):
 def ftps_client(params: ParseResult):
     ftps = FTPS()
     try:
-        ftps.connect(host=params.hostname or '', port=params.port, timeout=3)
+        ftps.connect(host=params.hostname or "", port=params.port, timeout=3)
         ftps.prot_p()
-        ftps.login(user=params.username or '', passwd=params.password or '')
+        ftps.login(user=params.username or "", passwd=params.password or "")
         yield ftps, params.path
 
     finally:
@@ -72,8 +72,8 @@ def ftp_client(params: ParseResult):
     port = params.port or 21
     ftp = ftplib.FTP()
     try:
-        ftp.connect(host=params.hostname or '', port=port, timeout=3)
-        ftp.login(user=params.username or '', passwd=params.password or '')
+        ftp.connect(host=params.hostname or "", port=port, timeout=3)
+        ftp.login(user=params.username or "", passwd=params.password or "")
         yield ftp, params.path
 
     finally:
@@ -107,14 +107,14 @@ def _urlparse(url: str) -> ParseResult:
     The # is a reserved char for 'fragment identifiers':
     https://en.wikipedia.org/wiki/Fragment_identifier
     """
-    url_params = urlparse(quote(url, safe=':/@'))  # the '#' is marked as unsafe
+    url_params = urlparse(quote(url, safe=":/@"))  # the '#' is marked as unsafe
     # unquote to get back the original bits of string
     return ParseResult(*[unquote(param) for param in url_params])
 
 
 def client(url):
     parse_result = _urlparse(url)
-    ftp_client_mapping = {'ftp': ftp_client, 'ftps': ftps_client, 'sftp': sftp_client}
+    ftp_client_mapping = {"ftp": ftp_client, "ftps": ftps_client, "sftp": sftp_client}
     return ftp_client_mapping[parse_result.scheme](parse_result)
 
 
@@ -132,10 +132,10 @@ def retry_pasv(c, cmd, *args):
 
 
 def _open(url: str) -> IO[bytes]:
-    ret = tempfile.NamedTemporaryFile(suffix='.ftptmp')
+    ret = tempfile.NamedTemporaryFile(suffix=".ftptmp")
     with client(url) as (c, path):
         try:
-            retry_pasv(c, 'retrbinary', f'RETR {path}', ret.write)
+            retry_pasv(c, "retrbinary", f"RETR {path}", ret.write)
         except AttributeError:
             c.getfo(path, ret)
         except ftplib.error_perm as e:
@@ -151,17 +151,17 @@ def ftp_open(url: str, retry: int = 4) -> IO[bytes]:  # type: ignore
             return _open(url)
         except (AttributeError, OSError, ftplib.error_temp) as e:
             sleep_time = 2 * i ** 2
-            logging.getLogger(__name__).warning(f'Retry #{i}: Sleeping {sleep_time}s because {e}')
+            logging.getLogger(__name__).warning(f"Retry #{i}: Sleeping {sleep_time}s because {e}")
             sleep(sleep_time)
 
 
 def _get_all_files(c, path) -> List[str]:
     try:
         # retry_pasv returns path + the file
-        return [basename(x) for x in retry_pasv(c, 'nlst', path)]
+        return [basename(x) for x in retry_pasv(c, "nlst", path)]
     except AttributeError:
         if not path:
-            path = '.'
+            path = "."
         return c.listdir(path)
 
 
@@ -173,11 +173,11 @@ def ftp_listdir(url: str) -> List[str]:
 def _get_mtime(c, path) -> Optional[int]:
     """Returns timestamp of last modification"""
     try:
-        mdtm = c.sendcmd('MDTM ' + path)
+        mdtm = c.sendcmd("MDTM " + path)
         # mdtm-response = "213" SP time-val CRLF (e.g. '20180101203000')
         # some FTP servers response include the milliseconds (e.g. '20180101203000.123')
-        mdtm = re.search(r'^213 (\d+)(\.\d+)?$', mdtm).group(1)  # type: ignore
-        dt = datetime.strptime(mdtm, '%Y%m%d%H%M%S')
+        mdtm = re.search(r"^213 (\d+)(\.\d+)?$", mdtm).group(1)  # type: ignore
+        dt = datetime.strptime(mdtm, "%Y%m%d%H%M%S")
         return int((dt - datetime(1970, 1, 1)).total_seconds())
     except AttributeError:
         return c.stat(path).st_mtime

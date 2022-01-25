@@ -4,7 +4,7 @@ from typing import List, TextIO
 from ..fetcher import Fetcher, register
 
 
-@register(schemes='')
+@register(schemes="")
 class FileFetcher(Fetcher):
     def open(self, filepath) -> TextIO:
         return open(filepath)

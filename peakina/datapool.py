@@ -7,7 +7,7 @@ from .datasource import DataSource
 
 class DataPool:
     def __init__(
-        self, config: Dict[Hashable, dict], data_sources_dir: str = '', cache: Cache = None
+        self, config: Dict[Hashable, dict], data_sources_dir: str = "", cache: Cache = None
     ):
         self.cache = cache
         self.datasources: dict = {}
@@ -15,7 +15,7 @@ class DataPool:
             ds = DataSource(**ds_conf)
 
             # change local path into absolute path
-            if ds.scheme == '' and not path.isabs(ds.uri):
+            if ds.scheme == "" and not path.isabs(ds.uri):
                 ds.uri = path.join(data_sources_dir, ds.uri)
 
             self.datasources[ds_id] = ds
