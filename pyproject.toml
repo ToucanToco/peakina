@@ -102,3 +102,9 @@ show_error_context = true
 [[tool.mypy.overrides]]
 module = "peakina.*"
 disallow_untyped_defs = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]
