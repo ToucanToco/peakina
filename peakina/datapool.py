@@ -1,5 +1,5 @@
 from os import path
-from typing import Dict, Hashable
+from typing import Any, Dict, Hashable, Optional
 
 from .cache import Cache
 from .datasource import DataSource
@@ -7,10 +7,13 @@ from .datasource import DataSource
 
 class DataPool:
     def __init__(
-        self, config: Dict[Hashable, dict], data_sources_dir: str = "", cache: Cache = None
+        self,
+        config: Dict[Hashable, Dict[str, Any]],
+        data_sources_dir: str = "",
+        cache: Optional[Cache] = None,
     ) -> None:
         self.cache = cache
-        self.datasources: dict = {}
+        self.datasources: Dict[Hashable, DataSource] = {}
         for ds_id, ds_conf in config.items():
             ds = DataSource(**ds_conf)
 

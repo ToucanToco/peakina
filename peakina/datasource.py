@@ -158,7 +158,7 @@ class DataSource:
                     cache.set(key=cache_key, value=df, mtime=cache_mtime)  # type: ignore
                 yield df
 
-    def get_df(self, cache: Cache = None) -> pd.DataFrame:
+    def get_df(self, cache: Optional[Cache] = None) -> pd.DataFrame:
         return pd.concat([x for x in self.get_dfs(cache=cache)], sort=False).reset_index(drop=True)
 
 
