@@ -13,6 +13,7 @@ def test_file_fetcher(path):
     assert "0_0.csv" in fetcher.listdir(dirpath)
     assert fetcher.mtime(filepath) > 1e9
     str_mtime = fetcher.get_str_mtime(filepath)
+    assert str_mtime is not None
     assert len(str_mtime) == 20
     assert fetcher.get_mtime_dict(dirpath)["0_0.csv"] == str_mtime
 

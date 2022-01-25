@@ -1,6 +1,7 @@
 import pytest
 
 from peakina.helpers import (
+    TypeEnum,
     bytes_head,
     detect_encoding,
     detect_sep,
@@ -88,13 +89,15 @@ def test_validate_sep_error(path):
 
 def test_validate_kwargs():
     """It should raise an error if at least one kwarg is not in one of the methods"""
-    assert validate_kwargs({"encoding": "utf8"}, "csv")
+    assert validate_kwargs({"encoding": "utf8"}, TypeEnum.CSV)
     with pytest.raises(ValueError) as e:
-        validate_kwargs({"sheet_name": 0}, "csv")
+        validate_kwargs({"sheet_name": 0}, TypeEnum.CSV)
     assert str(e.value) == "Unsupported kwargs: 'sheet_name'"
     assert validate_kwargs({"sheet_name": 0}, None)
-    assert validate_kwargs({"keep_default_na": False, "encoding": "utf-8", "decimal": "."}, "excel")
-    assert validate_kwargs({"filter": "."}, "xml")
+    assert validate_kwargs(
+        {"keep_default_na": False, "encoding": "utf-8", "decimal": "."}, TypeEnum.EXCEL
+    )
+    assert validate_kwargs({"filter": "."}, TypeEnum.XML)
 
 
 def test_mdtm_to_string():
@@ -104,5 +107,5 @@ def test_mdtm_to_string():
 
 def test_pd_read(path):
     """It should call the right pandas method for reading file"""
-    assert pd_read(path("0_0.csv"), "csv", kwargs={}).shape == (2, 2)
-    assert pd_read(path("fixture.xml"), "xml", kwargs={}).shape == (1, 1)
+    assert pd_read(path("0_0.csv"), TypeEnum.CSV, kwargs={}).shape == (2, 2)
+    assert pd_read(path("fixture.xml"), TypeEnum.XML, kwargs={}).shape == (1, 1)
