@@ -35,7 +35,9 @@ FTPClient = Union[ftplib.FTP, paramiko.SFTPClient]
 class FTPS(ftplib.FTP_TLS):
     ssl_version = ssl.PROTOCOL_TLSv1_2
 
-    def connect(self, host: str, port: Optional[int], timeout: float):
+    def connect(  # type: ignore[override]
+        self, host: str, port: Optional[int], timeout: int = 60
+    ) -> str:
         self.host = host
         self.port = port or 990
         self.timeout = timeout
@@ -47,7 +49,9 @@ class FTPS(ftplib.FTP_TLS):
         self.welcome = self.getresp()
         return self.welcome
 
-    def ntransfercmd(self, cmd: str, rest=None):
+    def ntransfercmd(  # type: ignore[override]
+        self, cmd: str, rest: Optional[str] = None
+    ) -> Tuple[socket.socket, int]:
         # override ntransfercmd so it reuses the sock session, to prevent SSLEOFError.
         # cf. https://stackoverflow.com/questions/40536061/ssleoferror-on-ftps-using-python-ftplib
         conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
@@ -57,7 +61,7 @@ class FTPS(ftplib.FTP_TLS):
             )  # this is the fix
         return conn, size
 
-    def makepasv(self):
+    def makepasv(self) -> Tuple[str, int]:
         # override makepasv so it rewrites the dst address if the server gave a broken one.
         # Inspired by:
         # https://github.com/lavv17/lftp/blob/d67fc14d085849a6b0418bb3e912fea2e94c18d1/src/ftpclass.cc#L774

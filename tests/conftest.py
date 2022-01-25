@@ -2,6 +2,7 @@ import os
 import socket
 import time
 from contextlib import suppress
+from typing import Callable, Optional, Type
 
 import boto3
 import pytest
@@ -110,7 +111,13 @@ def unused_port():
     return f
 
 
-def wait_for_container(checker_callable, host_port, image, skip_exception=None, timeout=60):
+def wait_for_container(
+    checker_callable: Callable[[int], bool],
+    host_port: int,
+    image: str,
+    skip_exception: Optional[Type[Exception]] = None,
+    timeout: int = 60,
+) -> None:
     skip_exception = skip_exception or Exception
     for i in range(timeout):
         try:

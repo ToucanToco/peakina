@@ -38,7 +38,7 @@ def register(schemes: Union[str, List[str]]) -> Callable[[F], F]:
     if isinstance(schemes, str):
         schemes = [schemes]
 
-    def f(cls):
+    def f(cls: F) -> F:
         for scheme in schemes:
             cls.registry[scheme] = cls
         return cls
@@ -118,15 +118,15 @@ class fetch:
         self.fetcher = Fetcher.get_fetcher(uri, **fetcher_kwargs)
 
     @property
-    def scheme(self):
+    def scheme(self) -> str:
         return urlparse(self.uri).scheme
 
     @property
-    def dirpath(self):
+    def dirpath(self) -> str:
         return os.path.dirname(self.uri)
 
     @property
-    def basename(self):
+    def basename(self) -> str:
         return os.path.basename(self.uri)
 
     def open(self) -> Union[IO[bytes], IO[str]]:

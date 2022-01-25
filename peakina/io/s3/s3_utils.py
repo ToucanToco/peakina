@@ -54,7 +54,7 @@ def parse_s3_url(
     return access_key, secret, urlchunks.hostname, objectname
 
 
-def _s3_open_file_with_retries(fs, path, retries):
+def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -> Any:
     for _ in range(retries):
         try:
             logger.info(f"opening {path}")
