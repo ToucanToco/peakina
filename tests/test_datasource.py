@@ -6,8 +6,9 @@ import pandas as pd
 import pytest
 
 from peakina.cache import InMemoryCache
-from peakina.datasource import DataSource, TypeEnum, read_pandas
-from peakina.io.fetcher import MatchEnum
+from peakina.datasource import DataSource, read_pandas
+from peakina.helpers import TypeEnum
+from peakina.io import MatchEnum
 
 
 @pytest.fixture
