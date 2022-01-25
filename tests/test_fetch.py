@@ -9,5 +9,7 @@ def test_fetch(path):
     assert f.scheme == ""
 
     assert f.open().read() == "a,b\n0,0\n0,1"
-    assert f.get_str_mtime().endswith("Z")
-    assert f.get_mtime_dict()["0_0.csv"].endswith("Z")
+    assert (str_mtime := f.get_str_mtime()) is not None
+    assert str_mtime.endswith("Z")
+    assert (mtime_0_0 := f.get_mtime_dict()["0_0.csv"]) is not None
+    assert mtime_0_0.endswith("Z")

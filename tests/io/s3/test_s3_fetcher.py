@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import boto3
 import pytest
 from s3fs import S3FileSystem
@@ -52,8 +54,8 @@ def test_s3_fetcher_open_retry(s3_fetcher, s3_endpoint_url, mocker):
     filepath = f"{dirpath}/for_retry_0_0.csv"
     s3_client.upload_file("tests/fixtures/for_retry_0_0.csv", "mybucket", "for_retry_0_0.csv")
 
-    class S3FileSystemThatFailsOpen(S3FileSystem):
-        def __init__(self, key, secret, client_kwargs):
+    class S3FileSystemThatFailsOpen(S3FileSystem):  # type:ignore[misc]
+        def __init__(self, key: str, secret: str, client_kwargs: Dict[str, Any]) -> None:
             super().__init__(key=key, secret=secret, client_kwargs=client_kwargs)
             self.invalidated_cache = False
 

@@ -1,11 +1,12 @@
 import time
 from datetime import timedelta
+from typing import Any
 
 import pandas as pd
 import pytest
 from pandas.util.testing import assert_frame_equal
 
-from peakina.cache import Cache, CacheEnum
+from peakina.cache import Cache, CacheEnum, HDFCache, InMemoryCache
 
 
 @pytest.fixture
@@ -17,6 +18,8 @@ def test_inmemory_cache(df_test):
     """two inmemory caches are independant"""
     c1 = Cache.get_cache(CacheEnum.MEMORY)
     c2 = Cache.get_cache(CacheEnum.MEMORY)
+    assert isinstance(c1, InMemoryCache)
+    assert isinstance(c2, InMemoryCache)
 
     c1.set("key", df_test)
     assert_frame_equal(c1.get("key"), df_test)
@@ -32,6 +35,8 @@ def test_hdf_cache(mocker, tmp_path, df_test):
     """two hdf caches pointing to the same directory are equivalent"""
     c1 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
     c2 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
+    assert isinstance(c1, HDFCache)
+    assert isinstance(c2, HDFCache)
 
     c1.set("key", df_test)
     assert c1.get_metadata().shape == (1, 3)
@@ -51,7 +56,7 @@ def test_hdf_cache(mocker, tmp_path, df_test):
 
 
 @pytest.fixture
-def cache(request, tmpdir) -> Cache:
+def cache(request: Any, tmpdir: str) -> Cache:
     if request.param == "memory":
         return Cache.get_cache(CacheEnum.MEMORY)
     elif request.param == "hdf":
@@ -87,6 +92,7 @@ def test_hdf_store_closed_on_error(df_test, mocker, tmp_path):
     i.e. if `read_hdf` raises an AssertionError and doesn't close the HDF store
     """
     c1 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
+    assert isinstance(c1, HDFCache)
     c1.set("key", df_test)
     c1.set_metadata(df_test)
     # cf. https://github.com/pandas-dev/pandas/issues/28430: an exception might

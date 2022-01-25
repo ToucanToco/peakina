@@ -1,11 +1,14 @@
 import os
 import time
+from datetime import timedelta
 
 import pandas as pd
 import pytest
 
 from peakina.cache import InMemoryCache
-from peakina.datasource import DataSource, TypeEnum, read_pandas
+from peakina.datasource import DataSource, read_pandas
+from peakina.helpers import TypeEnum
+from peakina.io import MatchEnum
 
 
 @pytest.fixture
@@ -31,8 +34,8 @@ def test_type():
     assert DataSource("myfile.csv").type is TypeEnum.CSV
     with pytest.raises(ValueError):
         DataSource("myfile.csv$")
-    assert DataSource("myfile.tsv$", match="glob").type is TypeEnum.CSV
-    assert DataSource("myfile.*", match="glob").type is None
+    assert DataSource("myfile.tsv$", match=MatchEnum.GLOB).type is TypeEnum.CSV
+    assert DataSource("myfile.*", match=MatchEnum.GLOB).type is None
 
 
 def test_validation_kwargs(mocker):
@@ -43,7 +46,7 @@ def test_validation_kwargs(mocker):
     validatation_kwargs.assert_called_once_with({}, "csv")
     validatation_kwargs.reset_mock()
 
-    DataSource("myfile.*", match="glob")
+    DataSource("myfile.*", match=MatchEnum.GLOB)
     validatation_kwargs.assert_called_once_with({}, None)
     validatation_kwargs.reset_mock()
 
@@ -54,7 +57,7 @@ def test_simple_csv(path):
     assert ds.get_df().shape == (2, 2)
 
     with pytest.raises(Exception):
-        DataSource(path("0_0.csv"), type="excel", encoding="utf8", sep=",").get_df()
+        DataSource(path("0_0.csv"), type=TypeEnum.EXCEL, encoding="utf8", sep=",")  # type: ignore
 
 
 def test_csv_with_sep(path):
@@ -91,7 +94,7 @@ def test_read_pandas_excel(path):
 
 def test_match(path):
     """It should be able to concat files matching a pattern"""
-    ds = DataSource(path(r"0_\d.csv"), match="regex")
+    ds = DataSource(path(r"0_\d.csv"), match=MatchEnum.REGEX)
     df = ds.get_df()
     assert set(df["__filename__"]) == {"0_0.csv", "0_1.csv"}
     assert df.shape == (4, 3)
@@ -99,7 +102,7 @@ def test_match(path):
 
 def test_match_different_file_types(path):
     """It should be able to match even different types, encodings or seps"""
-    ds = DataSource(path("0_*"), match="glob")
+    ds = DataSource(path("0_*"), match=MatchEnum.GLOB)
     df = ds.get_df()
     assert set(df["__filename__"]) == {"0_0.csv", "0_0_sep.csv", "0_1.csv", "0_2.xls"}
     assert df.shape == (8, 3)
@@ -113,7 +116,7 @@ def test_ftp(ftp_path):
 
 @pytest.mark.flaky(reruns=5)
 def test_ftp_match(ftp_path):
-    ds = DataSource(f"{ftp_path}/my_data_\\d{{4}}\\.csv$", match="regex")
+    ds = DataSource(f"{ftp_path}/my_data_\\d{{4}}\\.csv$", match=MatchEnum.REGEX)
     assert ds.get_df().shape == (8, 3)
 
 
@@ -128,7 +131,7 @@ def test_s3(s3_endpoint_url):
 
     ds = DataSource(
         f"{dirpath}/0_*.csv",
-        match="glob",
+        match=MatchEnum.GLOB,
         fetcher_kwargs={"client_kwargs": {"endpoint_url": s3_endpoint_url}},
     )
     assert ds.get_df().shape == (4, 3)
@@ -136,7 +139,7 @@ def test_s3(s3_endpoint_url):
     # With subdirectories
     ds = DataSource(
         f"{dirpath}/mydir/0_*.csv",
-        match="glob",
+        match=MatchEnum.GLOB,
         fetcher_kwargs={"client_kwargs": {"endpoint_url": s3_endpoint_url}},
     )
     assert ds.get_df().shape == (4, 3)
@@ -150,7 +153,7 @@ def test_basic_excel(path):
     assert ds.get_metadata() == {"sheetnames": ["January", "February"]}
 
     # On match datasources, no metadata is returned:
-    assert DataSource(path("fixture-multi-sh*t.xlsx"), match="glob").get_metadata() == {}
+    assert DataSource(path("fixture-multi-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
 
 
 def test_multi_sheets_excel(path):
@@ -191,7 +194,9 @@ def test_basic_parquet(path):
     df = DataSource(path("userdata.parquet")).get_df()
     assert df.shape == (1000, 13)
     df = DataSource(
-        path("userdata.parquet"), type="parquet", reader_kwargs={"columns": ["title", "country"]}
+        path("userdata.parquet"),
+        type=TypeEnum.PARQUET,
+        reader_kwargs={"columns": ["title", "country"]},
     ).get_df()
     assert df.shape == (1000, 2)
 
@@ -210,7 +215,7 @@ def test_chunk(path):
 
 def test_chunk_match(path):
     """It should be able to retrieve a dataframe with chunks and match"""
-    ds = DataSource(path("0_*.csv"), match="glob", reader_kwargs={"chunksize": 1})
+    ds = DataSource(path("0_*.csv"), match=MatchEnum.GLOB, reader_kwargs={"chunksize": 1})
     assert all(df.shape == (1, 3) for df in ds.get_dfs())
     df = ds.get_df()
     assert df.shape == (6, 3)
@@ -219,7 +224,7 @@ def test_chunk_match(path):
 
 def test_cache(path, mocker):
     df = pd.DataFrame({"x": [1, 2, 3]})
-    ds = DataSource(path("0_0.csv"), expire=10)
+    ds = DataSource(path("0_0.csv"), expire=timedelta(seconds=10))
     mtime = int(os.path.getmtime(path("0_0.csv")))
     cache = InMemoryCache()
     cache.set(ds.hash, value=df, mtime=mtime)

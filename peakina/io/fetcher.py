@@ -10,10 +10,23 @@ import os
 import re
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import IO, Dict, List, Optional, Pattern, Type, Union
+from typing import (
+    IO,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Pattern,
+    Type,
+    TypeVar,
+    Union,
+)
 from urllib.parse import urlparse
 
 from peakina.helpers import mdtm_to_string
+
+F = TypeVar("F", bound=Type["Fetcher"])
 
 
 class MatchEnum(str, Enum):
@@ -21,11 +34,11 @@ class MatchEnum(str, Enum):
     GLOB = "glob"
 
 
-def register(schemes: Union[str, List[str]]):
+def register(schemes: Union[str, List[str]]) -> Callable[[F], F]:
     if isinstance(schemes, str):
         schemes = [schemes]
 
-    def f(cls):
+    def f(cls: F) -> F:
         for scheme in schemes:
             cls.registry[scheme] = cls
         return cls
@@ -46,11 +59,11 @@ class Fetcher(metaclass=ABCMeta):
 
     registry: Dict[str, Type["Fetcher"]] = {}
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.extra_kwargs = kwargs
 
     @classmethod
-    def get_fetcher(cls, filepath: str, **fetcher_kwargs) -> "Fetcher":
+    def get_fetcher(cls, filepath: str, **fetcher_kwargs: Any) -> "Fetcher":
         scheme = urlparse(filepath).scheme
         return cls.registry[scheme](**fetcher_kwargs)
 
@@ -59,7 +72,7 @@ class Fetcher(metaclass=ABCMeta):
         """List all the files in a directory"""
 
     @abstractmethod
-    def open(self, filepath: str) -> IO:
+    def open(self, filepath: str) -> Union[IO[bytes], IO[str]]:
         """Same as builtins `open` method in text mode"""
 
     @abstractmethod
@@ -67,9 +80,9 @@ class Fetcher(metaclass=ABCMeta):
         """Get last modification time of a file"""
 
     @staticmethod
-    def is_matching(filename: str, match: Optional[MatchEnum], pattern: Pattern) -> bool:
+    def is_matching(filename: str, match: Optional[MatchEnum], pattern: Pattern[str]) -> bool:
         if match is None:
-            return filename == pattern.pattern
+            return bool(filename == pattern.pattern)
         elif match is MatchEnum.GLOB:
             return bool(fnmatch.fnmatch(filename, pattern.pattern))
         else:
@@ -100,23 +113,23 @@ class Fetcher(metaclass=ABCMeta):
 class fetch:
     """class providing shortcuts for some Fetcher operations"""
 
-    def __init__(self, uri: str, **fetcher_kwargs):
+    def __init__(self, uri: str, **fetcher_kwargs: Any) -> None:
         self.uri = uri
         self.fetcher = Fetcher.get_fetcher(uri, **fetcher_kwargs)
 
     @property
-    def scheme(self):
+    def scheme(self) -> str:
         return urlparse(self.uri).scheme
 
     @property
-    def dirpath(self):
+    def dirpath(self) -> str:
         return os.path.dirname(self.uri)
 
     @property
-    def basename(self):
+    def basename(self) -> str:
         return os.path.basename(self.uri)
 
-    def open(self) -> IO:
+    def open(self) -> Union[IO[bytes], IO[str]]:
         return self.fetcher.open(self.uri)
 
     def get_str_mtime(self) -> Optional[str]:
