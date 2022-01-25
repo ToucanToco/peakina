@@ -9,7 +9,7 @@ from contextlib import suppress
 from dataclasses import asdict, field
 from datetime import timedelta
 from hashlib import md5
-from typing import IO, Generator, Iterable, Optional, Union
+from typing import IO, Any, Dict, Generator, Iterable, Optional, Union
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
@@ -42,11 +42,11 @@ class DataSource:
     type: Optional[TypeEnum] = None
     match: Optional[MatchEnum] = None
     expire: Optional[timedelta] = None
-    reader_kwargs: dict = field(default_factory=dict)
-    fetcher_kwargs: dict = field(default_factory=dict)
+    reader_kwargs: Dict[str, Any] = field(default_factory=dict)
+    fetcher_kwargs: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init_post_parse__(self):
-        self._fetcher = None
+    def __post_init_post_parse__(self) -> None:
+        self._fetcher: Optional[Fetcher] = None
         self.scheme = urlparse(self.uri).scheme
         if self.scheme not in PD_VALID_URLS:
             raise AttributeError(f"Invalid scheme {self.scheme!r}")
@@ -56,20 +56,20 @@ class DataSource:
         validate_kwargs(self.reader_kwargs, self.type)
 
     @property
-    def fetcher(self):
+    def fetcher(self) -> Fetcher:
         if self._fetcher is None:
             self._fetcher = Fetcher.get_fetcher(self.uri, **self.fetcher_kwargs)
         return self._fetcher
 
     @property
-    def hash(self):
+    def hash(self) -> str:
         identifier = asdict(self)
         del identifier["expire"]
         hash_ = md5(str(identifier).encode("utf-8")).hexdigest()
         filename = slugify(os.path.basename(self.uri), separator="_")
         return f"_{filename}_{hash_}"
 
-    def get_metadata(self) -> dict:
+    def get_metadata(self) -> Dict[str, Any]:
         """Return datasource metadata (e.g. excel sheetnames)"""
         if self.match:
             return {}  # no metadata for matched datasources
@@ -78,7 +78,7 @@ class DataSource:
 
     @staticmethod
     def _get_single_df(
-        stream: IO, filetype: Optional[TypeEnum], **kwargs
+        stream: Union[IO[bytes], IO[str]], filetype: Optional[TypeEnum], **kwargs: Any
     ) -> Union[pd.DataFrame, Iterable[pd.DataFrame]]:
         """
         Read a stream and retrieve the data frame or data frame generator (chunks)
@@ -114,11 +114,11 @@ class DataSource:
 
         return df
 
-    def get_matched_datasources(self) -> Generator:
+    def get_matched_datasources(self) -> Generator["DataSource", None, None]:
         my_args = asdict(self)
         for uri in self.fetcher.get_filepath_list(self.uri, self.match):
             overriden_args = {**my_args, "uri": uri, "match": None}
-            yield DataSource(**overriden_args)
+            yield DataSource(**overriden_args)  # type: ignore[arg-type]
 
     def get_dfs(self, cache: Optional[Cache] = None) -> Generator[pd.DataFrame, None, None]:
         """
@@ -165,11 +165,11 @@ class DataSource:
 def read_pandas(
     uri: str,
     *,
-    type: TypeEnum = None,
-    match: MatchEnum = None,
-    expire: timedelta = None,
-    fetcher_kwargs: dict = None,
-    **reader_kwargs,
+    type: Optional[TypeEnum] = None,
+    match: Optional[MatchEnum] = None,
+    expire: Optional[timedelta] = None,
+    fetcher_kwargs: Optional[Dict[str, Any]] = None,
+    **reader_kwargs: Any,
 ) -> pd.DataFrame:
     return DataSource(
         uri=uri,

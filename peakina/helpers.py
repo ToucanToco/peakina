@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 from enum import Enum
 from itertools import islice
-from typing import Callable, List, NamedTuple, Optional
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
 
 import chardet
 import pandas as pd
@@ -31,7 +31,7 @@ class TypeInfos(NamedTuple):
     # If the default reader has some missing declared kwargs, it's useful
     # to declare them for `validate_kwargs` method
     reader_kwargs: List[str] = []
-    metadata_reader: Optional[Callable[..., dict]] = None
+    metadata_reader: Optional[Callable[..., Dict[str, Any]]] = None
 
 
 # For files without MIME types, we make fake MIME types based on detected extension
@@ -108,7 +108,7 @@ def bytes_head(filepath: str, n: int) -> bytes:
         return b"".join(line for line in islice(f, n))
 
 
-def str_head(filepath: str, n: int, encoding: str = None) -> str:
+def str_head(filepath: str, n: int, encoding: Optional[str] = None) -> str:
     """Returns the first `n` lines of a file as a string."""
     with open(filepath, encoding=encoding) as f:
         return "".join(line for line in islice(f, n))
@@ -116,10 +116,10 @@ def str_head(filepath: str, n: int, encoding: str = None) -> str:
 
 def detect_encoding(filepath: str) -> str:
     """Detects the encoding of a file based on its 100 first lines."""
-    return chardet.detect(bytes_head(filepath, 100))["encoding"]
+    return cast(str, chardet.detect(bytes_head(filepath, 100))["encoding"])
 
 
-def validate_encoding(filepath: str, encoding: str = None) -> bool:
+def validate_encoding(filepath: str, encoding: Optional[str] = None) -> bool:
     """Validates if `encoding` seems ok to read the file based on its 100 first lines."""
     try:
         str_head(filepath, 100, encoding)
@@ -128,12 +128,12 @@ def validate_encoding(filepath: str, encoding: str = None) -> bool:
         return False
 
 
-def detect_sep(filepath: str, encoding: str = None) -> str:
+def detect_sep(filepath: str, encoding: Optional[str] = None) -> str:
     """Detect separator of a CSV file based on its 100 first lines"""
     return csv.Sniffer().sniff(str_head(filepath, 100, encoding)).delimiter
 
 
-def validate_sep(filepath: str, sep: str = ",", encoding: str = None) -> bool:
+def validate_sep(filepath: str, sep: str = ",", encoding: Optional[str] = None) -> bool:
     """
     Validates if the `sep` is a right separator of a CSV file
     (i.e. the dataframe has more than one column).
@@ -150,7 +150,7 @@ def get_reader_allowed_params(t: TypeEnum) -> List[str]:
     return [kw for kw in inspect.signature(reader).parameters]
 
 
-def validate_kwargs(kwargs: dict, t: Optional[TypeEnum]) -> bool:
+def validate_kwargs(kwargs: Dict[str, Any], t: Optional[TypeEnum]) -> bool:
     """
     Validate that kwargs are at least in one signature of the methods
     Raises an error if it's not the case
@@ -172,10 +172,10 @@ def mdtm_to_string(mtime: int) -> str:
     return datetime.utcfromtimestamp(mtime).isoformat() + "Z"
 
 
-def pd_read(filepath: str, t: str, kwargs: dict) -> pd.DataFrame:
+def pd_read(filepath: str, t: str, kwargs: Dict[str, Any]) -> pd.DataFrame:
     return SUPPORTED_FILE_TYPES[t].reader(filepath, **kwargs)
 
 
-def get_metadata(filepath: str, t: str) -> dict:
+def get_metadata(filepath: str, t: str) -> Dict[str, Any]:
     read = SUPPORTED_FILE_TYPES[t].metadata_reader
     return read(filepath) if read else {}
