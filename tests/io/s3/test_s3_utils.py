@@ -47,7 +47,10 @@ def test_empty_object_name_raise_exception():
 
 def test_s3_open(mocker):
     fs_mock = mocker.patch("s3fs.S3FileSystem").return_value
+    logger_mock = mocker.patch("peakina.io.s3.s3_utils.logger")
     fs_mock.open.return_value = io.BytesIO(b"a,b\n0,1\n")
-    tmpfile = s3_open("s3://mybucket/file.csv")
+    tmpfile = s3_open("s3://my_key:my_secret@mybucket/file.csv")
+    # ensure logger doesn't log credentials
+    logger_mock.info.assert_called_once_with("opening mybucket/file.csv")
     assert tmpfile.name.endswith(".s3tmp")
     assert tmpfile.read() == b"a,b\n0,1\n"
