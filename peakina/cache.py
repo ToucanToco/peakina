@@ -147,7 +147,7 @@ class HDFCache(Cache):
         try:
             # add new row to the metadata dataframe:
             metadata = metadata[metadata.key != key]  # drop duplicates
-            metadata = metadata.append(infos, ignore_index=True)
+            metadata = pd.concat([metadata, pd.Series(infos).to_frame().T], ignore_index=True)
             self.set_metadata(metadata)
             value.to_hdf(self.cache_dir / key, key, mode="w")
         except OSError:

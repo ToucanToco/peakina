@@ -4,7 +4,7 @@ from typing import Any
 
 import pandas as pd
 import pytest
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 
 from peakina.cache import Cache, CacheEnum, HDFCache, InMemoryCache
 
