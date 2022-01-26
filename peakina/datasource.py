@@ -74,7 +74,8 @@ class DataSource:
         if self.match:
             return {}  # no metadata for matched datasources
         with self.fetcher.open(self.uri) as f:
-            return get_metadata(f.name, self.type)  # type: ignore
+            assert self.type is not None
+            return get_metadata(f.name, self.type)
 
     @staticmethod
     def _get_single_df(
@@ -138,9 +139,8 @@ class DataSource:
                     cache_mtime = self.fetcher.mtime(datasource.uri)
 
                 with suppress(KeyError):
-                    df = cache.get(  # type: ignore
-                        key=cache_key, mtime=cache_mtime, expire=self.expire
-                    )
+                    assert cache is not None
+                    df = cache.get(key=cache_key, mtime=cache_mtime, expire=self.expire)
                     yield df
                     continue
 
@@ -155,7 +155,8 @@ class DataSource:
                 if self.match:
                     df["__filename__"] = os.path.basename(datasource.uri)
                 if with_cache:
-                    cache.set(key=cache_key, value=df, mtime=cache_mtime)  # type: ignore
+                    assert cache is not None
+                    cache.set(key=cache_key, value=df, mtime=cache_mtime)
                 yield df
 
     def get_df(self, cache: Optional[Cache] = None) -> pd.DataFrame:

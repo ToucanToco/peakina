@@ -55,7 +55,7 @@ class FTPS(ftplib.FTP_TLS):
         # override ntransfercmd so it reuses the sock session, to prevent SSLEOFError.
         # cf. https://stackoverflow.com/questions/40536061/ssleoferror-on-ftps-using-python-ftplib
         conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
-        if self._prot_p:  # type: ignore
+        if self._prot_p:  # type: ignore[attr-defined]
             conn = self.context.wrap_socket(
                 conn, server_hostname=self.host, session=self.sock.session
             )  # this is the fix
@@ -108,7 +108,7 @@ def sftp_client(params: ParseResult) -> Generator[Tuple[paramiko.SFTPClient, str
     try:
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh_client.connect(
-            hostname=params.hostname,  # type: ignore
+            hostname=params.hostname or "",
             username=params.username,
             password=params.password,
             port=port,
@@ -202,8 +202,9 @@ def _get_mtime(c: FTPClient, path: str) -> Optional[int]:
         mdtm = cast(ftplib.FTP, c).sendcmd("MDTM " + path)
         # mdtm-response = "213" SP time-val CRLF (e.g. '20180101203000')
         # some FTP servers response include the milliseconds (e.g. '20180101203000.123')
-        mdtm = re.search(r"^213 (\d+)(\.\d+)?$", mdtm).group(1)  # type: ignore
-        dt = datetime.strptime(mdtm, "%Y%m%d%H%M%S")
+        mtime = re.search(r"^213 (\d+)(\.\d+)?$", mdtm)
+        assert mtime is not None
+        dt = datetime.strptime(mtime.group(1), "%Y%m%d%H%M%S")
         return int((dt - datetime(1970, 1, 1)).total_seconds())
     except AttributeError:
         return cast(paramiko.SFTPClient, c).stat(path).st_mtime
