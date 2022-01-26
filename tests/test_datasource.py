@@ -56,9 +56,6 @@ def test_simple_csv(path):
     ds = DataSource(path("0_0.csv"), reader_kwargs={"encoding": "utf8", "sep": ","})
     assert ds.get_df().shape == (2, 2)
 
-    with pytest.raises(Exception):
-        DataSource(path("0_0.csv"), type=TypeEnum.EXCEL, encoding="utf8", sep=",")  # type: ignore
-
 
 def test_csv_with_sep(path):
     """It should be able to detect separator if not set"""
