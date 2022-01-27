@@ -5,8 +5,8 @@ import json
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Optional, Union
 
+import jq
 import pandas as pd
-import pyjq
 
 if TYPE_CHECKING:
     from os import PathLike
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 def transform_with_jq(json_input: str, jq_filter: str) -> str:
     """Apply a jq filter on raw json input, outputs raw json (may be on several lines)"""
-    return "\n".join(json.dumps(x) for x in pyjq.all(jq_filter, json.loads(json_input)))
+    return jq.text(jq_filter, json.loads(json_input))  # type: ignore[no-any-return]
 
 
 @wraps(pd.read_json)
