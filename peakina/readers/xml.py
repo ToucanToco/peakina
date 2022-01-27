@@ -3,8 +3,8 @@ Module to add xml support
 """
 from typing import Any, Dict, List, Optional, Union, cast
 
+import jq
 import pandas as pd
-import pyjq
 import xmltodict
 
 PdDataList = List[Dict[str, Any]]
@@ -13,7 +13,7 @@ PdDataDict = Dict[str, List[Any]]
 
 def transform_with_jq(data: Any, jq_filter: str) -> Union[PdDataList, PdDataDict]:
     """Apply a jq filter on data before it's passed to a pd.DataFrame"""
-    all_data: Union[List[PdDataList], List[PdDataDict], PdDataList] = pyjq.all(jq_filter, data)
+    all_data: Union[List[PdDataList], List[PdDataDict], PdDataList] = jq.all(jq_filter, data)
 
     # If the data is already presented as a list of rows,
     # then undo the nesting caused by "multiple_output" jq option
