@@ -176,7 +176,7 @@ def ftp_open(url: str, retry: int = 4) -> IO[bytes]:  # type: ignore
         try:
             return _open(url)
         except (AttributeError, OSError, ftplib.error_temp) as e:
-            sleep_time = 2 * i ** 2
+            sleep_time = 2 * i**2
             logging.getLogger(__name__).warning(f"Retry #{i}: Sleeping {sleep_time}s because {e}")
             sleep(sleep_time)
 
