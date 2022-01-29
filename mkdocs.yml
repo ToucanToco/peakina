@@ -1,0 +1,30 @@
+site_name: Peakina
+site_description: Data validation and settings management using python type hints
+strict: true
+site_url: https://toucantoco.github.io/peakina/
+
+theme:
+  name: material
+  palette:
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: light green
+    accent: orange
+    toggle:
+      icon: material/lightbulb-outline
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: light green
+    accent: orange
+    toggle:
+      icon: material/lightbulb
+      name: Switch to light mode
+  features:
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github-alt
+  logo: logo.png
+  favicon: favicon.ico

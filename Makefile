@@ -34,6 +34,10 @@ test:
 .PHONY: all
 all: lint mypy test
 
+.PHONY: doc
+doc:
+	poetry run mkdocs serve
+
 .PHONY: clean
 clean:
 	rm -rf `find . -name __pycache__`
