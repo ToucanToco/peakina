@@ -39,8 +39,11 @@
 - name: dependencies
   description: Pull requests that update a dependency file
   color: 0366d6
+- name: skip changelog
+  description: Pull requests that do not need to be added in release note
+  color: ffffff
 # Extra labels for some PRs or issues
-- name: github_actions
+- name: github actions
   description: Pull requests that update Github_actions code
   color: "000000"
 - name: good first issue
