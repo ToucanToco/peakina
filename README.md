@@ -15,6 +15,8 @@ The supported file types are `csv`, `excel`, `json`, `parquet` and `xml`.
 
 :information_source: If the desired type is not yet supported, feel free to open an issue or to directly open a PR with the code !
 
+Please, read the [documentation](https://doc-peakina.toucantoco.com) for more information
+
 # Installation
 
 `pip install peakina`

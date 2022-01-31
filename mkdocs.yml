@@ -1,7 +1,4 @@
-site_name: Peakina
-site_description: Data validation and settings management using python type hints
-strict: true
-site_url: https://toucantoco.github.io/peakina/
+site_name: Peakina documentation
 
 theme:
   name: material
