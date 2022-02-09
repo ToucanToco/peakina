@@ -1,3 +1,6 @@
+"""
+Module to add excel support
+"""
 from io import StringIO
 from itertools import islice
 from typing import Any, Dict, Optional

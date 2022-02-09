@@ -1,3 +1,6 @@
+"""
+Module to add csv support
+"""
 from typing import Any, Dict, Optional
 
 import pandas as pd
@@ -20,10 +23,12 @@ def read_csv(
     if preview:
         return pd.read_csv(
             filepath,
+            sep=sep,
+            encoding=encoding,
             **kwargs,
             nrows=preview_args.get("nrows", 50),
             skiprows=lambda idx: idx < preview_args.get("offset", 0),
             chunksize=PREVIEW_CHUNK_SIZE,
         )
 
-    return pd.read_csv(filepath, **kwargs)
+    return pd.read_csv(filepath, sep=sep, encoding=encoding, **kwargs)
