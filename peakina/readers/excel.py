@@ -1,4 +1,5 @@
 from io import StringIO
+from itertools import islice
 from typing import Any, Dict, Optional
 
 import pandas as pd
@@ -30,18 +31,18 @@ def read_excel(
 
     if preview:
         nrows, offset = preview_args.get("nrows", 2), preview_args.get("offset", 0)
-        row_to_iterate = row_to_iterate[offset : offset + nrows]
+        row_to_iterate = list(islice(row_to_iterate, offset, offset + nrows))
 
     for i, row in enumerate(row_to_iterate):
         if i < skiprows:
             continue
-        cells = []
-        for cell in row:
-            val = cell.value
-            cells.append(str(val) if val else "")
-        row_subset.append(f'{",".join(cells)}\n')
+
+        row_sub = ",".join([str(cell.value) if cell.value else "" for cell in row])
+        row_subset.append(f"{row_sub}\n")
+
         if i == nrows:
             break
+
     wb.close()
     return pd.read_csv(
         StringIO("\n".join(row_subset)), na_values=na_values, keep_default_na=keep_default_na
