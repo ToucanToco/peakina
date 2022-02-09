@@ -16,8 +16,8 @@ import pandas as pd
 from pydantic.dataclasses import dataclass
 from slugify import slugify
 
-from .cache import Cache
-from .helpers import (
+from peakina.cache import Cache
+from peakina.helpers import (
     TypeEnum,
     detect_encoding,
     detect_sep,
@@ -29,7 +29,7 @@ from .helpers import (
     validate_kwargs,
     validate_sep,
 )
-from .io import Fetcher, MatchEnum
+from peakina.io import Fetcher, MatchEnum
 
 AVAILABLE_SCHEMES = set(Fetcher.registry) - {""}  # discard the empty string scheme
 PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | AVAILABLE_SCHEMES
