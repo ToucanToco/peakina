@@ -143,7 +143,7 @@ def validate_sep(filepath: str, sep: str = ",", encoding: Optional[str] = None) 
     (i.e. the dataframe has more than one column).
     """
     try:
-        df = pd.read_csv(filepath, sep=sep, encoding=encoding, nrows=2)
+        df = read_csv(filepath, sep=sep, encoding=encoding, nrows=2)
         return len(df.columns) > 1
     except pd.errors.ParserError:
         return False
