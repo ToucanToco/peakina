@@ -29,27 +29,31 @@ def read_excel(filepath: str, **kwargs: Any) -> pd.DataFrame:
     try:
         wb = load_workbook(filepath, read_only=True)
         s = wb[sheet_name if sheet_name else wb.sheetnames[0]]
-        row_to_iterate = s.rows
+        row_to_iterate = s.iter_rows(values_only=True)
     except InvalidFileException:
         wb = xlrd.open_workbook(filepath)
         s = wb[sheet_name if sheet_name else wb.sheet_names()[0]]
         row_to_iterate = [s.row(rx) for rx in range(s.nrows)]
 
-    row_subset = []
-
     if preview:
         nrows, offset = preview_args.get("nrows", 2), preview_args.get("offset", 0)
         row_to_iterate = list(islice(row_to_iterate, offset, offset + nrows))
 
-    for i, row in enumerate(row_to_iterate):
-        if i < skiprows:
+    row_subset = []
+    row_number = 0
+    for row in row_to_iterate:
+        if row_number < skiprows:
             continue
 
-        row_sub = ",".join([str(cell.value) if cell.value else "" for cell in row])
-        row_subset.append(f"{row_sub}\n")
+        cells = []
+        for cell in row:
+            val = cell.value if type(cell) not in [str, int] else cell
+            cells.append(str(val) if val else "")
+        row_subset.append(f'{",".join(cells)}\n')
 
-        if i == nrows:
+        if row_number == nrows:
             break
+        row_number += 1
 
     try:
         wb.close()
