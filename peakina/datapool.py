@@ -1,8 +1,8 @@
 from os import path
 from typing import TYPE_CHECKING, Any, Dict, Hashable, Optional
 
-from .cache import Cache
-from .datasource import DataSource
+from peakina.cache import Cache
+from peakina.datasource import DataSource
 
 if TYPE_CHECKING:
     import pandas as pd

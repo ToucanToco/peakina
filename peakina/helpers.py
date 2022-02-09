@@ -19,7 +19,7 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
 import chardet
 import pandas as pd
 
-from .readers import read_json, read_xml
+from peakina.readers import read_csv, read_excel, read_json, read_xml
 
 
 class TypeInfos(NamedTuple):
@@ -39,15 +39,19 @@ CUSTOM_MIMETYPES = {".parquet": "peakina/parquet"}
 
 
 SUPPORTED_FILE_TYPES = {
-    "csv": TypeInfos(["text/csv", "text/tab-separated-values"], pd.read_csv),
+    "csv": TypeInfos(
+        ["text/csv", "text/tab-separated-values"],
+        read_csv,
+        ["preview", "preview_args", "chunksize"],
+    ),
     "excel": TypeInfos(
         [
             "application/vnd.ms-excel",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ],
-        pd.read_excel,
+        read_excel,
         # these options are missing from read_excel signature in pandas 0.23:
-        ["keep_default_na", "encoding", "decimal"],
+        ["preview", "preview_args", "keep_default_na", "encoding", "decimal", "sheet_name"],
         lambda f: {"sheetnames": pd.ExcelFile(f).sheet_names},
     ),
     "json": TypeInfos(
