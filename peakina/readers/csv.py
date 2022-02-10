@@ -17,7 +17,7 @@ def read_csv(
     encoding: Optional[str] = None,
     preview: Dict[str, int] = {},
     chunksize: int = 0,
-    nrows: int = 50,
+    nrows: int = 500,
 ) -> pd.DataFrame:
     """
     The read_csv method is able to make a preview by reading on chunks
