@@ -1,7 +1,7 @@
 """
 Module to add csv support
 """
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import pandas as pd
 
@@ -14,8 +14,7 @@ def read_csv(
     *,
     sep: str = ",",
     encoding: Optional[str] = None,
-    preview: bool = False,
-    preview_args: Dict[str, Any] = {},
+    preview: Dict[str, int] = {},
     nrows: int = 50,
 ) -> pd.DataFrame:
     """
@@ -27,13 +26,13 @@ def read_csv(
     def _process_chunk(chunk: pd.DataFrame, preview_dataframe: pd.DataFrame) -> pd.DataFrame:
         return pd.concat([preview_dataframe, chunk], ignore_index=True)
 
-    if preview:
+    if bool(preview):
         with pd.read_csv(
             filepath,
             sep=sep,
             encoding=encoding,
-            nrows=preview_args.get("nrows", 50),
-            skiprows=lambda idx: idx < preview_args.get("offset", 0),
+            nrows=preview.get("nrows", 50),
+            skiprows=lambda idx: idx < preview.get("offset", 0),
             chunksize=PREVIEW_CHUNK_SIZE,
         ) as reader:
             for chunk in reader:

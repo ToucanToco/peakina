@@ -11,11 +11,11 @@ from openpyxl import load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
 
-def _yielder(preview: bool, sheet_name: Any, limit: int = 2, offset: int = 0) -> Any:
+def _yielder(preview: Dict[str, int], sheet_name: Any, limit: int = 2, offset: int = 0) -> Any:
     """
     A generator for old excel types
     """
-    if preview:
+    if bool(preview):
         to_iter = range(offset, offset + limit)
     else:
         to_iter = range(sheet_name.nrows)
@@ -27,11 +27,12 @@ def _yielder(preview: bool, sheet_name: Any, limit: int = 2, offset: int = 0) ->
             break
 
 
-def _read_old_xls_format(wb: Any, sh_name: str, preview: bool, limit: int, offset: int) -> Any:
+def _read_old_xls_format(wb: Any, sh_name: str, preview: Dict[str, int]) -> Any:
     """ """
     sh_iter: Any = iter(())
 
-    if preview:
+    if bool(preview):
+        limit, offset = preview.get("nrows", 1), preview.get("offset", 0)
         sh_iter = chain(sh_iter, _yielder(preview, wb[1][sh_name], limit, offset))
 
     sh_iter = chain(sh_iter, _yielder(preview, wb[1][sh_name]))
@@ -39,11 +40,12 @@ def _read_old_xls_format(wb: Any, sh_name: str, preview: bool, limit: int, offse
     return sh_iter
 
 
-def _read_new_xls_format(wb: Any, sh_name: str, preview: bool, limit: int, offset: int) -> Any:
+def _read_new_xls_format(wb: Any, sh_name: str, preview: Dict[str, int]) -> Any:
     """ """
     sh_iter: Any = iter(())
 
-    if preview:
+    if bool(preview):
+        limit, offset = preview.get("nrows", 1), preview.get("offset", 0)
         sh_iter = chain(
             sh_iter,
             wb[1][sh_name].iter_rows(min_row=offset, max_row=offset + limit, values_only=True),
@@ -54,28 +56,26 @@ def _read_new_xls_format(wb: Any, sh_name: str, preview: bool, limit: int, offse
     return sh_iter
 
 
-def _get_row_to_iterate(wb: Any, sheet_name: str, preview: bool, limit: int, offset: int) -> Any:
+def _get_row_to_iterate(wb: Any, sheet_name: str, preview: Dict[str, int]) -> Any:
     """ """
     if wb[0] == "new":
-        return _read_new_xls_format(wb, sheet_name, preview, limit, offset)
+        return _read_new_xls_format(wb, sheet_name, preview)
 
-    return _read_old_xls_format(wb, sheet_name, preview, limit, offset)
+    return _read_old_xls_format(wb, sheet_name, preview)
 
 
 def _read_sheets(
     wb: Any,
     sheetnames: List[Any],
-    preview: bool,
+    preview: Dict[str, int],
     nrows: int,
-    limit: int,
-    offset: int,
     skiprows: int,
 ) -> List[Any]:
     """ """
     row_subset = []
     columns_heads_appended = False
     for sh_name in sheetnames:
-        row_to_iterate = _get_row_to_iterate(wb, sh_name, preview, limit, offset)
+        row_to_iterate = _get_row_to_iterate(wb, sh_name, preview)
         cells = []
         row_number = 0
         for row in row_to_iterate:
@@ -106,8 +106,7 @@ def _read_sheets(
 def read_excel(
     filepath: str,
     *,
-    preview: bool = False,
-    preview_args: Dict[str, Any] = {},
+    preview: Dict[str, int] = {},
     sheet_name: str = "",
     na_values: str = "",
     keep_default_na: Any = None,
@@ -118,7 +117,6 @@ def read_excel(
     The read_excel function is using openpyxl to parse the csv file and read it
 
     """
-    limit, offset = preview_args.get("nrows", 1), preview_args.get("offset", 0)
 
     try:
         wb = ("new", load_workbook(filepath, read_only=True))
@@ -130,7 +128,7 @@ def read_excel(
         if sheet_name and len(sheet_name)
         else (wb[1].sheetnames if wb[0] == "new" else wb[1].sheet_names())
     )
-    row_subset = _read_sheets(wb, sheetnames, preview, nrows, limit, offset, skiprows)
+    row_subset = _read_sheets(wb, sheetnames, preview, nrows, skiprows)
 
     df = pd.read_csv(
         StringIO("\n".join(row_subset)), na_values=na_values, keep_default_na=keep_default_na
