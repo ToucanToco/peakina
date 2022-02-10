@@ -179,6 +179,14 @@ def test_basic_excel(path):
     # On match datasources, no metadata is returned:
     assert DataSource(path("fixture-single-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
 
+    # test with nrows
+    ds2 = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 1})
+    assert ds2.get_df().shape == (1, 2)
+
+    # test with skiprows
+    ds2 = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"skiprows": 2})
+    assert ds2.get_df().shape == (0, 0)
+
 
 def test_multi_sheets_excel(path):
     """It should add a __sheet__ column when retrieving multiple sheet"""

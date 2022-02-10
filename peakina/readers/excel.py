@@ -129,7 +129,7 @@ def read_excel(
         else (wb[1].sheetnames if wb[0] == "new" else wb[1].sheet_names())
     )
 
-    row_subset = _read_sheets(wb, sheetnames, preview, nrows, skiprows)
+    row_subset = _read_sheets(wb, sheetnames, preview, (nrows + 1), skiprows)
 
     return pd.read_csv(
         StringIO("\n".join(row_subset)),
