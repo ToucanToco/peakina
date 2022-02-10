@@ -16,12 +16,13 @@ class EXCEL_TYPE(enum.Enum):
     OLD = "old"
 
 
-def _yielder(preview: Dict[str, int], sheet_name: Any, limit: int = 2, offset: int = 0) -> Any:
+def _yielder(preview: Dict[str, int], sheet_name: Any) -> Any:
     """
     A generator for old excel types
     """
 
     if bool(preview):
+        limit, offset = preview.get("nrows", 1), preview.get("offset", 0)
         to_iter = range(offset, offset + limit + 1)
     else:
         to_iter = range(sheet_name.nrows)
@@ -32,26 +33,18 @@ def _yielder(preview: Dict[str, int], sheet_name: Any, limit: int = 2, offset: i
 
 def _read_old_xls_format(wb: Any, sh_name: str, preview: Dict[str, int]) -> Any:
     """ """
-
-    if bool(preview):
-        limit, offset = preview.get("nrows", 1), preview.get("offset", 0)
-        return list(_yielder(preview, wb[sh_name], limit, offset))
-
     return list(_yielder(preview, wb[sh_name]))
 
 
 def _read_new_xls_format(wb: Any, sh_name: str, preview: Dict[str, int]) -> Any:
     """ """
-
-    if bool(preview):
-        limit, offset = preview.get("nrows", 1), preview.get("offset", 0)
-        return wb[sh_name].iter_rows(min_row=offset, max_row=offset + limit, values_only=True)
-
-    return wb[sh_name].iter_rows(values_only=True)
+    limit, offset = preview.get("nrows", 500), preview.get("offset", 0)
+    return wb[sh_name].iter_rows(min_row=offset, max_row=offset + limit, values_only=True)
 
 
 def _get_row_to_iterate(wb: Any, excel_type: Any, sheet_name: str, preview: Dict[str, int]) -> Any:
     """ """
+
     if excel_type.value == "new":
         return _read_new_xls_format(wb, sheet_name, preview)
 
