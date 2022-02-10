@@ -42,7 +42,7 @@ SUPPORTED_FILE_TYPES = {
     "csv": TypeInfos(
         ["text/csv", "text/tab-separated-values"],
         read_csv,
-        ["preview", "preview_args", "chunksize"],
+        ["preview", "chunksize"],
     ),
     "excel": TypeInfos(
         [
@@ -51,7 +51,7 @@ SUPPORTED_FILE_TYPES = {
         ],
         read_excel,
         # these options are missing from read_excel signature in pandas 0.23:
-        ["preview", "preview_args", "keep_default_na", "encoding", "decimal", "sheet_name"],
+        ["preview", "keep_default_na", "encoding", "decimal", "sheet_name"],
         lambda f: {"sheetnames": pd.ExcelFile(f).sheet_names},
     ),
     "json": TypeInfos(

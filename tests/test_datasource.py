@@ -62,8 +62,7 @@ def test_simple_csv(path):
     ds = DataSource(
         path("0_0.csv"),
         reader_kwargs={
-            "preview": True,
-            "preview_args": {"nrows": 1, "offset": 0},
+            "preview": {"nrows": 1, "offset": 0},
             "encoding": "utf8",
             "sep": ",",
         },
