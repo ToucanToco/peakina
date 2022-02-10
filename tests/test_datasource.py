@@ -13,7 +13,7 @@ from peakina.io import MatchEnum
 
 @pytest.fixture
 def read_csv_spy(mocker):
-    read_csv = mocker.spy(pd, "read_csv")
+    read_csv = mocker.spy("read_csv")
     # need to mock the validation as the signature is changed via the spy
     mocker.patch("peakina.datasource.validate_kwargs", return_value=True)
 
@@ -55,6 +55,20 @@ def test_simple_csv(path):
     """It should be able to detect type if not set"""
     ds = DataSource(path("0_0.csv"), reader_kwargs={"encoding": "utf8", "sep": ","})
     assert ds.get_df().shape == (2, 2)
+
+    ds = DataSource(path("0_0.csv"), reader_kwargs={"encoding": "utf8", "sep": ","})
+    assert ds.get_df().shape == (2, 2)
+
+    ds = DataSource(
+        path("0_0.csv"),
+        reader_kwargs={
+            "preview": True,
+            "preview_args": {"nrows": 1, "offset": 0},
+            "encoding": "utf8",
+            "sep": ",",
+        },
+    )
+    assert ds.get_df().shape == (1, 2)
 
 
 def test_csv_with_sep(path):
