@@ -1,14 +1,19 @@
 """
 Module to add xml support
 """
+import enum
 from io import StringIO
-from itertools import chain
 from typing import Any, Dict, List
 
 import pandas as pd
 import xlrd
 from openpyxl import load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
+
+
+class EXCEL_TYPE(enum.Enum):
+    NEW = "new"
+    OLD = "old"
 
 
 def _yielder(preview: Dict[str, int], sheet_name: Any, limit: int = 2, offset: int = 0) -> Any:
@@ -30,30 +35,24 @@ def _read_old_xls_format(wb: Any, sh_name: str, preview: Dict[str, int]) -> Any:
 
     if bool(preview):
         limit, offset = preview.get("nrows", 1), preview.get("offset", 0)
-        return list(_yielder(preview, wb[1][sh_name], limit, offset))
+        return list(_yielder(preview, wb[sh_name], limit, offset))
 
-    return list(_yielder(preview, wb[1][sh_name]))
+    return list(_yielder(preview, wb[sh_name]))
 
 
 def _read_new_xls_format(wb: Any, sh_name: str, preview: Dict[str, int]) -> Any:
     """ """
-    sh_iter: Any = iter(())
 
     if bool(preview):
         limit, offset = preview.get("nrows", 1), preview.get("offset", 0)
-        sh_iter = chain(
-            sh_iter,
-            wb[1][sh_name].iter_rows(min_row=offset, max_row=offset + limit, values_only=True),
-        )
+        return wb[sh_name].iter_rows(min_row=offset, max_row=offset + limit, values_only=True)
 
-    sh_iter = chain(sh_iter, wb[1][sh_name].iter_rows(values_only=True))
-
-    return sh_iter
+    return wb[sh_name].iter_rows(values_only=True)
 
 
-def _get_row_to_iterate(wb: Any, sheet_name: str, preview: Dict[str, int]) -> Any:
+def _get_row_to_iterate(wb: Any, excel_type: Any, sheet_name: str, preview: Dict[str, int]) -> Any:
     """ """
-    if wb[0] == "new":
+    if excel_type.value == "new":
         return _read_new_xls_format(wb, sheet_name, preview)
 
     return _read_old_xls_format(wb, sheet_name, preview)
@@ -61,6 +60,7 @@ def _get_row_to_iterate(wb: Any, sheet_name: str, preview: Dict[str, int]) -> An
 
 def _read_sheets(
     wb: Any,
+    excel_type: Any,
     sheetnames: List[Any],
     preview: Dict[str, int],
     nrows: int,
@@ -70,7 +70,7 @@ def _read_sheets(
     row_subset = []
     for sh_name in sheetnames:
         row_number = 0
-        row_to_iterate = _get_row_to_iterate(wb, sh_name, preview)
+        row_to_iterate = _get_row_to_iterate(wb, excel_type, sh_name, preview)
         for row in row_to_iterate:
             if row_number < skiprows:
                 continue
@@ -93,8 +93,8 @@ def _read_sheets(
             if row_number == nrows:
                 break
 
-    if wb[0] == "new":
-        wb[1].close()
+    if excel_type.value == "new":
+        wb.close()
 
     # cleaning superflues rows with __sheet__
     if len(sheetnames) > 1:
@@ -119,17 +119,17 @@ def read_excel(
     """
 
     try:
-        wb = ("new", load_workbook(filepath, read_only=True))
+        excel_type, wb = EXCEL_TYPE.NEW, load_workbook(filepath, read_only=True)
     except InvalidFileException:
-        wb = ("old", xlrd.open_workbook(filepath))
+        excel_type, wb = EXCEL_TYPE.OLD, xlrd.open_workbook(filepath)
 
     sheetnames = (
         [sheet_name]
         if sheet_name and len(sheet_name)
-        else (wb[1].sheetnames if wb[0] == "new" else wb[1].sheet_names())
+        else (wb.sheetnames if excel_type.value == "new" else wb.sheet_names())
     )
 
-    row_subset = _read_sheets(wb, sheetnames, preview, (nrows + 1), skiprows)
+    row_subset = _read_sheets(wb, excel_type, sheetnames, preview, (nrows + 1), skiprows)
 
     return pd.read_csv(
         StringIO("\n".join(row_subset)),
