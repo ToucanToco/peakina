@@ -164,10 +164,8 @@ def read_pandas(
     match: Optional[MatchEnum] = None,
     expire: Optional[timedelta] = None,
     fetcher_kwargs: Optional[Dict[str, Any]] = None,
-    keep_default_na: Optional[Any] = None,
     **reader_kwargs: Any,
 ) -> pd.DataFrame:
-    reader_kwargs["keep_default_na"] = keep_default_na
     return DataSource(
         uri=uri,
         type=type,
