@@ -79,7 +79,6 @@ def _read_sheets(
     row_subset = []
     row_number = 0
     for row in row_to_iterate:
-        row_number += 1
         if row_number < skiprows:
             continue
 
@@ -89,9 +88,9 @@ def _read_sheets(
             cells.append(str(val) if val else "")
 
         row_subset.append(f'{",".join(cells)}\n')
-
         if row_number == nrows:
             break
+        row_number += 1
 
     if wb[0] == "new":
         wb[1].close()
