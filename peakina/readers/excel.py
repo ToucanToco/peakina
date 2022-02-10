@@ -15,29 +15,24 @@ def _yielder(preview: Dict[str, int], sheet_name: Any, limit: int = 2, offset: i
     """
     A generator for old excel types
     """
+
     if bool(preview):
         to_iter = range(offset, offset + limit)
     else:
         to_iter = range(sheet_name.nrows)
 
     for rx in to_iter:
-        try:
-            yield sheet_name.row(rx)
-        except Exception:
-            break
+        yield sheet_name.row(rx)
 
 
 def _read_old_xls_format(wb: Any, sh_name: str, preview: Dict[str, int]) -> Any:
     """ """
-    sh_iter: Any = iter(())
 
     if bool(preview):
         limit, offset = preview.get("nrows", 1), preview.get("offset", 0)
-        sh_iter = chain(sh_iter, _yielder(preview, wb[1][sh_name], limit, offset))
+        return list(_yielder(preview, wb[1][sh_name], limit, offset))
 
-    sh_iter = chain(sh_iter, _yielder(preview, wb[1][sh_name]))
-
-    return sh_iter
+    return list(_yielder(preview, wb[1][sh_name]))
 
 
 def _read_new_xls_format(wb: Any, sh_name: str, preview: Dict[str, int]) -> Any:
@@ -73,32 +68,37 @@ def _read_sheets(
 ) -> List[Any]:
     """ """
     row_subset = []
-    columns_heads_appended = False
     for sh_name in sheetnames:
-        row_to_iterate = _get_row_to_iterate(wb, sh_name, preview)
-        cells = []
         row_number = 0
+        row_to_iterate = _get_row_to_iterate(wb, sh_name, preview)
         for row in row_to_iterate:
             if row_number < skiprows:
                 continue
 
-            for cell in row:
-                val = cell.value if type(cell) not in [str, int] else cell
-                cells.append(str(val) if val else "")
+            cells = [
+                str(cell.value) if type(cell) not in [str, int, float] else str(cell)
+                for cell in row
+            ]
 
-            if row_number == 0 and not columns_heads_appended:
-                row_subset.append(f'{",".join([*cells, "__sheet__"])}\n')
-                columns_heads_appended = True
+            if len(sheetnames) > 1:
+                if row_number == 0:
+                    row_subset.append(f'{",".join([*cells, "__sheet__"])}\n')
+                else:
+                    row_subset.append(f'{",".join([*cells, sh_name])}\n')
+            else:
+                row_subset.append(f'{",".join(cells)}\n')
 
             row_number += 1
 
             if row_number == nrows:
                 break
 
-        row_subset.append(f'{",".join([*cells, sh_name])}\n')
-
     if wb[0] == "new":
         wb[1].close()
+
+    # cleaning superflues rows with __sheet__
+    if len(sheetnames) > 1:
+        row_subset[1:] = [x for x in row_subset[1:] if "__sheet__" not in x]
 
     return row_subset
 
@@ -128,13 +128,12 @@ def read_excel(
         if sheet_name and len(sheet_name)
         else (wb[1].sheetnames if wb[0] == "new" else wb[1].sheet_names())
     )
+
     row_subset = _read_sheets(wb, sheetnames, preview, nrows, skiprows)
 
-    df = pd.read_csv(
-        StringIO("\n".join(row_subset)), na_values=na_values, keep_default_na=keep_default_na
+    return pd.read_csv(
+        StringIO("\n".join(row_subset)),
+        nrows=nrows,
+        na_values=na_values,
+        keep_default_na=keep_default_na,
     )
-
-    if len(sheetnames) == 1:
-        del df["__sheet__"]
-
-    return df
