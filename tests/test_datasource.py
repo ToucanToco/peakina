@@ -180,12 +180,18 @@ def test_basic_excel(path):
     assert DataSource(path("fixture-single-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
 
     # test with nrows
-    ds2 = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 1})
-    assert ds2.get_df().shape == (1, 2)
+    ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 1})
+    assert ds.get_df().shape == (1, 2)
 
     # test with skiprows
-    ds2 = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"skiprows": 2})
-    assert ds2.get_df().shape == (0, 0)
+    ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"skiprows": 2})
+    assert ds.get_df().shape == (0, 0)
+
+    # test with the new file format type
+    ds = DataSource(
+        path("fixture_new_format.xls"), reader_kwargs={"preview": {"nrows": 1, "offset": 2}}
+    )
+    assert ds.get_df().shape == (1, 8)
 
 
 def test_multi_sheets_excel(path):
