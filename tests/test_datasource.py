@@ -100,7 +100,7 @@ def test_read_pandas(path):
 
 def test_read_pandas_excel(path):
     """It should be able to detect everything with read_pandas shortcut"""
-    assert read_pandas(path("0_2.xls"), keep_default_na=False).shape == (1, 2)
+    assert read_pandas(path("0_2.xls"), keep_default_na=False).shape == (2, 2)
 
 
 def test_match(path):
@@ -158,7 +158,7 @@ def test_s3(s3_endpoint_url):
 
 def test_basic_excel(path):
     """It should not add a __sheet__ column when retrieving a single sheet"""
-    ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": "January"})
+    ds = DataSource(path("fixture-multi-sheet.xlsx"))
     df = pd.DataFrame({"Month": [1], "Year": [2019]})
     assert ds.get_df().equals(df)
     assert ds.get_metadata() == {"sheetnames": ["January", "February"]}
