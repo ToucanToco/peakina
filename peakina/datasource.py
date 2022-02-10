@@ -12,7 +12,6 @@ from hashlib import md5
 from typing import IO, Any, Dict, Generator, Iterable, Optional, Union
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
-import numpy
 import pandas as pd
 from pydantic.dataclasses import dataclass
 from slugify import slugify
@@ -112,11 +111,7 @@ class DataSource:
         if kwargs.get("sheet_name", NOTSET) is None:
             for sheet_name, _df in df.items():
                 _df["__sheet__"] = sheet_name
-
-            if type(df.values) == numpy.ndarray:
-                df = pd.concat([df], sort=False)
-            else:
-                df = pd.concat(df.values(), sort=False)
+            df = pd.concat(df.values(), sort=False)
 
         return df
 
