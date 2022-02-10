@@ -56,9 +56,6 @@ def test_simple_csv(path):
     ds = DataSource(path("0_0.csv"), reader_kwargs={"encoding": "utf8", "sep": ","})
     assert ds.get_df().shape == (2, 2)
 
-    ds = DataSource(path("0_0.csv"), reader_kwargs={"encoding": "utf8", "sep": ","})
-    assert ds.get_df().shape == (2, 2)
-
     ds = DataSource(
         path("0_0.csv"),
         reader_kwargs={
@@ -101,15 +98,22 @@ def test_csv_with_sep_and_encoding(path):
     ds = DataSource(path("latin_1_sep.csv"))
     assert ds.get_df().shape == (2, 7)
 
+    ds = DataSource(path("latin_1_sep.csv"), reader_kwargs={"preview": {"nrows": 1, "offset": 0}})
+    assert ds.get_df().shape == (1, 7)
+
 
 def test_read_pandas(path):
     """It should be able to detect everything with read_pandas shortcut"""
     assert read_pandas(path("latin_1_sep.csv")).shape == (2, 7)
+    assert read_pandas(path("latin_1_sep.csv"), preview={"nrows": 1, "offset": 1}).shape == (1, 7)
 
 
 def test_read_pandas_excel(path):
     """It should be able to detect everything with read_pandas shortcut"""
     assert read_pandas(path("0_2.xls"), keep_default_na=False).shape == (2, 2)
+    assert read_pandas(
+        path("0_2.xls"), keep_default_na=False, preview={"nrows": 1, "offset": 0}
+    ).shape == (1, 2)
 
 
 def test_match(path):
@@ -168,7 +172,7 @@ def test_s3(s3_endpoint_url):
 def test_basic_excel(path):
     """It should not add a __sheet__ column when retrieving a single sheet"""
     ds = DataSource(path("fixture-single-sheet.xlsx"))
-    df = pd.DataFrame({"Month": [1], "Year": [2019]})
+    df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2020]})
     assert ds.get_df().equals(df)
     assert ds.get_metadata() == {"sheetnames": ["January"]}
 

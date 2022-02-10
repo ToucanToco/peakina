@@ -17,7 +17,7 @@ def _yielder(preview: Dict[str, int], sheet_name: Any, limit: int = 2, offset: i
     """
 
     if bool(preview):
-        to_iter = range(offset, offset + limit)
+        to_iter = range(offset, offset + limit + 1)
     else:
         to_iter = range(sheet_name.nrows)
 
