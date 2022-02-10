@@ -78,12 +78,22 @@ def test_csv_with_sep(path):
     ds = DataSource(path("0_0_sep.csv"), reader_kwargs={"sep": ","})
     assert ds.get_df().shape == (2, 1)
 
+    ds = DataSource(
+        path("0_0_sep.csv"), reader_kwargs={"preview": {"nrows": 1, "offset": 0}, "sep": ","}
+    )
+    assert ds.get_df().shape == (1, 1)
+
 
 def test_csv_with_encoding(path):
     """It should be able to detect the encoding if not set"""
     df = DataSource(path("latin_1.csv")).get_df()
     assert df.shape == (2, 7)
     assert "unité économique" in df.columns
+
+    df = DataSource(
+        path("latin_1.csv"), reader_kwargs={"preview": {"nrows": 1, "offset": 1}}
+    ).get_df()
+    assert df.shape == (1, 7)
 
 
 def test_csv_with_sep_and_encoding(path):
