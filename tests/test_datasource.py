@@ -115,7 +115,7 @@ def test_match_different_file_types(path):
     ds = DataSource(path("0_*"), match=MatchEnum.GLOB)
     df = ds.get_df()
     assert set(df["__filename__"]) == {"0_0.csv", "0_0_sep.csv", "0_1.csv", "0_2.xls"}
-    assert df.shape == (7, 3)
+    assert df.shape == (8, 3)
 
 
 @pytest.mark.flaky(reruns=5)
@@ -157,13 +157,13 @@ def test_s3(s3_endpoint_url):
 
 def test_basic_excel(path):
     """It should not add a __sheet__ column when retrieving a single sheet"""
-    ds = DataSource(path("fixture-multi-sheet.xlsx"))
+    ds = DataSource(path("fixture-single-sheet.xlsx"))
     df = pd.DataFrame({"Month": [1], "Year": [2019]})
     assert ds.get_df().equals(df)
-    assert ds.get_metadata() == {"sheetnames": ["January", "February"]}
+    assert ds.get_metadata() == {"sheetnames": ["January"]}
 
     # On match datasources, no metadata is returned:
-    assert DataSource(path("fixture-multi-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
+    assert DataSource(path("fixture-single-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
 
 
 def test_multi_sheets_excel(path):
