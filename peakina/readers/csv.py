@@ -16,6 +16,7 @@ def read_csv(
     keep_default_na: Any = None,
     encoding: Optional[str] = None,
     preview: Dict[str, int] = {},
+    chunksize: int = 0,
     nrows: int = 50,
 ) -> pd.DataFrame:
     """
@@ -41,6 +42,16 @@ def read_csv(
                 preview_dataframe = _process_chunk(chunk, preview_dataframe)
             return preview_dataframe
 
-    return pd.read_csv(
-        filepath, nrows=nrows, sep=sep, encoding=encoding, keep_default_na=keep_default_na
-    )
+    if chunksize > 0:
+        return pd.read_csv(
+            filepath,
+            nrows=nrows,
+            sep=sep,
+            chunksize=chunksize,
+            encoding=encoding,
+            keep_default_na=keep_default_na,
+        )
+    else:
+        return pd.read_csv(
+            filepath, nrows=nrows, sep=sep, encoding=encoding, keep_default_na=keep_default_na
+        )
