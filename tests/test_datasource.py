@@ -187,6 +187,20 @@ def test_basic_excel(path):
     ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"skiprows": 2})
     assert ds.get_df().shape == (0, 0)
 
+    # test with skiprows and limit offset
+    ds = DataSource(
+        path("fixture-single-sheet.xlsx"),
+        reader_kwargs={"skiprows": 2, "preview": {"nrows": 1, "offset": 0}},
+    )
+    assert ds.get_df().shape == (0, 0)
+
+    # test with nrows and limit offset
+    ds = DataSource(
+        path("fixture-single-sheet.xlsx"),
+        reader_kwargs={"nrows": 1, "preview": {"nrows": 1, "offset": 0}},
+    )
+    assert ds.get_df().shape == (0, 2)
+
     # test with the new file format type
     ds = DataSource(
         path("fixture_new_format.xls"), reader_kwargs={"preview": {"nrows": 1, "offset": 2}}
