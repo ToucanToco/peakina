@@ -42,10 +42,10 @@ def _get_row_to_iterate(
     wb: Any, excel_type: EXCEL_TYPE, sheet_name: str, preview: Optional[PreviewArgs]
 ) -> Any:
 
-    if excel_type == EXCEL_TYPE.NEW:
-        return _read_new_xls_format(wb, sheet_name, preview)
+    if excel_type == EXCEL_TYPE.OLD:
+        return _read_old_xls_format(wb, sheet_name, preview)
 
-    return _read_old_xls_format(wb, sheet_name, preview)
+    return _read_new_xls_format(wb, sheet_name, preview)
 
 
 def _read_sheets(
