@@ -3,7 +3,7 @@ Module to add xml support
 """
 import enum
 from io import StringIO
-from typing import Any, List, Optional
+from typing import Any, Generator, List, Optional, Tuple, Union
 
 import pandas as pd
 import xlrd
@@ -18,7 +18,9 @@ class EXCEL_TYPE(enum.Enum):
     OLD = "old"
 
 
-def _read_old_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) -> Any:
+def _read_old_xls_format(
+    wb: Any, sh_name: str, preview: Optional[PreviewArgs]
+) -> Generator[Any, Any, Any]:
 
     if preview:
         to_iter = range(preview.offset, preview.offset + preview.nrows + 1)
@@ -29,23 +31,84 @@ def _read_old_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) 
         yield wb[sh_name].row(rx)
 
 
-def _read_new_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) -> Any:
+def _read_new_xls_format(
+    wb: Any, sh_name: str, preview: Optional[PreviewArgs]
+) -> Generator[Any, Any, Any]:
 
-    return wb[sh_name].iter_rows(
+    yield wb[sh_name].iter_rows(
         min_row=preview.offset if preview else None,
         max_row=preview.offset + preview.nrows if preview else None,
         values_only=True,
     )
 
 
-def _get_row_to_iterate(
+def _get_rows_iterator(
     wb: Any, excel_type: EXCEL_TYPE, sheet_name: str, preview: Optional[PreviewArgs]
-) -> Any:
+) -> Generator[Any, Any, Any]:
 
     if excel_type == EXCEL_TYPE.OLD:
         return _read_old_xls_format(wb, sheet_name, preview)
 
     return _read_new_xls_format(wb, sheet_name, preview)
+
+
+def _build_row_subset(
+    row: Union[List[Any], Tuple[Any]],
+    sh_name: str,
+    sheetnames: List[str],
+    row_number: int,
+    row_subset: List[str],
+) -> Tuple[int, List[str]]:
+
+    cells = [str(cell.value) if type(cell) not in [str, int, float] else str(cell) for cell in row]
+
+    if len(sheetnames) > 1:
+        if row_number == 0:
+            row_subset.append(f'{",".join([*cells, "__sheet__"])}\n')
+        else:
+            row_subset.append(f'{",".join([*cells, sh_name])}\n')
+    else:
+        row_subset.append(f'{",".join(cells)}\n')
+
+    row_number += 1
+
+    return row_number, row_subset
+
+
+def _get_row_subset_per_sheet(
+    wb: Any,
+    nrows: int,
+    sh_name: str,
+    sheetnames: List[str],
+    preview: Optional[PreviewArgs],
+    skiprows: int,
+    excel_type: EXCEL_TYPE,
+    row_subset: List[str],
+) -> List[str]:
+
+    row_number = 0
+    row_to_iterate = _get_rows_iterator(wb, excel_type, sh_name, preview)
+
+    if excel_type == EXCEL_TYPE.NEW:
+        for gen in row_to_iterate:
+            for row in gen:
+                if row_number < skiprows:
+                    continue
+                row_number, row_subset = _build_row_subset(
+                    row, sh_name, sheetnames, row_number, row_subset
+                )
+                if row_number == nrows:
+                    break
+    else:
+        for row in row_to_iterate:
+            if row_number < skiprows:
+                continue
+            row_number, row_subset = _build_row_subset(
+                row, sh_name, sheetnames, row_number, row_subset
+            )
+            if row_number == nrows:
+                break
+    return row_subset
 
 
 def _read_sheets(
@@ -62,31 +125,11 @@ def _read_sheets(
 
     """
 
-    row_subset = []
+    row_subset: List[str] = []
     for sh_name in sheetnames:
-        row_number = 0
-        row_to_iterate = _get_row_to_iterate(wb, excel_type, sh_name, preview)
-        for row in row_to_iterate:
-            if row_number < skiprows:
-                continue
-
-            cells = [
-                str(cell.value) if type(cell) not in [str, int, float] else str(cell)
-                for cell in row
-            ]
-
-            if len(sheetnames) > 1:
-                if row_number == 0:
-                    row_subset.append(f'{",".join([*cells, "__sheet__"])}\n')
-                else:
-                    row_subset.append(f'{",".join([*cells, sh_name])}\n')
-            else:
-                row_subset.append(f'{",".join(cells)}\n')
-
-            row_number += 1
-
-            if row_number == nrows:
-                break
+        row_subset = _get_row_subset_per_sheet(
+            wb, nrows, sh_name, sheetnames, preview, skiprows, excel_type, row_subset
+        )
 
     if excel_type == EXCEL_TYPE.NEW:
         wb.close()
