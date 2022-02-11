@@ -18,7 +18,7 @@ class EXCEL_TYPE(enum.Enum):
     OLD = "old"
 
 
-def _read_old_xls_format(
+def _old_xls_rows_iterator(
     wb: Any, sh_name: str, preview: Optional[PreviewArgs]
 ) -> Generator[Any, Any, Any]:
 
@@ -31,7 +31,7 @@ def _read_old_xls_format(
         yield wb[sh_name].row(rx)
 
 
-def _read_new_xls_format(
+def _new_xls_rows_iterator(
     wb: Any, sh_name: str, preview: Optional[PreviewArgs]
 ) -> Generator[Any, Any, Any]:
 
@@ -47,9 +47,9 @@ def _get_rows_iterator(
 ) -> Generator[Any, Any, Any]:
 
     if excel_type == EXCEL_TYPE.OLD:
-        return _read_old_xls_format(wb, sheet_name, preview)
+        return _old_xls_rows_iterator(wb, sheet_name, preview)
 
-    return _read_new_xls_format(wb, sheet_name, preview)
+    return _new_xls_rows_iterator(wb, sheet_name, preview)
 
 
 def _build_row_subset(
