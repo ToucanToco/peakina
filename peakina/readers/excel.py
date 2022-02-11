@@ -19,7 +19,7 @@ class EXCEL_TYPE(enum.Enum):
 
 
 def _read_old_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) -> Any:
-    """ """
+
     if preview:
         to_iter = range(
             preview.get("offset", 0), preview.get("offset", 0) + preview.get("nrows", 500) + 1
@@ -32,7 +32,6 @@ def _read_old_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) 
 
 
 def _read_new_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) -> Any:
-    """ """
 
     return wb[sh_name].iter_rows(
         min_row=preview.get("offset", 0) if preview else None,
@@ -44,7 +43,6 @@ def _read_new_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) 
 def _get_row_to_iterate(
     wb: Any, excel_type: EXCEL_TYPE, sheet_name: str, preview: Optional[PreviewArgs]
 ) -> Any:
-    """ """
 
     if excel_type == EXCEL_TYPE.NEW:
         return _read_new_xls_format(wb, sheet_name, preview)
@@ -60,7 +58,12 @@ def _read_sheets(
     nrows: int,
     skiprows: int,
 ) -> List[Any]:
-    """ """
+    """
+    This method will loop over sheets, read content and return a list of rows
+    depending on your inputs
+
+    """
+
     row_subset = []
     for sh_name in sheetnames:
         row_number = 0
