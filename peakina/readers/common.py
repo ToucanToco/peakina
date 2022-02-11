@@ -1,3 +1,7 @@
+"""
+Common/Shared elements/classes between readers
+"""
+
 from typing import TypedDict
 
 
