@@ -46,7 +46,7 @@ def _get_rows_iterator(
     wb: Any, excel_type: EXCEL_TYPE, sheet_name: str, preview: Optional[PreviewArgs]
 ) -> Generator[Any, Any, Any]:
 
-    if excel_type == EXCEL_TYPE.OLD:
+    if excel_type is EXCEL_TYPE.OLD:
         return _old_xls_rows_iterator(wb, sheet_name, preview)
 
     return _new_xls_rows_iterator(wb, sheet_name, preview)
@@ -88,7 +88,7 @@ def _get_row_subset_per_sheet(
 
     row_iterator = _get_rows_iterator(wb, excel_type, sh_name, preview)
 
-    if excel_type == EXCEL_TYPE.NEW:
+    if excel_type is EXCEL_TYPE.NEW:
         for row_number, gen in enumerate(row_iterator):
             for row in gen:
                 if row_number < skiprows:
@@ -130,7 +130,7 @@ def _read_sheets(
             wb, nrows, sh_name, sheetnames, preview, skiprows, excel_type, row_subset
         )
 
-    if excel_type == EXCEL_TYPE.NEW:
+    if excel_type is EXCEL_TYPE.NEW:
         wb.close()
 
     # cleaning extras rows with __sheet__
@@ -163,7 +163,7 @@ def read_excel(
     sheetnames = (
         [sheet_name]
         if sheet_name and len(sheet_name)
-        else (wb.sheetnames if excel_type == EXCEL_TYPE.NEW else wb.sheet_names())
+        else (wb.sheetnames if excel_type is EXCEL_TYPE.NEW else wb.sheet_names())
     )
 
     row_subset = _read_sheets(wb, excel_type, sheetnames, preview, (nrows + 1), skiprows)
