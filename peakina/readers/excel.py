@@ -103,7 +103,7 @@ def read_excel(
     preview: Optional[PreviewArgs] = None,
     sheet_name: str = "",
     na_values: Any = None,
-    keep_default_na: Any = None,
+    keep_default_na: bool = False,
     skiprows: int = 0,
     nrows: int = 50,
 ) -> pd.DataFrame:
