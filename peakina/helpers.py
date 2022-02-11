@@ -42,7 +42,7 @@ SUPPORTED_FILE_TYPES = {
     "csv": TypeInfos(
         ["text/csv", "text/tab-separated-values"],
         read_csv,
-        ["preview", "chunksize"],
+        ["preview"],
     ),
     "excel": TypeInfos(
         [
@@ -137,7 +137,7 @@ def detect_sep(filepath: str, encoding: Optional[str] = None) -> str:
     return csv.Sniffer().sniff(str_head(filepath, 100, encoding)).delimiter
 
 
-def validate_sep(filepath: str, sep: str = ",", encoding: Optional[str] = None) -> bool:
+def validate_sep(filepath: str, sep: str = ",", encoding: str = "utf-8") -> bool:
     """
     Validates if the `sep` is a right separator of a CSV file
     (i.e. the dataframe has more than one column).

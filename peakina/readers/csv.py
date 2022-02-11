@@ -16,7 +16,7 @@ def read_csv(
     *,
     sep: str = ",",
     keep_default_na: bool = False,
-    encoding: Optional[str] = None,
+    encoding: str = "utf-8",
     preview: Optional[PreviewArgs] = None,
     chunksize: Optional[int] = None,
     nrows: int = 500,

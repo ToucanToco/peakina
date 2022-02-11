@@ -63,6 +63,7 @@ def _build_row_subset(
     cells = [str(cell.value) if type(cell) not in [str, int, float] else str(cell) for cell in row]
 
     if len(sheetnames) > 1:
+        # TO add the column names at the top
         if row_number == 0:
             row_subset.append(f'{",".join([*cells, "__sheet__"])}\n')
         else:
@@ -113,7 +114,7 @@ def _get_row_subset_per_sheet(
 def _read_sheets(
     wb: Any,
     excel_type: EXCEL_TYPE,
-    sheetnames: List[Any],
+    sheet_names: List[Any],
     preview: Optional[PreviewArgs],
     nrows: int,
     skiprows: int,
@@ -125,16 +126,16 @@ def _read_sheets(
     """
 
     row_subset: List[str] = []
-    for sh_name in sheetnames:
+    for sh_name in sheet_names:
         row_subset = _get_row_subset_per_sheet(
-            wb, nrows, sh_name, sheetnames, preview, skiprows, excel_type, row_subset
+            wb, nrows, sh_name, sheet_names, preview, skiprows, excel_type, row_subset
         )
 
     if excel_type is EXCEL_TYPE.NEW:
         wb.close()
 
     # cleaning extras rows with __sheet__
-    if len(sheetnames) > 1:
+    if len(sheet_names) > 1:
         row_subset[1:] = [x for x in row_subset[1:] if "__sheet__" not in x]
 
     return row_subset
@@ -157,16 +158,14 @@ def read_excel(
 
     try:
         excel_type, wb = EXCEL_TYPE.NEW, load_workbook(filepath, read_only=True)
+        all_sheet_names = wb.sheetnames
     except InvalidFileException:
         excel_type, wb = EXCEL_TYPE.OLD, xlrd.open_workbook(filepath)
+        all_sheet_names = wb.sheet_names()
 
-    sheetnames = (
-        [sheet_name]
-        if sheet_name and len(sheet_name)
-        else (wb.sheetnames if excel_type is EXCEL_TYPE.NEW else wb.sheet_names())
-    )
+    sheet_names = [sheet_name] if sheet_name else all_sheet_names
 
-    row_subset = _read_sheets(wb, excel_type, sheetnames, preview, (nrows + 1), skiprows)
+    row_subset = _read_sheets(wb, excel_type, sheet_names, preview, nrows + 1, skiprows)
 
     return pd.read_csv(
         StringIO("\n".join(row_subset)),
