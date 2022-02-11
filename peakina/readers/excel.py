@@ -86,11 +86,10 @@ def _get_row_subset_per_sheet(
     row_subset: List[str],
 ) -> List[str]:
 
-    row_number = 0
-    row_to_iterate = _get_rows_iterator(wb, excel_type, sh_name, preview)
+    row_iterator = _get_rows_iterator(wb, excel_type, sh_name, preview)
 
     if excel_type == EXCEL_TYPE.NEW:
-        for gen in row_to_iterate:
+        for row_number, gen in enumerate(row_iterator):
             for row in gen:
                 if row_number < skiprows:
                     continue
@@ -100,7 +99,7 @@ def _get_row_subset_per_sheet(
                 if row_number == nrows:
                     break
     else:
-        for row in row_to_iterate:
+        for row_number, row in enumerate(row_iterator):
             if row_number < skiprows:
                 continue
             row_number, row_subset = _build_row_subset(
