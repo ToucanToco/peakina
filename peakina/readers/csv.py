@@ -32,8 +32,8 @@ def read_csv(
             sep=sep,
             keep_default_na=keep_default_na,
             encoding=encoding,
-            nrows=preview.get("nrows", 50),
-            skiprows=lambda idx: idx < preview.get("offset", 0),
+            nrows=preview.nrows,
+            skiprows=lambda idx: idx < preview.offset,
             chunksize=PREVIEW_CHUNK_SIZE,
         )
         return next(chunks)

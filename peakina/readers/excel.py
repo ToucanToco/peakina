@@ -21,9 +21,7 @@ class EXCEL_TYPE(enum.Enum):
 def _read_old_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) -> Any:
 
     if preview:
-        to_iter = range(
-            preview.get("offset", 0), preview.get("offset", 0) + preview.get("nrows", 500) + 1
-        )
+        to_iter = range(preview.offset, preview.offset + preview.nrows + 1)
     else:
         to_iter = range(wb[sh_name].nrows)
 
@@ -34,8 +32,8 @@ def _read_old_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) 
 def _read_new_xls_format(wb: Any, sh_name: str, preview: Optional[PreviewArgs]) -> Any:
 
     return wb[sh_name].iter_rows(
-        min_row=preview.get("offset", 0) if preview else None,
-        max_row=preview.get("offset", 0) + preview.get("nrows", 500) if preview else None,
+        min_row=preview.offset if preview else None,
+        max_row=preview.offset + preview.nrows if preview else None,
         values_only=True,
     )
 

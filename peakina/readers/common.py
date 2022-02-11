@@ -2,9 +2,10 @@
 Common/Shared elements/classes between readers
 """
 
-from typing import TypedDict
+from pydantic.dataclasses import dataclass
 
 
-class PreviewArgs(TypedDict, total=False):
-    nrows: int
-    offset: int
+@dataclass
+class PreviewArgs:
+    nrows: int = 500
+    offset: int = 0
