@@ -10,7 +10,7 @@ import xlrd
 from openpyxl import load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
-from peakina.readers.csv import PreviewArgs
+from peakina.readers.common import PreviewArgs
 
 
 class EXCEL_TYPE(enum.Enum):

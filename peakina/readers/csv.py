@@ -1,17 +1,14 @@
 """
 Module to add csv support
 """
-from typing import Optional, TypedDict
+from typing import Optional
 
 import pandas as pd
 
+from peakina.readers.common import PreviewArgs
+
 # The chunksize value for previews
 PREVIEW_CHUNK_SIZE = 1024
-
-
-class PreviewArgs(TypedDict, total=False):
-    nrows: int
-    offset: int
 
 
 def read_csv(
