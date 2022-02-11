@@ -27,7 +27,7 @@ def read_csv(
     """
 
     if preview:
-        with pd.read_csv(
+        chunks = pd.read_csv(
             filepath,
             sep=sep,
             keep_default_na=keep_default_na,
@@ -35,8 +35,8 @@ def read_csv(
             nrows=preview.get("nrows", 50),
             skiprows=lambda idx: idx < preview.get("offset", 0),
             chunksize=PREVIEW_CHUNK_SIZE,
-        ) as reader:
-            return next(reader)
+        )
+        return next(chunks)
 
     return pd.read_csv(
         filepath,
