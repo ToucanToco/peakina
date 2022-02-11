@@ -28,7 +28,7 @@ def read_csv(
     def _process_chunk(chunk: pd.DataFrame, preview_dataframe: pd.DataFrame) -> pd.DataFrame:
         return pd.concat([preview_dataframe, chunk], ignore_index=True)
 
-    if bool(preview):
+    if preview:
         with pd.read_csv(
             filepath,
             sep=sep,
