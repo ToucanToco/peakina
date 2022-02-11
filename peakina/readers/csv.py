@@ -1,7 +1,7 @@
 """
 Module to add csv support
 """
-from typing import Any, Optional, TypedDict
+from typing import Optional, TypedDict
 
 import pandas as pd
 
@@ -18,7 +18,7 @@ def read_csv(
     filepath: str,
     *,
     sep: str = ",",
-    keep_default_na: Any = None,
+    keep_default_na: bool = False,
     encoding: Optional[str] = None,
     preview: Optional[PreviewArgs] = None,
     chunksize: Optional[int] = None,
