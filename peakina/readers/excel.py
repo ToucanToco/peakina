@@ -152,28 +152,49 @@ def read_excel(
     sheet_name: str = "",
     na_values: Any = None,
     keep_default_na: bool = False,
-    skiprows: int = 0,
-    nrows: int = 50,
+    skiprows: Optional[int] = None,
+    nrows: Optional[int] = None,
 ) -> pd.DataFrame:
     """
     The read_excel function is using openpyxl to parse the csv file and read it
 
     """
 
+    column_names = []
+
     try:
         excel_type, wb = EXCEL_TYPE.NEW, load_workbook(filepath, read_only=True)
         all_sheet_names = wb.sheetnames
+
+        if preview:
+            # we get column names with the iterator
+            for sh_name in all_sheet_names:
+                column_names += [c.value for c in next(wb[sh_name].iter_rows(min_row=1, max_row=1))]
+
     except InvalidFileException:
         excel_type, wb = EXCEL_TYPE.OLD, xlrd.open_workbook(filepath)
         all_sheet_names = wb.sheet_names()
 
+        if preview:
+            for sh_name in all_sheet_names:
+                column_names += wb[sh_name].row(0)
+            column_names = [c.value for c in column_names]
+
     sheet_names = [sheet_name] if sheet_name else all_sheet_names
 
-    row_subset = _read_sheets(wb, excel_type, sheet_names, preview, nrows + 1, skiprows)
+    row_subset = _read_sheets(wb, excel_type, sheet_names, preview, nrows, skiprows)
+
+    kwargs = {}
+    if preview:
+        kwargs = {
+            "header": None,
+            "names": column_names,
+        }
 
     return pd.read_csv(
         StringIO("\n".join(row_subset)),
         nrows=nrows,
         na_values=na_values,
         keep_default_na=keep_default_na,
+        **kwargs,
     )
