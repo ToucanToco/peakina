@@ -141,10 +141,17 @@ def test_read_pandas(path):
 
 def test_read_pandas_excel(path):
     """It should be able to detect everything with read_pandas shortcut"""
-    assert read_pandas(path("0_2.xls"), keep_default_na=False).shape == (2, 2)
-    assert read_pandas(
-        path("0_2.xls"), keep_default_na=False, preview=PreviewArgs(**{"nrows": 1, "offset": 0})
-    ).shape == (1, 2)
+    ds = read_pandas(path("0_2.xls"), keep_default_na=False)
+    df = pd.DataFrame({"a": [3.0, 4.0], "b": [4.0, 3.0]})
+    assert ds.shape == (2, 2)
+    assert ds.equals(df)
+
+    ds = read_pandas(
+        path("0_2.xls"), keep_default_na=False, preview=PreviewArgs(**{"nrows": 1, "offset": 2})
+    )
+    df = pd.DataFrame({"a": [4.0], "b": [3.0]})
+    assert ds.equals(df)
+    assert ds.shape == (1, 2)
 
 
 def test_match(path):
