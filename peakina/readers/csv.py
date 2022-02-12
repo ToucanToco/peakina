@@ -5,7 +5,7 @@ from typing import Optional
 
 import pandas as pd
 
-from peakina.readers.common import PreviewArgs
+from peakina.readers.common import PreviewArgs, _extract_columns
 
 # The chunksize value for previews
 PREVIEW_CHUNK_SIZE = 1024
@@ -30,6 +30,8 @@ def read_csv(
         chunks = pd.read_csv(
             filepath,
             sep=sep,
+            header=None,
+            names=_extract_columns(filepath, encoding, sep),
             keep_default_na=keep_default_na,
             encoding=encoding,
             nrows=preview.nrows,
