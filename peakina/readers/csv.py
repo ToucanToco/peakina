@@ -1,14 +1,19 @@
 """
 Module to add csv support
 """
-from typing import Optional
+from typing import List, Optional
 
 import pandas as pd
 
-from peakina.readers.common import PreviewArgs, _extract_columns
+from peakina.readers.common import PreviewArgs
 
 # The chunksize value for previews
 PREVIEW_CHUNK_SIZE = 1024
+
+
+def _extract_columns(filepath: str, encoding: str, sep: str) -> List[str]:
+    with open(filepath, buffering=10000, encoding=encoding) as ff:
+        return ff.readline().replace("\n", "").split(sep)
 
 
 def read_csv(
