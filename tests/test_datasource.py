@@ -210,12 +210,8 @@ def test_basic_excel(path):
     # On match datasources, no metadata is returned:
     assert DataSource(path("fixture-single-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
 
-    # test with nrows
-    ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 1})
-    assert ds.get_df().shape == (1, 2)
-
-    # test with skiprows
-    ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"skiprows": 2})
+    # test with nrows and skiprows
+    ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 1, "skiprows": 2})
     assert ds.get_df().shape == (0, 0)
 
     # test with skiprows and limit offset
@@ -223,14 +219,14 @@ def test_basic_excel(path):
         path("fixture-single-sheet.xlsx"),
         reader_kwargs={"skiprows": 2, "preview": PreviewArgs(**{"nrows": 1, "offset": 0})},
     )
-    assert ds.get_df().shape == (0, 0)
+    assert ds.get_df().shape == (0, 2)
 
     # test with nrows and limit offset
     ds = DataSource(
         path("fixture-single-sheet.xlsx"),
         reader_kwargs={"nrows": 1, "preview": PreviewArgs(**{"nrows": 1, "offset": 0})},
     )
-    assert ds.get_df().shape == (0, 2)
+    assert ds.get_df().shape == (1, 2)
 
     # test with the new file format type
     ds = DataSource(

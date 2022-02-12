@@ -23,7 +23,7 @@ def _old_xls_rows_iterator(
 ) -> Generator[Any, Any, Any]:
 
     if preview:
-        to_iter = range(preview.offset, preview.offset + preview.nrows + 1)
+        to_iter = range(preview.offset, preview.offset + preview.nrows)
     else:
         to_iter = range(wb[sh_name].nrows)
 
@@ -78,13 +78,13 @@ def _build_row_subset(
 
 def _get_row_subset_per_sheet(
     wb: Any,
-    nrows: int,
     sh_name: str,
     sheetnames: List[str],
     preview: Optional[PreviewArgs],
-    skiprows: int,
     excel_type: EXCEL_TYPE,
     row_subset: List[str],
+    skiprows: Optional[int] = None,
+    nrows: Optional[int] = None,
 ) -> List[str]:
 
     row_iterator = _get_rows_iterator(wb, excel_type, sh_name, preview)
@@ -92,22 +92,26 @@ def _get_row_subset_per_sheet(
     if excel_type is EXCEL_TYPE.NEW:
         for row_number, gen in enumerate(row_iterator):
             for row in gen:
-                if row_number < skiprows:
-                    continue
+                if skiprows:
+                    if row_number < skiprows:
+                        continue
                 row_number, row_subset = _build_row_subset(
                     row, sh_name, sheetnames, row_number, row_subset
                 )
-                if row_number == nrows:
-                    break
+                if nrows:
+                    if row_number == nrows:
+                        break
     else:
         for row_number, row in enumerate(row_iterator):
-            if row_number < skiprows:
-                continue
+            if skiprows:
+                if row_number < skiprows:
+                    continue
             row_number, row_subset = _build_row_subset(
                 row, sh_name, sheetnames, row_number, row_subset
             )
-            if row_number == nrows:
-                break
+            if nrows:
+                if row_number == nrows:
+                    break
     return row_subset
 
 
@@ -116,8 +120,8 @@ def _read_sheets(
     excel_type: EXCEL_TYPE,
     sheet_names: List[Any],
     preview: Optional[PreviewArgs],
-    nrows: int,
-    skiprows: int,
+    nrows: Optional[int] = None,
+    skiprows: Optional[int] = None,
 ) -> List[Any]:
     """
     This method will loop over sheets, read content and return a list of rows
@@ -128,7 +132,7 @@ def _read_sheets(
     row_subset: List[str] = []
     for sh_name in sheet_names:
         row_subset = _get_row_subset_per_sheet(
-            wb, nrows, sh_name, sheet_names, preview, skiprows, excel_type, row_subset
+            wb, sh_name, sheet_names, preview, excel_type, row_subset, skiprows, nrows
         )
 
     if excel_type is EXCEL_TYPE.NEW:
