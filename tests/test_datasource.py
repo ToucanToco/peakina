@@ -108,10 +108,35 @@ def test_csv_with_sep_and_encoding(path):
 
 def test_read_pandas(path):
     """It should be able to detect everything with read_pandas shortcut"""
-    assert read_pandas(path("latin_1_sep.csv")).shape == (2, 7)
-    assert read_pandas(
-        path("latin_1_sep.csv"), preview=PreviewArgs(**{"nrows": 1, "offset": 1})
-    ).shape == (1, 7)
+    ds = read_pandas(path("latin_1_sep.csv"))
+    df = pd.DataFrame(
+        {
+            "Date": [20160131, 20160131],
+            "Description Regroupement UE": ["AVANT CAP", "AVANT CAP"],
+            "unité économique": ["AVANTCAP", "AVANTCAP"],
+            "Société": ["541A", "541A"],
+            "Enseigne": ["PULL & BEAR", "ORCHESTRA"],
+            "GLA": [752.1, 535.1],
+            "Unité Locative": ["L11", "L12"],
+        }
+    )
+    assert ds.equals(df)
+    assert ds.shape == (2, 7)
+    # with pagination/preview of a chunk
+    df = pd.DataFrame(
+        {
+            "Date": [20160131],
+            "Description Regroupement UE": ["AVANT CAP"],
+            "unité économique": ["AVANTCAP"],
+            "Société": ["541A"],
+            "Enseigne": ["ORCHESTRA"],
+            "GLA": [535.1],
+            "Unité Locative": ["L12"],
+        }
+    )
+    ds = read_pandas(path("latin_1_sep.csv"), preview=PreviewArgs(**{"nrows": 1, "offset": 2}))
+    assert ds.equals(df)
+    assert ds.shape == (1, 7)
 
 
 def test_read_pandas_excel(path):
