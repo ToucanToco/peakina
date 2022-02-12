@@ -50,8 +50,7 @@ SUPPORTED_FILE_TYPES = {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ],
         read_excel,
-        # these options are missing from read_excel signature in pandas 0.23:
-        ["preview", "keep_default_na", "encoding", "decimal", "sheet_name"],
+        ["preview", "keep_default_na", "encoding", "decimal"],
         lambda f: {"sheetnames": pd.ExcelFile(f).sheet_names},
     ),
     "json": TypeInfos(
