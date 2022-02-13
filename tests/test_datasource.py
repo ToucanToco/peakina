@@ -250,6 +250,18 @@ def test_basic_excel(path):
     )
     assert ds.get_df().shape == (1, 8)
 
+    # test with nrows
+    ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"nrows": 2})
+    assert ds.get_df().shape == (1, 8)
+
+    # test with skiprows
+    ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"skiprows": 2})
+    assert ds.get_df().shape == (7, 8)
+
+    # test with nrows and skiprows
+    ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"nrows": 1, "skiprows": 2})
+    assert ds.get_df().shape == (1, 8)
+
 
 def test_multi_sheets_excel(path):
     """It should add a __sheet__ column when retrieving multiple sheet"""
