@@ -177,8 +177,7 @@ def read_excel(
 
         if preview:
             for sh_name in all_sheet_names:
-                column_names += wb[sh_name].row(0)
-            column_names = [c.value for c in column_names]
+                column_names += [c.value for c in wb[sh_name].row(0)]
 
     sheet_names = [sheet_name] if sheet_name else all_sheet_names
 
