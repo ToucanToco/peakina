@@ -1,5 +1,5 @@
 """
-Module to add xml support
+Module to add excel files support
 """
 import enum
 from io import StringIO
