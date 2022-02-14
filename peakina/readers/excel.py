@@ -156,7 +156,10 @@ def read_excel(
     nrows: Optional[int] = None,
 ) -> pd.DataFrame:
     """
-    The read_excel function is using openpyxl to parse the csv file and read it
+    Uses openpyxl (with xlrd as fallback) to convert the excel sheet into a csv string.
+    This csv is then read by pandas to make a DataFrame.
+    
+    Using this two steps, we are able to obtain better performance than pd.read_excel alone. Also, these two libraries are able to read only the top of each sheet, so we can create previews without reading the whole file.
 
     """
 
