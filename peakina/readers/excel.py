@@ -1,25 +1,21 @@
 """
 Module to add excel files support
 """
-import enum
 from io import StringIO
 from typing import Any, Generator, List, Optional, Tuple, Union
 
+import openpyxl
 import pandas as pd
 import xlrd
-from openpyxl import load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
 from peakina.readers.common import PreviewArgs
 
 
-class EXCEL_TYPE(enum.Enum):
-    NEW = "new"
-    OLD = "old"
-
-
 def _old_xls_rows_iterator(
-    wb: Any, sh_name: str, preview: Optional[PreviewArgs]
+    wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
+    sh_name: str,
+    preview: Optional[PreviewArgs],
 ) -> Generator[Any, Any, Any]:
 
     if preview:
@@ -32,7 +28,9 @@ def _old_xls_rows_iterator(
 
 
 def _new_xls_rows_iterator(
-    wb: Any, sh_name: str, preview: Optional[PreviewArgs]
+    wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
+    sh_name: str,
+    preview: Optional[PreviewArgs],
 ) -> Generator[Any, Any, Any]:
 
     yield wb[sh_name].iter_rows(
@@ -43,10 +41,12 @@ def _new_xls_rows_iterator(
 
 
 def _get_rows_iterator(
-    wb: Any, excel_type: EXCEL_TYPE, sheet_name: str, preview: Optional[PreviewArgs]
+    wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
+    sheet_name: str,
+    preview: Optional[PreviewArgs],
 ) -> Generator[Any, Any, Any]:
 
-    if excel_type is EXCEL_TYPE.OLD:
+    if isinstance(wb, xlrd.book.Book):
         return _old_xls_rows_iterator(wb, sheet_name, preview)
 
     return _new_xls_rows_iterator(wb, sheet_name, preview)
@@ -77,19 +77,18 @@ def _build_row_subset(
 
 
 def _get_row_subset_per_sheet(
-    wb: Any,
+    wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
     sh_name: str,
     sheetnames: List[str],
     preview: Optional[PreviewArgs],
-    excel_type: EXCEL_TYPE,
     row_subset: List[str],
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
 ) -> List[str]:
 
-    row_iterator = _get_rows_iterator(wb, excel_type, sh_name, preview)
+    row_iterator = _get_rows_iterator(wb, sh_name, preview)
 
-    if excel_type is EXCEL_TYPE.NEW:
+    if isinstance(wb, openpyxl.workbook.Workbook):
         for row_number, gen in enumerate(row_iterator):
             for row in gen:
                 if skiprows:
@@ -116,8 +115,7 @@ def _get_row_subset_per_sheet(
 
 
 def _read_sheets(
-    wb: Any,
-    excel_type: EXCEL_TYPE,
+    wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
     sheet_names: List[Any],
     preview: Optional[PreviewArgs],
     nrows: Optional[int] = None,
@@ -132,10 +130,10 @@ def _read_sheets(
     row_subset: List[str] = []
     for sh_name in sheet_names:
         row_subset = _get_row_subset_per_sheet(
-            wb, sh_name, sheet_names, preview, excel_type, row_subset, skiprows, nrows
+            wb, sh_name, sheet_names, preview, row_subset, skiprows, nrows
         )
 
-    if excel_type is EXCEL_TYPE.NEW:
+    if isinstance(wb, openpyxl.workbook.Workbook):
         wb.close()
 
     # cleaning extras rows with __sheet__
@@ -158,15 +156,17 @@ def read_excel(
     """
     Uses openpyxl (with xlrd as fallback) to convert the excel sheet into a csv string.
     This csv is then read by pandas to make a DataFrame.
-    
-    Using this two steps, we are able to obtain better performance than pd.read_excel alone. Also, these two libraries are able to read only the top of each sheet, so we can create previews without reading the whole file.
+
+    Using this two steps, we are able to obtain better performance than pd.read_excel alone.
+    Also, these two libraries are able to read only the top of each sheet,
+    so we can create previews without reading the whole file.
 
     """
 
     column_names = []
 
     try:
-        excel_type, wb = EXCEL_TYPE.NEW, load_workbook(filepath, read_only=True)
+        wb = openpyxl.load_workbook(filepath, read_only=True)
         all_sheet_names = wb.sheetnames
 
         if preview:
@@ -175,7 +175,7 @@ def read_excel(
                 column_names += [c.value for c in next(wb[sh_name].iter_rows(min_row=1, max_row=1))]
 
     except InvalidFileException:
-        excel_type, wb = EXCEL_TYPE.OLD, xlrd.open_workbook(filepath)
+        wb = xlrd.open_workbook(filepath)
         all_sheet_names = wb.sheet_names()
 
         if preview:
@@ -184,7 +184,7 @@ def read_excel(
 
     sheet_names = [sheet_name] if sheet_name else all_sheet_names
 
-    row_subset = _read_sheets(wb, excel_type, sheet_names, preview, nrows, skiprows)
+    row_subset = _read_sheets(wb, sheet_names, preview, nrows, skiprows)
 
     kwargs = {}
     if preview:
