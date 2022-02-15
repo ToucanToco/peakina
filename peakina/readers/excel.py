@@ -176,11 +176,12 @@ def read_excel(
 
     except InvalidFileException:
         wb = xlrd.open_workbook(filepath)
+        print(dir(wb))
         all_sheet_names = wb.sheet_names()
 
         if preview:
             for sh_name in all_sheet_names:
-                column_names += [c.value for c in wb[sh_name].row(0)]
+                column_names += [c.value for c in wb.sheet_by_name(sh_name).row(0)]
 
     sheet_names = [sheet_name] if sheet_name else all_sheet_names
 
