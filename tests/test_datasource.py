@@ -267,6 +267,7 @@ def test_multi_sheets_excel(path):
     """It should add a __sheet__ column when retrieving multiple sheet"""
     ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None})
     df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2019], "__sheet__": ["January", "February"]})
+
     assert ds.get_df().equals(df)
 
 
