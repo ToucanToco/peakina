@@ -19,7 +19,10 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
 import chardet
 import pandas as pd
 
+
 from peakina.readers import read_csv, read_excel, read_json, read_xml
+from peakina.readers.csv import csv_meta
+from peakina.readers.excel import excel_meta
 
 
 class TypeInfos(NamedTuple):
@@ -42,7 +45,8 @@ SUPPORTED_FILE_TYPES = {
     "csv": TypeInfos(
         ["text/csv", "text/tab-separated-values"],
         read_csv,
-        ["preview"],
+        ["preview_offset", "preview_nrows"],
+        csv_meta
     ),
     "excel": TypeInfos(
         [
@@ -51,7 +55,7 @@ SUPPORTED_FILE_TYPES = {
         ],
         read_excel,
         ["preview", "keep_default_na", "encoding", "decimal"],
-        lambda f: {"sheetnames": pd.ExcelFile(f).sheet_names},
+        excel_meta,
     ),
     "json": TypeInfos(
         ["application/json"],
@@ -179,6 +183,6 @@ def pd_read(filepath: str, t: str, kwargs: Dict[str, Any]) -> pd.DataFrame:
     return SUPPORTED_FILE_TYPES[t].reader(filepath, **kwargs)
 
 
-def get_metadata(filepath: str, t: str) -> Dict[str, Any]:
-    read = SUPPORTED_FILE_TYPES[t].metadata_reader
-    return read(filepath) if read else {}
+def get_metadata(filepath: str, datasource: 'DataSource') -> Dict[str, Any]:
+    metadata_reader = SUPPORTED_FILE_TYPES[datasource.type].metadata_reader
+    return metadata_reader(filepath, datasource) if metadata_reader else {}

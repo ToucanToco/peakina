@@ -212,7 +212,7 @@ def test_basic_excel(path):
     ds = DataSource(path("fixture-single-sheet.xlsx"))
     df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2020]})
     assert ds.get_df().equals(df)
-    assert ds.get_metadata() == {"sheetnames": ["January"]}
+    assert ds.get_metadata() == {"sheetnames": ["January"], 'nrows': 3}
 
     # On match datasources, no metadata is returned:
     assert DataSource(path("fixture-single-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
@@ -351,3 +351,16 @@ def test_cache(path, mocker):
     # fake a file with a different mtime (e.g: a new file has been uploaded):
     mocker.patch("peakina.io.local.file_fetcher.os.path.getmtime").return_value = mtime - 1
     assert ds.get_df(cache=cache).shape == (2, 2)  # cache has been invalidated
+
+
+def test_multi_sheets_metadata(path):
+    """It should add a __sheet__ column when retrieving multiple sheet"""
+    ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None})
+    print(ds.get_metadata())
+
+
+def test_csv_metadata(path):
+    """It should add a __sheet__ column when retrieving multiple sheet"""
+    ds = DataSource(path("fixture-1.csv"))
+
+    print(ds.get_metadata())
