@@ -24,6 +24,8 @@ def read_json(
     path_or_buf: "FilePathOrBuffer",
     encoding: str = "utf-8",
     filter: Optional[str] = None,
+    preview_offset: Optional[int] = None,  # ignored
+    preview_nrows: Optional[int] = None,  # ignored
     *args: Any,
     **kwargs: Any,
 ) -> pd.DataFrame:

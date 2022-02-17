@@ -29,7 +29,13 @@ def transform_with_jq(data: Any, jq_filter: str) -> Union[PdDataList, PdDataDict
         return cast(PdDataList, all_data)
 
 
-def read_xml(filepath: str, encoding: str = "utf-8", filter: Optional[str] = None) -> pd.DataFrame:
+def read_xml(
+    filepath: str,
+    encoding: str = "utf-8",
+    filter: Optional[str] = None,
+    preview_offset: Optional[int] = None,
+    preview_nrows: Optional[int] = None,
+) -> pd.DataFrame:
     data = xmltodict.parse(open(filepath).read(), encoding=encoding)
     if filter is not None:
         data = transform_with_jq(data, filter)
