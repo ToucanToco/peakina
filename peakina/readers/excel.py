@@ -10,9 +10,6 @@ import xlrd
 from openpyxl.utils.exceptions import InvalidFileException
 
 
-from peakina.readers.common import PreviewArgs
-
-
 def _old_xls_rows_iterator(
     wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
     sh_name: str,
@@ -21,6 +18,8 @@ def _old_xls_rows_iterator(
 ) -> Generator[Any, Any, Any]:
 
     if preview_nrows is not None and preview_offset is not None:
+        if preview_offset == 0:
+            preview_offset = 1  # skip the header
         to_iter = range(preview_offset, preview_offset + preview_nrows)
     else:
         to_iter = range(wb.sheet_by_name(sh_name).nrows)
@@ -36,9 +35,15 @@ def _new_xls_rows_iterator(
     preview_nrows: Optional[int],
 ) -> Generator[Any, Any, Any]:
 
+    if preview_offset == 0:
+        preview_offset = 1  # skip the header
+
+    # +1 are here because this is 1-based indexing
     yield wb[sh_name].iter_rows(
-        min_row=preview_offset if preview_offset else None,
-        max_row=preview_offset + preview_nrows if preview_offset is not None and preview_nrows is not None else None,
+        min_row=preview_offset + 1 if preview_offset else None,
+        max_row=preview_offset + 1 + preview_nrows
+        if preview_offset is not None and preview_nrows is not None
+        else None,
         values_only=True,
     )
 
@@ -64,6 +69,7 @@ def quote_if_needed(value: str) -> str:
         return f'"{value}"'
     return value
 
+
 def _build_row_subset(
     row: Union[List[Any], Tuple[Any]],
     sh_name: str,
@@ -72,7 +78,12 @@ def _build_row_subset(
     row_subset: List[str],
 ) -> Tuple[int, List[str]]:
 
-    cells = [quote_if_needed(str(cell.value)) if type(cell) not in [str, int, float] else quote_if_needed(str(cell)) for cell in row]
+    cells = [
+        quote_if_needed(str(cell.value))
+        if type(cell) not in [str, int, float]
+        else quote_if_needed(str(cell))
+        for cell in row
+    ]
 
     if len(sheetnames) > 1:
         # TO add the column names at the top
@@ -190,7 +201,9 @@ def read_excel(
                 column_names += [c.value for c in next(wb[sh_name].iter_rows(min_row=1, max_row=1))]
 
     except InvalidFileException:
-        wb = xlrd.open_workbook(filepath) # I used another variable to avoid bugs in pycharm autocomplete.
+        wb = xlrd.open_workbook(
+            filepath
+        )  # I used another variable to avoid bugs in pycharm autocomplete.
         all_sheet_names = wb.sheet_names()
 
         if preview_offset is not None and preview_nrows is not None:
@@ -216,22 +229,22 @@ def read_excel(
     )
 
 
-def excel_meta(filepath: str, datasource: 'DataSource') -> dict:
+def excel_meta(filepath: str, datasource: "DataSource") -> dict:  # noqa: F821
     """
     Returns a dictionary with the meta information of the excel file.
     """
     try:
         wb = openpyxl.load_workbook(filepath, read_only=True)
         sheet_names = wb.sheetnames
-        if 'sheet_name' in datasource.reader_kwargs and datasource.reader_kwargs['sheet_name']:
-            nrows = wb[datasource.reader_kwargs['sheet_name']].max_row
+        if "sheet_name" in datasource.reader_kwargs and datasource.reader_kwargs["sheet_name"]:
+            nrows = wb[datasource.reader_kwargs["sheet_name"]].max_row
         else:
             nrows = wb[sheet_names[0]].max_row
     except InvalidFileException:
         wb = xlrd.open_workbook(filepath)
         sheet_names = wb.sheet_names()
-        if 'sheet_name' in datasource.reader_kwargs and datasource.reader_kwargs['sheet_name']:
-            nrows = wb.sheet_by_name(datasource.reader_kwargs['sheet_name']).nrows
+        if "sheet_name" in datasource.reader_kwargs and datasource.reader_kwargs["sheet_name"]:
+            nrows = wb.sheet_by_name(datasource.reader_kwargs["sheet_name"]).nrows
         else:
             nrows = wb.sheet_by_index(0).nrows
 
