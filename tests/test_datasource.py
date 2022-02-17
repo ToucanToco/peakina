@@ -13,7 +13,7 @@ from peakina.io import MatchEnum
 
 @pytest.fixture
 def read_csv_spy(mocker):
-    read_csv = mocker.spy("read_csv")
+    read_csv = mocker.spy(pd, "read_csv")
     # need to mock the validation as the signature is changed via the spy
     mocker.patch("peakina.datasource.validate_kwargs", return_value=True)
 
@@ -56,17 +56,6 @@ def test_simple_csv(path):
     ds = DataSource(path("0_0.csv"), reader_kwargs={"encoding": "utf8", "sep": ","})
     assert ds.get_df().shape == (2, 2)
 
-    ds = DataSource(
-        path("0_0.csv"),
-        reader_kwargs={
-            "preview_offset": 0,
-            "preview_nrows": 1,
-            "encoding": "utf8",
-            "sep": ",",
-        },
-    )
-    assert ds.get_df().shape == (1, 2)
-
 
 def test_csv_with_sep(path):
     """It should be able to detect separator if not set"""
@@ -76,12 +65,6 @@ def test_csv_with_sep(path):
     ds = DataSource(path("0_0_sep.csv"), reader_kwargs={"sep": ","})
     assert ds.get_df().shape == (2, 1)
 
-    ds = DataSource(
-        path("0_0_sep.csv"),
-        reader_kwargs={"preview_offset": 0, "preview_nrows": 1, "sep": ","},
-    )
-    assert ds.get_df().shape == (1, 1)
-
 
 def test_csv_with_encoding(path):
     """It should be able to detect the encoding if not set"""
@@ -89,75 +72,21 @@ def test_csv_with_encoding(path):
     assert df.shape == (2, 7)
     assert "unité économique" in df.columns
 
-    df = DataSource(
-        path("latin_1.csv"),
-        reader_kwargs={
-            "preview_offset": 1,
-            "preview_nrows": 1,
-        },
-    ).get_df()
-    assert df.shape == (1, 7)
-
 
 def test_csv_with_sep_and_encoding(path):
     """It should be able to detect everything"""
     ds = DataSource(path("latin_1_sep.csv"))
     assert ds.get_df().shape == (2, 7)
 
-    ds = DataSource(
-        path("latin_1_sep.csv"),
-        reader_kwargs={
-            "preview_offset": 0,
-            "preview_nrows": 1,
-        },
-    )
-    assert ds.get_df().shape == (1, 7)
-
 
 def test_read_pandas(path):
     """It should be able to detect everything with read_pandas shortcut"""
-    ds = read_pandas(path("latin_1_sep.csv"))
-    df = pd.DataFrame(
-        {
-            "Date": [20160131, 20160131],
-            "Description Regroupement UE": ["AVANT CAP", "AVANT CAP"],
-            "unité économique": ["AVANTCAP", "AVANTCAP"],
-            "Société": ["541A", "541A"],
-            "Enseigne": ["PULL & BEAR", "ORCHESTRA"],
-            "GLA": [752.1, 535.1],
-            "Unité Locative": ["L11", "L12"],
-        }
-    )
-    assert ds.equals(df)
-    assert ds.shape == (2, 7)
-    # with pagination/preview of a chunk
-    df = pd.DataFrame(
-        {
-            "Date": [20160131],
-            "Description Regroupement UE": ["AVANT CAP"],
-            "unité économique": ["AVANTCAP"],
-            "Société": ["541A"],
-            "Enseigne": ["ORCHESTRA"],
-            "GLA": [535.1],
-            "Unité Locative": ["L12"],
-        }
-    )
-    ds = read_pandas(path("latin_1_sep.csv"), preview_nrows=1, preview_offset=2)
-    assert ds.equals(df)
-    assert ds.shape == (1, 7)
+    assert read_pandas(path("latin_1_sep.csv")).shape == (2, 7)
 
 
 def test_read_pandas_excel(path):
     """It should be able to detect everything with read_pandas shortcut"""
-    ds = read_pandas(path("0_2.xls"), keep_default_na=False)
-    df = pd.DataFrame({"a": [3, 4], "b": [4, 3]})
-    assert ds.shape == (2, 2)
-    assert ds.equals(df)
-
-    ds = read_pandas(path("0_2.xls"), keep_default_na=False, preview_nrows=1, preview_offset=1)
-    df = pd.DataFrame({"a": [4], "b": [3]})
-    assert ds.equals(df)
-    assert ds.shape == (1, 2)
+    assert read_pandas(path("0_2.xls"), keep_default_na=False).shape == (2, 2)
 
 
 def test_match(path):
@@ -215,58 +144,20 @@ def test_s3(s3_endpoint_url):
 
 def test_basic_excel(path):
     """It should not add a __sheet__ column when retrieving a single sheet"""
-    ds = DataSource(path("fixture-single-sheet.xlsx"))
-    df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2020]})
+    ds = DataSource(path("fixture-multi-sheet.xlsx"))
+    df = pd.DataFrame({"Month": [1], "Year": [2019]})
     assert ds.get_df().equals(df)
-    assert ds.get_metadata() == {"sheetnames": ["January"], "nrows": 2}
+    assert ds.get_metadata() == {"nrows": 1, "sheetnames": ["January", "February"]}
 
     # On match datasources, no metadata is returned:
-    assert DataSource(path("fixture-single-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
+    assert DataSource(path("fixture-multi-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
 
-    # test with nrows
-    ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 2})
-    print(ds.get_df())
-    assert ds.get_df().shape == (2, 2)
 
-    # test with skiprows
-    ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"skiprows": 2})
-    assert ds.get_df().shape == (0, 2)
-
-    # test with nrows and skiprows
-    ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 1, "skiprows": 2})
-    assert ds.get_df().shape == (0, 2)
-
-    # test with skiprows and limit offset
-    ds = DataSource(
-        path("fixture-single-sheet.xlsx"),
-        reader_kwargs={"skiprows": 2, "preview_nrows": 1, "preview_offset": 0},
-    )
-    assert ds.get_df().shape == (0, 2)
-
-    # test with nrows and limit offset
-    ds = DataSource(
-        path("fixture-single-sheet.xlsx"),
-        reader_kwargs={"nrows": 1, "preview_nrows": 1, "preview_offset": 0},
-    )
-    assert ds.get_df().shape == (1, 2)
-
-    # test with the new file format type
-    ds = DataSource(
-        path("fixture_new_format.xls"), reader_kwargs={"preview_nrows": 1, "preview_offset": 2}
-    )
-    assert ds.get_df().shape == (1, 8)
-
-    # test with nrows
-    ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"nrows": 2})
-    assert ds.get_df().shape == (2, 8)
-
-    # test with skiprows
-    ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"skiprows": 2})
-    assert ds.get_df().shape == (7, 8)
-
-    # test with nrows and skiprows
-    ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"nrows": 1, "skiprows": 2})
-    assert ds.get_df().shape == (1, 8)
+def test_multi_sheets_excel(path):
+    """It should add a __sheet__ column when retrieving multiple sheet"""
+    ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None})
+    df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2019], "__sheet__": ["January", "February"]})
+    assert ds.get_df().equals(df)
 
 
 def test_basic_xml(path):

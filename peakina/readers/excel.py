@@ -29,8 +29,13 @@ def read_excel(
         nrows=nrows,
     )
     # if there are several sheets, pf.read_excel returns a dict {sheet_name: df}
+    if isinstance(df, dict):
+        for sheet_name, _df in df.items():
+            _df["__sheet__"] = sheet_name
+        df = pd.concat(df.values(), sort=False)
+
     if preview_offset is not None and preview_nrows is not None:
-        return df[preview_offset : preview_offset + preview_nrows]
+        return df[preview_offset:preview_offset + preview_nrows]
     return df
 
 
