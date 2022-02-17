@@ -54,16 +54,20 @@ SUPPORTED_FILE_TYPES = {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ],
         read_excel,
-        ["preview", "keep_default_na", "encoding", "decimal"],
+        ["keep_default_na", "encoding", "decimal", "preview_offset", "preview_nrows"],
         excel_meta,
     ),
     "json": TypeInfos(
         ["application/json"],
         read_json,
-        ["filter"],  # this option comes from read_json, which @wraps(pd.read_json)
+        [
+            "filter",
+            "preview_offset",
+            "preview_nrows",
+        ],  # this option comes from read_json, which @wraps(pd.read_json)
     ),
-    "parquet": TypeInfos(["peakina/parquet"], pd.read_parquet),
-    "xml": TypeInfos(["application/xml"], read_xml),
+    "parquet": TypeInfos(["peakina/parquet"], pd.read_parquet, ["preview_offset", "preview_nrows"]),
+    "xml": TypeInfos(["application/xml"], read_xml, ["preview_offset", "preview_nrows"]),
 }
 
 

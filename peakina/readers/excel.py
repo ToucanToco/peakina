@@ -8,6 +8,10 @@ import openpyxl
 import pandas as pd
 import xlrd
 from openpyxl.utils.exceptions import InvalidFileException
+import logging
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def _old_xls_rows_iterator(
@@ -200,7 +204,8 @@ def read_excel(
             for sh_name in all_sheet_names:
                 column_names += [c.value for c in next(wb[sh_name].iter_rows(min_row=1, max_row=1))]
 
-    except InvalidFileException:
+    except InvalidFileException as e:
+        LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
         wb = xlrd.open_workbook(
             filepath
         )  # I used another variable to avoid bugs in pycharm autocomplete.
