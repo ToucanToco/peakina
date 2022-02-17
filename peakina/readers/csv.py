@@ -5,8 +5,6 @@ from typing import List, Optional
 
 import pandas as pd
 
-from peakina.readers.common import PreviewArgs
-
 # The chunksize value for previews
 PREVIEW_CHUNK_SIZE = 1024
 
@@ -27,12 +25,15 @@ def read_csv(
     chunksize: Optional[int] = None,
     nrows: int = 500,
     error_bad_lines: bool = False,
+    skiprows: Optional[int] = None,
 ) -> pd.DataFrame:
     """
     The read_csv method is able to make a preview by reading on chunks
 
     """
     if preview_nrows is not None and preview_offset is not None:
+        if preview_offset == 0:
+            preview_offset = 1  # skip header
         chunks = pd.read_csv(
             filepath,
             sep=sep,
@@ -41,7 +42,7 @@ def read_csv(
             keep_default_na=keep_default_na,
             encoding=encoding,
             nrows=preview_nrows,
-            skiprows=lambda idx: idx < preview_offset,
+            skiprows=lambda idx: idx < preview_offset + (skiprows or 0),
             chunksize=PREVIEW_CHUNK_SIZE,
             error_bad_lines=error_bad_lines,
         )
@@ -54,6 +55,7 @@ def read_csv(
         chunksize=chunksize,
         encoding=encoding,
         keep_default_na=keep_default_na,
+        skiprows=skiprows,
     )
 
 
@@ -61,17 +63,17 @@ def _line_count(filename) -> int:
     f = open(filename)
     lines = 0
     buf_size = 1024 * 1024
-    read_f = f.read # loop optimization
+    read_f = f.read  # loop optimization
 
     buf = read_f(buf_size)
     while buf:
-        lines += buf.count('\n')
+        lines += buf.count("\n")
         buf = read_f(buf_size)
 
     return lines
 
 
-def csv_meta(filepath: str, datasource: 'Datasource') -> dict:
+def csv_meta(filepath: str, datasource: "Datasource") -> dict:  # noqa: F821
     return {
         "nrows": _line_count(filepath),
     }

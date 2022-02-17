@@ -9,7 +9,6 @@ from peakina.cache import InMemoryCache
 from peakina.datasource import DataSource, read_pandas
 from peakina.helpers import TypeEnum
 from peakina.io import MatchEnum
-from peakina.readers.common import PreviewArgs
 
 
 @pytest.fixture
@@ -60,7 +59,8 @@ def test_simple_csv(path):
     ds = DataSource(
         path("0_0.csv"),
         reader_kwargs={
-            "preview": PreviewArgs(**{"nrows": 1, "offset": 0}),
+            "preview_offset": 0,
+            "preview_nrows": 1,
             "encoding": "utf8",
             "sep": ",",
         },
@@ -78,7 +78,7 @@ def test_csv_with_sep(path):
 
     ds = DataSource(
         path("0_0_sep.csv"),
-        reader_kwargs={"preview": PreviewArgs(**{"nrows": 1, "offset": 0}), "sep": ","},
+        reader_kwargs={"preview_offset": 0, "preview_nrows": 1, "sep": ","},
     )
     assert ds.get_df().shape == (1, 1)
 
@@ -90,7 +90,11 @@ def test_csv_with_encoding(path):
     assert "unité économique" in df.columns
 
     df = DataSource(
-        path("latin_1.csv"), reader_kwargs={"preview": PreviewArgs(**{"nrows": 1, "offset": 1})}
+        path("latin_1.csv"),
+        reader_kwargs={
+            "preview_offset": 1,
+            "preview_nrows": 1,
+        },
     ).get_df()
     assert df.shape == (1, 7)
 
@@ -101,7 +105,11 @@ def test_csv_with_sep_and_encoding(path):
     assert ds.get_df().shape == (2, 7)
 
     ds = DataSource(
-        path("latin_1_sep.csv"), reader_kwargs={"preview": PreviewArgs(**{"nrows": 1, "offset": 0})}
+        path("latin_1_sep.csv"),
+        reader_kwargs={
+            "preview_offset": 0,
+            "preview_nrows": 1,
+        },
     )
     assert ds.get_df().shape == (1, 7)
 
@@ -134,7 +142,7 @@ def test_read_pandas(path):
             "Unité Locative": ["L12"],
         }
     )
-    ds = read_pandas(path("latin_1_sep.csv"), preview=PreviewArgs(**{"nrows": 1, "offset": 2}))
+    ds = read_pandas(path("latin_1_sep.csv"), preview_nrows=1, preview_offset=2)
     assert ds.equals(df)
     assert ds.shape == (1, 7)
 
@@ -146,9 +154,7 @@ def test_read_pandas_excel(path):
     assert ds.shape == (2, 2)
     assert ds.equals(df)
 
-    ds = read_pandas(
-        path("0_2.xls"), keep_default_na=False, preview=PreviewArgs(**{"nrows": 1, "offset": 2})
-    )
+    ds = read_pandas(path("0_2.xls"), keep_default_na=False, preview_nrows=1, preview_offset=2)
     df = pd.DataFrame({"a": [4.0], "b": [3.0]})
     assert ds.equals(df)
     assert ds.shape == (1, 2)
@@ -212,7 +218,7 @@ def test_basic_excel(path):
     ds = DataSource(path("fixture-single-sheet.xlsx"))
     df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2020]})
     assert ds.get_df().equals(df)
-    assert ds.get_metadata() == {"sheetnames": ["January"], 'nrows': 3}
+    assert ds.get_metadata() == {"sheetnames": ["January"], "nrows": 3}
 
     # On match datasources, no metadata is returned:
     assert DataSource(path("fixture-single-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
@@ -232,21 +238,20 @@ def test_basic_excel(path):
     # test with skiprows and limit offset
     ds = DataSource(
         path("fixture-single-sheet.xlsx"),
-        reader_kwargs={"skiprows": 2, "preview": PreviewArgs(**{"nrows": 1, "offset": 0})},
+        reader_kwargs={"skiprows": 2, "preview_nrows": 1, "preview_offset": 0},
     )
     assert ds.get_df().shape == (0, 2)
 
     # test with nrows and limit offset
     ds = DataSource(
         path("fixture-single-sheet.xlsx"),
-        reader_kwargs={"nrows": 1, "preview": PreviewArgs(**{"nrows": 1, "offset": 0})},
+        reader_kwargs={"nrows": 1, "preview_nrows": 1, "preview_offset": 0},
     )
     assert ds.get_df().shape == (1, 2)
 
     # test with the new file format type
     ds = DataSource(
-        path("fixture_new_format.xls"),
-        reader_kwargs={"preview": PreviewArgs(**{"nrows": 1, "offset": 2})},
+        path("fixture_new_format.xls"), reader_kwargs={"preview_nrows": 1, "preview_offset": 2}
     )
     assert ds.get_df().shape == (1, 8)
 

@@ -46,7 +46,7 @@ SUPPORTED_FILE_TYPES = {
         ["text/csv", "text/tab-separated-values"],
         read_csv,
         ["preview_offset", "preview_nrows", "skiprows"],
-        csv_meta
+        csv_meta,
     ),
     "excel": TypeInfos(
         [
@@ -183,6 +183,6 @@ def pd_read(filepath: str, t: str, kwargs: Dict[str, Any]) -> pd.DataFrame:
     return SUPPORTED_FILE_TYPES[t].reader(filepath, **kwargs)
 
 
-def get_metadata(filepath: str, datasource: 'DataSource') -> Dict[str, Any]:
+def get_metadata(filepath: str, datasource: "DataSource") -> Dict[str, Any]:  # noqa: F821
     metadata_reader = SUPPORTED_FILE_TYPES[datasource.type].metadata_reader
     return metadata_reader(filepath, datasource) if metadata_reader else {}
