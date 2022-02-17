@@ -45,7 +45,7 @@ SUPPORTED_FILE_TYPES = {
     "csv": TypeInfos(
         ["text/csv", "text/tab-separated-values"],
         read_csv,
-        ["preview_offset", "preview_nrows"],
+        ["preview_offset", "preview_nrows", "skiprows"],
         csv_meta
     ),
     "excel": TypeInfos(
