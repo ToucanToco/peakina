@@ -75,7 +75,7 @@ class DataSource:
             return {}  # no metadata for matched datasources
         with self.fetcher.open(self.uri) as f:
             assert self.type is not None
-            return get_metadata(f.name, self.type)
+            return get_metadata(f.name, self)
 
     @staticmethod
     def _get_single_df(
