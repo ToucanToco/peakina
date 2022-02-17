@@ -84,7 +84,7 @@ def _build_row_subset(
 
     cells = [
         quote_if_needed(str(cell.value))
-        if type(cell) not in [str, int, float]
+        if type(cell) not in [str, int, float] and cell is not None
         else quote_if_needed(str(cell))
         for cell in row
     ]
