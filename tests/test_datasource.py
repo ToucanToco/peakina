@@ -150,12 +150,12 @@ def test_read_pandas(path):
 def test_read_pandas_excel(path):
     """It should be able to detect everything with read_pandas shortcut"""
     ds = read_pandas(path("0_2.xls"), keep_default_na=False)
-    df = pd.DataFrame({"a": [3.0, 4.0], "b": [4.0, 3.0]})
+    df = pd.DataFrame({"a": [3, 4], "b": [4, 3]})
     assert ds.shape == (2, 2)
     assert ds.equals(df)
 
-    ds = read_pandas(path("0_2.xls"), keep_default_na=False, preview_nrows=1, preview_offset=2)
-    df = pd.DataFrame({"a": [4.0], "b": [3.0]})
+    ds = read_pandas(path("0_2.xls"), keep_default_na=False, preview_nrows=1, preview_offset=1)
+    df = pd.DataFrame({"a": [4], "b": [3]})
     assert ds.equals(df)
     assert ds.shape == (1, 2)
 
@@ -218,22 +218,23 @@ def test_basic_excel(path):
     ds = DataSource(path("fixture-single-sheet.xlsx"))
     df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2020]})
     assert ds.get_df().equals(df)
-    assert ds.get_metadata() == {"sheetnames": ["January"], "nrows": 3}
+    assert ds.get_metadata() == {"sheetnames": ["January"], "nrows": 2}
 
     # On match datasources, no metadata is returned:
     assert DataSource(path("fixture-single-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
 
     # test with nrows
     ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 2})
-    assert ds.get_df().shape == (1, 2)
+    print(ds.get_df())
+    assert ds.get_df().shape == (2, 2)
 
     # test with skiprows
     ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"skiprows": 2})
-    assert ds.get_df().shape == (0, 0)
+    assert ds.get_df().shape == (0, 2)
 
     # test with nrows and skiprows
     ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 1, "skiprows": 2})
-    assert ds.get_df().shape == (0, 0)
+    assert ds.get_df().shape == (0, 2)
 
     # test with skiprows and limit offset
     ds = DataSource(
@@ -257,7 +258,7 @@ def test_basic_excel(path):
 
     # test with nrows
     ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"nrows": 2})
-    assert ds.get_df().shape == (1, 8)
+    assert ds.get_df().shape == (2, 8)
 
     # test with skiprows
     ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"skiprows": 2})
@@ -266,14 +267,6 @@ def test_basic_excel(path):
     # test with nrows and skiprows
     ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"nrows": 1, "skiprows": 2})
     assert ds.get_df().shape == (1, 8)
-
-
-def test_multi_sheets_excel(path):
-    """It should add a __sheet__ column when retrieving multiple sheet"""
-    ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None})
-    df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2019], "__sheet__": ["January", "February"]})
-
-    assert ds.get_df().equals(df)
 
 
 def test_basic_xml(path):
@@ -356,16 +349,3 @@ def test_cache(path, mocker):
     # fake a file with a different mtime (e.g: a new file has been uploaded):
     mocker.patch("peakina.io.local.file_fetcher.os.path.getmtime").return_value = mtime - 1
     assert ds.get_df(cache=cache).shape == (2, 2)  # cache has been invalidated
-
-
-def test_multi_sheets_metadata(path):
-    """It should add a __sheet__ column when retrieving multiple sheet"""
-    ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None})
-    print(ds.get_metadata())
-
-
-def test_csv_metadata(path):
-    """It should add a __sheet__ column when retrieving multiple sheet"""
-    ds = DataSource(path("fixture-1.csv"))
-
-    print(ds.get_metadata())
