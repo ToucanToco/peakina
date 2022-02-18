@@ -29,7 +29,6 @@ def read_csv(
 ) -> pd.DataFrame:
     """
     The read_csv method is able to make a preview by reading on chunks
-
     """
     if preview_nrows is not None and preview_offset is not None:
         if preview_offset == 0:
