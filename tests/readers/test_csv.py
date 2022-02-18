@@ -1,3 +1,5 @@
+import pandas as pd
+
 from peakina import DataSource
 
 
@@ -14,6 +16,8 @@ def test_simple_csv_preview(path):
         reader_kwargs={"encoding": "utf8", "sep": ",", "preview_nrows": 2, "preview_offset": 2},
     )
     assert ds.get_df().shape == (2, 2)
+
+    assert ds.get_df().equals(pd.DataFrame({"month": ["Mars-14", "Avr-14"], "value": [3.3, 3.1]}))
 
     ds = DataSource(
         path("fixture-1.csv"),

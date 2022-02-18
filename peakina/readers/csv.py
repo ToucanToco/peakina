@@ -11,7 +11,7 @@ PREVIEW_CHUNK_SIZE = 1024
 
 def _extract_columns(filepath: str, encoding: str, sep: str) -> List[str]:
     with open(filepath, buffering=10000, encoding=encoding) as ff:
-        return ff.readline().replace("\n", "").split(sep)
+        return ff.readline().rstrip("\n").split(sep)
 
 
 def read_csv(
@@ -31,8 +31,7 @@ def read_csv(
     The read_csv method is able to make a preview by reading on chunks
     """
     if preview_nrows is not None and preview_offset is not None:
-        if preview_offset == 0:
-            preview_offset = 1  # skip header
+        preview_offset = preview_offset + 1  # skip header
         chunks = pd.read_csv(
             filepath,
             sep=sep,
