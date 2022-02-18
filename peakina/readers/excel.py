@@ -46,8 +46,10 @@ def excel_meta(filepath: str, datasource: "DataSource") -> dict:  # noqa: F821
     kwargs = datasource.reader_kwargs
     kwargs.pop("preview_offset", None)
     kwargs.pop("preview_nrows", None)
-    df = pd.read_excel(filepath, **datasource.reader_kwargs)
+
+    excel_file = pd.ExcelFile(filepath)
+    df = pd.read_excel(excel_file, **datasource.reader_kwargs)
     return {
-        "sheetnames": pd.ExcelFile(filepath).sheet_names,
+        "sheetnames": excel_file.sheet_names,
         "nrows": df.shape[0],
     }
