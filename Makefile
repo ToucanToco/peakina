@@ -19,9 +19,9 @@ format:
 
 .PHONY: lint
 lint:
-	poetry run flake8 peakina tests
 	$(black) --diff --check
 	$(isort) --check-only
+	poetry run flake8 peakina tests
 
 .PHONY: mypy
 mypy:

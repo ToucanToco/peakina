@@ -18,6 +18,11 @@ repos:
     entry: poetry run isort
     types: [python]
     language: system
+  - id: system
+    name: flake8
+    entry: poetry run flake8 peakina tests
+    types: [python]
+    language: system
   - id: mypy
     name: mypy
     entry: poetry run mypy
