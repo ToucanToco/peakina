@@ -2,7 +2,7 @@
 Module to add excel files support
 """
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import pandas as pd
 
@@ -39,16 +39,15 @@ def read_excel(
     return df
 
 
-def excel_meta(filepath: str, datasource: "DataSource") -> dict:  # noqa: F821
+def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:  # noqa: F821
     """
     Returns a dictionary with the meta information of the excel file.
     """
-    kwargs = datasource.reader_kwargs
-    kwargs.pop("preview_offset", None)
-    kwargs.pop("preview_nrows", None)
+    reader_kwargs.pop("preview_offset", None)
+    reader_kwargs.pop("preview_nrows", None)
 
     excel_file = pd.ExcelFile(filepath)
-    df = pd.read_excel(excel_file, **datasource.reader_kwargs)
+    df = pd.read_excel(excel_file, **reader_kwargs)
     return {
         "sheetnames": excel_file.sheet_names,
         "nrows": df.shape[0],

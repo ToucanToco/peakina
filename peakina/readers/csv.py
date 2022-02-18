@@ -1,7 +1,7 @@
 """
 Module to add csv support
 """
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -59,7 +59,7 @@ def read_csv(
     )
 
 
-def _line_count(filename) -> int:
+def _line_count(filename: str) -> int:
     f = open(filename)
     lines = 0
     buf_size = 1024 * 1024
@@ -73,7 +73,7 @@ def _line_count(filename) -> int:
     return lines
 
 
-def csv_meta(filepath: str, datasource: "Datasource") -> dict:  # noqa: F821
+def csv_meta(filepath: str, reader_kwrgs: Dict[str, Any]) -> Dict[str, Any]:  # noqa: F821
     return {
         "nrows": _line_count(filepath),
     }
