@@ -35,7 +35,7 @@ def read_excel(
         df = pd.concat(df.values(), sort=False)
 
     if preview_offset is not None and preview_nrows is not None:
-        return df[preview_offset: preview_offset + preview_nrows]
+        return df[preview_offset : preview_offset + preview_nrows]
     return df
 
 
