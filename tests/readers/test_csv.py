@@ -15,6 +15,12 @@ def test_simple_csv_preview(path):
     )
     assert ds.get_df().shape == (2, 2)
 
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"encoding": "utf8", "sep": ",", "preview_nrows": 2, "preview_offset": 0},
+    )
+    assert ds.get_df().shape == (2, 2)
+
 
 def test_simple_csv_metadata(path):
     """It should be able to detect type if not set"""
