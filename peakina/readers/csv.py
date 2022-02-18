@@ -42,7 +42,7 @@ def read_csv(
             keep_default_na=keep_default_na,
             encoding=encoding,
             nrows=preview_nrows,
-            skiprows=lambda idx: idx < preview_offset + (skiprows or 0),
+            skiprows=preview_offset + (skiprows or 0),
             chunksize=PREVIEW_CHUNK_SIZE,
             error_bad_lines=error_bad_lines,
         )
