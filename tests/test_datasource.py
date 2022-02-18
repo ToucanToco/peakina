@@ -51,12 +51,6 @@ def test_validation_kwargs(mocker):
     validatation_kwargs.reset_mock()
 
 
-def test_simple_csv(path):
-    """It should be able to detect type if not set"""
-    ds = DataSource(path("0_0.csv"), reader_kwargs={"encoding": "utf8", "sep": ","})
-    assert ds.get_df().shape == (2, 2)
-
-
 def test_csv_with_sep(path):
     """It should be able to detect separator if not set"""
     ds = DataSource(path("0_0_sep.csv"))
