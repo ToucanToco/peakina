@@ -151,7 +151,9 @@ def validate_sep(filepath: str, sep: str = ",", encoding: str = "utf-8") -> bool
     (i.e. the dataframe has more than one column).
     """
     try:
-        df = read_csv(filepath, sep=sep, encoding=encoding, nrows=2)
+        # we want an error to be raised if we can't read the first two lines
+        # hence the parameter `error_bad_lines` set to `True`
+        df = read_csv(filepath, sep=sep, encoding=encoding, nrows=2, error_bad_lines=True)
         return len(df.columns) > 1
     except pd.errors.ParserError:
         return False
