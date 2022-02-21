@@ -1,4 +1,3 @@
-import os
 import tempfile
 from email.utils import parsedate_to_datetime
 from typing import IO, Any, List, Optional
@@ -23,10 +22,7 @@ class HttpFetcher(Fetcher):
 
     def open(self, filepath: str) -> IO[bytes]:
         r = self.pool_manager.request("GET", filepath, preload_content=False, **self.extra_kwargs)
-        extension = os.path.splitext(filepath)[1]
-        if "?" in extension:  # remove query string
-            extension = extension[: extension.index("?")]
-        ret = tempfile.NamedTemporaryFile(suffix=extension)
+        ret = tempfile.NamedTemporaryFile(suffix=".httptmp")
         for chunk in r.stream():
             ret.write(chunk)
         ret.seek(0)
