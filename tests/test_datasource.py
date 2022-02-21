@@ -56,6 +56,10 @@ def test_csv_with_sep(path):
     ds = DataSource(path("0_0_sep.csv"))
     assert ds.get_df().shape == (2, 2)
 
+    ds = DataSource(path("0_0_sep.csv"), reader_kwargs={"skipfooter": 1, "engine": "python"})
+    assert ds.get_df().shape == (1, 2)
+    assert ds.get_df().to_dict(orient="records") == [{"a": 0, "b": 0}]
+
     ds = DataSource(path("0_0_sep.csv"), reader_kwargs={"sep": ","})
     assert ds.get_df().shape == (2, 1)
 

@@ -39,6 +39,7 @@ class TypeInfos(NamedTuple):
 # For files without MIME types, we make fake MIME types based on detected extension
 CUSTOM_MIMETYPES = {".parquet": "peakina/parquet"}
 
+EXTRA_PEAKINA_READER_KWARGS = ["preview_offset", "preview_nrows"]
 
 SUPPORTED_FILE_TYPES = {
     "csv": TypeInfos(
@@ -61,8 +62,8 @@ SUPPORTED_FILE_TYPES = {
         read_json,
         ["filter"],  # this option comes from read_json, which @wraps(pd.read_json)
     ),
-    "parquet": TypeInfos(["peakina/parquet"], pd.read_parquet, ["preview_offset", "preview_nrows"]),
-    "xml": TypeInfos(["application/xml"], read_xml, []),
+    "parquet": TypeInfos(["peakina/parquet"], pd.read_parquet),
+    "xml": TypeInfos(["application/xml"], read_xml),
 }
 
 
@@ -167,6 +168,7 @@ def validate_kwargs(kwargs: Dict[str, Any], t: Optional[TypeEnum]) -> bool:
         allowed_kwargs += get_reader_allowed_params(t)
         # Add extra allowed kwargs
         allowed_kwargs += SUPPORTED_FILE_TYPES[t].reader_kwargs
+        allowed_kwargs += EXTRA_PEAKINA_READER_KWARGS
     bad_kwargs = set(kwargs) - set(allowed_kwargs)
     if bad_kwargs:
         raise ValueError(f'Unsupported kwargs: {", ".join(map(repr, bad_kwargs))}')
