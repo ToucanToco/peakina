@@ -19,9 +19,14 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
 import chardet
 import pandas as pd
 
-from peakina.readers import read_csv, read_excel, read_json, read_xml
-from peakina.readers.csv import csv_meta
-from peakina.readers.excel import excel_meta
+from peakina.readers import (
+    csv_meta,
+    excel_meta,
+    read_csv,
+    read_excel,
+    read_json,
+    read_xml,
+)
 
 
 class TypeInfos(NamedTuple):
