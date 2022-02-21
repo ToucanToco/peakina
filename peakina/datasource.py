@@ -33,7 +33,6 @@ from peakina.io import Fetcher, MatchEnum
 
 AVAILABLE_SCHEMES = set(Fetcher.registry) - {""}  # discard the empty string scheme
 PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | AVAILABLE_SCHEMES
-NOTSET = object()
 
 
 @dataclass
