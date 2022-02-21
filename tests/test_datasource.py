@@ -86,6 +86,10 @@ def test_read_pandas_excel(path):
     """It should be able to detect everything with read_pandas shortcut"""
     assert read_pandas(path("0_2.xls"), keep_default_na=False).shape == (2, 2)
 
+    df = read_pandas(path("0_2.xls"), skipfooter=1)
+    assert df.shape == (1, 2)
+    assert df.to_dict(orient="records") == [{"a": 3, "b": 4}]
+
 
 def test_match(path):
     """It should be able to concat files matching a pattern"""

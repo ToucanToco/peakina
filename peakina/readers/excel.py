@@ -2,52 +2,59 @@
 Module to add excel files support
 """
 import logging
-from typing import Any, Dict, Optional, Union
+from functools import wraps
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 import pandas as pd
+
+if TYPE_CHECKING:
+    from os import PathLike
+
+    FilePathOrBuffer = Union[str, bytes, PathLike[str], PathLike[bytes]]
 
 LOGGER = logging.getLogger(__name__)
 
 
+@wraps(pd.read_excel)
 def read_excel(
-    filepath: str,
+    filepath_or_buffer: "FilePathOrBuffer",
     *,
-    preview_offset: Optional[int] = None,
+    # extra `peakina` reader kwargs
+    preview_offset: int = 0,
     preview_nrows: Optional[int] = None,
-    sheet_name: Optional[Union[str, int]] = 0,
-    na_values: Any = None,
-    keep_default_na: bool = False,
-    skiprows: Optional[int] = None,
-    nrows: Optional[int] = None,
+    # change of default values
+    keep_default_na: bool = False,  # pandas default: `True`
+    **kwargs: Any,
 ) -> pd.DataFrame:
     df = pd.read_excel(
-        filepath,
-        sheet_name=sheet_name,
-        na_values=na_values,
+        filepath_or_buffer,
         keep_default_na=keep_default_na,
-        skiprows=skiprows,
-        nrows=nrows,
+        **kwargs,
     )
     # if there are several sheets, pf.read_excel returns a dict {sheet_name: df}
     if isinstance(df, dict):
-        for sheet_name, _df in df.items():
-            _df["__sheet__"] = sheet_name
+        for sheet_name, sheet_df in df.items():
+            sheet_df["__sheet__"] = sheet_name
         df = pd.concat(df.values(), sort=False)
 
-    if preview_offset is not None and preview_nrows is not None:
+    if preview_nrows is not None:
         return df[preview_offset : preview_offset + preview_nrows]
     return df
 
 
-def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+def excel_meta(
+    filepath_or_buffer: "FilePathOrBuffer", reader_kwargs: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Returns a dictionary with the meta information of the excel file.
     """
-    reader_kwargs.pop("preview_offset", None)
-    reader_kwargs.pop("preview_nrows", None)
+    from peakina.helpers import EXTRA_PEAKINA_READER_KWARGS
 
-    excel_file = pd.ExcelFile(filepath)
-    df = pd.read_excel(excel_file, **reader_kwargs)
+    excel_reader_kwargs = {
+        k: v for k, v in reader_kwargs.items() if k not in EXTRA_PEAKINA_READER_KWARGS
+    }
+    excel_file = pd.ExcelFile(filepath_or_buffer)
+    df = pd.read_excel(excel_file, **excel_reader_kwargs)
     return {
         "sheetnames": excel_file.sheet_names,
         "nrows": df.shape[0],
