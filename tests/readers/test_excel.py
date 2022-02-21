@@ -10,7 +10,7 @@ def test_simple_xls(path):
 
 
 def test_simple_xls_preview(path):
-    """It should be able to detect type if not set"""
+    """It should be able to get a preview of an excel file"""
     ds = DataSource(
         path("fixture.xls"),
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
@@ -19,7 +19,7 @@ def test_simple_xls_preview(path):
 
 
 def test_simple_xls_metadata(path):
-    """It should be able to detect type if not set"""
+    """It should be able to get metadata of an excel file"""
     ds = DataSource(
         path("fixture.xls"),
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
@@ -28,7 +28,7 @@ def test_simple_xls_metadata(path):
 
 
 def test_multisheet_xlsx(path):
-    """It should be able to detect type if not set"""
+    """It should be able to read multiple sheets and add them together"""
     ds = DataSource(
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None},

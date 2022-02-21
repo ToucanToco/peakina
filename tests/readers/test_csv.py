@@ -10,7 +10,7 @@ def test_simple_csv(path):
 
 
 def test_simple_csv_preview(path):
-    """It should be able to detect type if not set"""
+    """It should be able to get a preview of a csv file"""
     ds = DataSource(
         path("fixture-1.csv"),
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
@@ -27,7 +27,7 @@ def test_simple_csv_preview(path):
 
 
 def test_simple_csv_metadata(path):
-    """It should be able to detect type if not set"""
+    """It should be able to get metadata of a csv file"""
     ds = DataSource(
         path("fixture-1.csv"),
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
