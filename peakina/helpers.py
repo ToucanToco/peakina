@@ -182,8 +182,6 @@ def pd_read(filepath: str, t: str, kwargs: Dict[str, Any]) -> pd.DataFrame:
     return SUPPORTED_FILE_TYPES[t].reader(filepath, **kwargs)
 
 
-def get_metadata(
-    filepath: str, type: str, reader_kwargs: Dict[str, Any]
-) -> Dict[str, Any]:  # noqa: F821
+def get_metadata(filepath: str, type: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
     metadata_reader = SUPPORTED_FILE_TYPES[type].metadata_reader
     return metadata_reader(filepath, reader_kwargs) if metadata_reader else {}

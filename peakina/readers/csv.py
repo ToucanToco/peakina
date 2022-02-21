@@ -71,7 +71,7 @@ def _line_count(filename: str) -> int:
     return lines
 
 
-def csv_meta(filepath: str, reader_kwrgs: Dict[str, Any]) -> Dict[str, Any]:  # noqa: F821
+def csv_meta(filepath: str, reader_kwrgs: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "nrows": _line_count(filepath),
     }

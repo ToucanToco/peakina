@@ -39,7 +39,7 @@ def read_excel(
     return df
 
 
-def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:  # noqa: F821
+def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
     """
     Returns a dictionary with the meta information of the excel file.
     """
