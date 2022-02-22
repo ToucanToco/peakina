@@ -73,6 +73,7 @@ def test_simple_xls_preview(path):
 
 def test_xls_metadata(path):
     """It should be able to get metadata of an excel file"""
+    # when no kwargs are provided
     ds = DataSource(path("fixture.xls"))
     assert ds.get_df().shape == (170, 6)
     assert ds.get_metadata() == {
@@ -81,6 +82,7 @@ def test_xls_metadata(path):
         "total_rows": 170,
     }
 
+    # extra pandas kwargs that impact size of dataframe
     ds = DataSource(
         path("fixture.xls"),
         reader_kwargs={"skipfooter": 5},
@@ -92,6 +94,7 @@ def test_xls_metadata(path):
         "total_rows": 170,
     }
 
+    # with only offset, this means df_rows = total_rows - preview_offset
     ds = DataSource(
         path("fixture.xls"),
         reader_kwargs={"preview_offset": 7},
@@ -103,6 +106,7 @@ def test_xls_metadata(path):
         "total_rows": 170,
     }
 
+    # with nrows and offset
     ds = DataSource(
         path("fixture.xls"),
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
@@ -114,6 +118,7 @@ def test_xls_metadata(path):
         "total_rows": 170,
     }
 
+    # with multiple sheets
     ds = DataSource(
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None, "preview_nrows": 1, "preview_offset": 1},
