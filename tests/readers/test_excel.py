@@ -71,13 +71,19 @@ def test_simple_xls_preview(path):
     )
 
 
-def test_simple_xls_metadata(path):
+def test_xls_metadata(path):
     """It should be able to get metadata of an excel file"""
     ds = DataSource(
         path("fixture.xls"),
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
     )
     assert ds.get_metadata()["nrows"] == 170
+
+    ds = DataSource(
+        path("fixture-multi-sheet.xlsx"),
+        reader_kwargs={"sheet_name": None, "preview_nrows": 2, "preview_offset": 2},
+    )
+    assert ds.get_metadata()["nrows"] == [{"January": 1}, {"February": 1}]
 
 
 def test_multisheet_xlsx(path):

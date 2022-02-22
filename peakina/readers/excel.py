@@ -55,6 +55,14 @@ def excel_meta(
     }
     excel_file = pd.ExcelFile(filepath_or_buffer)
     df = pd.read_excel(excel_file, **excel_reader_kwargs)
+
+    if isinstance(df, dict):
+        nrows = [{k: v.shape[0]} for k, v in df.items()]
+        return {
+            "sheetnames": excel_file.sheet_names,
+            "nrows": nrows,
+        }
+
     return {
         "sheetnames": excel_file.sheet_names,
         "nrows": df.shape[0],
