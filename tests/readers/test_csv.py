@@ -52,10 +52,32 @@ def test_simple_csv_preview(path):
     assert ds.get_df().equals(pd.DataFrame({"month": ["Mars-14", "Avr-14"], "value": [3.3, 3.1]}))
 
 
-def test_simple_csv_metadata(path):
+def test_csv_metadata(path):
     """It should be able to get metadata of a csv file"""
     ds = DataSource(
         path("fixture-1.csv"),
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
     )
-    assert ds.get_metadata()["nrows"] == 12
+    assert ds.get_metadata()["df_rows"] == 2
+    assert ds.get_metadata()["total_rows"] == 12
+
+    # with only nrows
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"preview_nrows": 7},
+    )
+    assert ds.get_metadata()["df_rows"] == 7
+    assert ds.get_metadata()["total_rows"] == 12
+
+    # With only offset
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"preview_offset": 3},
+    )
+    assert ds.get_metadata()["df_rows"] == 9
+    assert ds.get_metadata()["total_rows"] == 12
+
+    # when no kwargs are provided
+    ds = DataSource(path("fixture-1.csv"))
+    assert ds.get_metadata()["df_rows"] == 12
+    assert ds.get_metadata()["total_rows"] == 12
