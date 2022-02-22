@@ -64,6 +64,17 @@ def test_csv_metadata(path):
         "total_rows": 12,
     }
 
+    # extra pandas kwargs that impact size of dataframe
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"skipfooter": 5},
+    )
+    assert ds.get_df().shape == (7, 2)
+    assert ds.get_metadata() == {
+        "df_rows": 7,
+        "total_rows": 12,
+    }
+
     # with only offset, this means df_rows = total_rows - preview_offset
     ds = DataSource(
         path("fixture-1.csv"),

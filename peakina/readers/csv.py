@@ -66,12 +66,13 @@ def _line_count(filepath_or_buffer: "FilePathOrBuffer") -> int:
 
 
 def csv_meta(
-    filepath_or_buffer: "FilePathOrBuffer", reader_kwrgs: Dict[str, Any]
+    filepath_or_buffer: "FilePathOrBuffer", reader_kwargs: Dict[str, Any]
 ) -> Dict[str, Any]:
     total_rows = _line_count(filepath_or_buffer)
 
-    preview_offset = reader_kwrgs.pop("preview_offset", 0)
-    preview_nrows = reader_kwrgs.pop("preview_nrows", None)
+    preview_offset = reader_kwargs.pop("preview_offset", 0)
+    preview_nrows = reader_kwargs.pop("preview_nrows", None)
+
     if preview_nrows is not None:
         if preview_nrows <= preview_offset:
             df_rows = preview_nrows
@@ -79,5 +80,7 @@ def csv_meta(
             df_rows = min(total_rows, preview_nrows - preview_offset)
     else:
         df_rows = total_rows - preview_offset
+
+    df_rows -= reader_kwargs.get("skipfooter", 0)
 
     return {"total_rows": _line_count(filepath_or_buffer), "df_rows": df_rows}
