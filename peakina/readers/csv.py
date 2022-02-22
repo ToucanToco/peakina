@@ -30,7 +30,7 @@ def read_csv(
     """
     The read_csv method is able to make a preview by reading on chunks
     """
-    if preview_nrows is not None:
+    if preview_nrows is not None or preview_offset:
         chunks = pd.read_csv(
             filepath_or_buffer,
             keep_default_na=keep_default_na,
