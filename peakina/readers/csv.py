@@ -70,17 +70,30 @@ def csv_meta(
 ) -> Dict[str, Any]:
     total_rows = _line_count(filepath_or_buffer)
 
-    preview_offset = reader_kwargs.pop("preview_offset", 0)
-    preview_nrows = reader_kwargs.pop("preview_nrows", None)
+    if "nrows" in reader_kwargs:
+        return {
+            "total_rows": total_rows,
+            "df_rows": reader_kwargs["nrows"],
+        }
+
+    start = 0 + reader_kwargs.get("skiprows", 0)
+    end = total_rows - reader_kwargs.get("skipfooter", 0)
+
+    preview_offset = reader_kwargs.get("preview_offset", 0)
+    preview_nrows = reader_kwargs.get("preview_nrows", None)
 
     if preview_nrows is not None:
-        if preview_nrows <= preview_offset:
-            df_rows = preview_nrows
-        else:
-            df_rows = min(total_rows, preview_nrows - preview_offset)
+        return {
+            "total_rows": total_rows,
+            "df_rows": min(preview_nrows, max(end - start - preview_offset, 0)),
+        }
+    elif preview_offset:  # and `preview_nrows` is None
+        return {
+            "total_rows": total_rows,
+            "df_rows": max(end - start - preview_offset, 0),
+        }
     else:
-        df_rows = total_rows - preview_offset
-
-    df_rows -= reader_kwargs.get("skipfooter", 0)
-
-    return {"total_rows": _line_count(filepath_or_buffer), "df_rows": df_rows}
+        return {
+            "total_rows": total_rows,
+            "df_rows": end - start,
+        }

@@ -75,6 +75,26 @@ def test_csv_metadata(path):
         "total_rows": 12,
     }
 
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"skiprows": 3, "skipfooter": 4},
+    )
+    assert ds.get_df().shape == (5, 2)
+    assert ds.get_metadata() == {
+        "df_rows": 5,
+        "total_rows": 12,
+    }
+
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"nrows": 3},
+    )
+    assert ds.get_df().shape == (3, 2)
+    assert ds.get_metadata() == {
+        "df_rows": 3,
+        "total_rows": 12,
+    }
+
     # with only offset, this means df_rows = total_rows - preview_offset
     ds = DataSource(
         path("fixture-1.csv"),
