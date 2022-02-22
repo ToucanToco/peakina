@@ -19,7 +19,14 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
 import chardet
 import pandas as pd
 
-from .readers import read_json, read_xml
+from peakina.readers import (
+    csv_meta,
+    excel_meta,
+    read_csv,
+    read_excel,
+    read_json,
+    read_xml,
+)
 
 
 class TypeInfos(NamedTuple):
@@ -37,18 +44,23 @@ class TypeInfos(NamedTuple):
 # For files without MIME types, we make fake MIME types based on detected extension
 CUSTOM_MIMETYPES = {".parquet": "peakina/parquet"}
 
+EXTRA_PEAKINA_READER_KWARGS = ["preview_offset", "preview_nrows"]
 
 SUPPORTED_FILE_TYPES = {
-    "csv": TypeInfos(["text/csv", "text/tab-separated-values"], pd.read_csv),
+    "csv": TypeInfos(
+        ["text/csv", "text/tab-separated-values"],
+        read_csv,
+        [],
+        csv_meta,
+    ),
     "excel": TypeInfos(
         [
             "application/vnd.ms-excel",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ],
-        pd.read_excel,
-        # these options are missing from read_excel signature in pandas 0.23:
-        ["keep_default_na", "encoding", "decimal"],
-        lambda f: {"sheetnames": pd.ExcelFile(f).sheet_names},
+        read_excel,
+        ["encoding", "decimal"],
+        excel_meta,
     ),
     "json": TypeInfos(
         ["application/json"],
@@ -133,13 +145,15 @@ def detect_sep(filepath: str, encoding: Optional[str] = None) -> str:
     return csv.Sniffer().sniff(str_head(filepath, 100, encoding)).delimiter
 
 
-def validate_sep(filepath: str, sep: str = ",", encoding: Optional[str] = None) -> bool:
+def validate_sep(filepath: str, sep: str = ",", encoding: str = "utf-8") -> bool:
     """
     Validates if the `sep` is a right separator of a CSV file
     (i.e. the dataframe has more than one column).
     """
     try:
-        df = pd.read_csv(filepath, sep=sep, encoding=encoding, nrows=2)
+        # we want an error to be raised if we can't read the first two lines
+        # hence the parameter `error_bad_lines` set to `True`
+        df = read_csv(filepath, sep=sep, encoding=encoding, nrows=2, error_bad_lines=True)
         return len(df.columns) > 1
     except pd.errors.ParserError:
         return False
@@ -161,6 +175,7 @@ def validate_kwargs(kwargs: Dict[str, Any], t: Optional[TypeEnum]) -> bool:
         allowed_kwargs += get_reader_allowed_params(t)
         # Add extra allowed kwargs
         allowed_kwargs += SUPPORTED_FILE_TYPES[t].reader_kwargs
+        allowed_kwargs += EXTRA_PEAKINA_READER_KWARGS
     bad_kwargs = set(kwargs) - set(allowed_kwargs)
     if bad_kwargs:
         raise ValueError(f'Unsupported kwargs: {", ".join(map(repr, bad_kwargs))}')
@@ -176,6 +191,6 @@ def pd_read(filepath: str, t: str, kwargs: Dict[str, Any]) -> pd.DataFrame:
     return SUPPORTED_FILE_TYPES[t].reader(filepath, **kwargs)
 
 
-def get_metadata(filepath: str, t: str) -> Dict[str, Any]:
-    read = SUPPORTED_FILE_TYPES[t].metadata_reader
-    return read(filepath) if read else {}
+def get_metadata(filepath: str, type: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    metadata_reader = SUPPORTED_FILE_TYPES[type].metadata_reader
+    return metadata_reader(filepath, reader_kwargs) if metadata_reader else {}

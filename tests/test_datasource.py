@@ -51,16 +51,14 @@ def test_validation_kwargs(mocker):
     validatation_kwargs.reset_mock()
 
 
-def test_simple_csv(path):
-    """It should be able to detect type if not set"""
-    ds = DataSource(path("0_0.csv"), reader_kwargs={"encoding": "utf8", "sep": ","})
-    assert ds.get_df().shape == (2, 2)
-
-
 def test_csv_with_sep(path):
     """It should be able to detect separator if not set"""
     ds = DataSource(path("0_0_sep.csv"))
     assert ds.get_df().shape == (2, 2)
+
+    ds = DataSource(path("0_0_sep.csv"), reader_kwargs={"skipfooter": 1, "engine": "python"})
+    assert ds.get_df().shape == (1, 2)
+    assert ds.get_df().to_dict(orient="records") == [{"a": 0, "b": 0}]
 
     ds = DataSource(path("0_0_sep.csv"), reader_kwargs={"sep": ","})
     assert ds.get_df().shape == (2, 1)
@@ -87,6 +85,10 @@ def test_read_pandas(path):
 def test_read_pandas_excel(path):
     """It should be able to detect everything with read_pandas shortcut"""
     assert read_pandas(path("0_2.xls"), keep_default_na=False).shape == (2, 2)
+
+    df = read_pandas(path("0_2.xls"), skipfooter=1)
+    assert df.shape == (1, 2)
+    assert df.to_dict(orient="records") == [{"a": 3, "b": 4}]
 
 
 def test_match(path):
@@ -147,7 +149,11 @@ def test_basic_excel(path):
     ds = DataSource(path("fixture-multi-sheet.xlsx"))
     df = pd.DataFrame({"Month": [1], "Year": [2019]})
     assert ds.get_df().equals(df)
-    assert ds.get_metadata() == {"sheetnames": ["January", "February"]}
+    assert ds.get_metadata() == {
+        "df_rows": 1,
+        "sheetnames": ["January", "February"],
+        "total_rows": 1,
+    }
 
     # On match datasources, no metadata is returned:
     assert DataSource(path("fixture-multi-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
@@ -158,6 +164,11 @@ def test_multi_sheets_excel(path):
     ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None})
     df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2019], "__sheet__": ["January", "February"]})
     assert ds.get_df().equals(df)
+    assert ds.get_metadata() == {
+        "df_rows": 2,
+        "sheetnames": ["January", "February"],
+        "total_rows": 2,
+    }
 
 
 def test_basic_xml(path):

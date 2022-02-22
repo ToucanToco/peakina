@@ -16,8 +16,8 @@ import pandas as pd
 from pydantic.dataclasses import dataclass
 from slugify import slugify
 
-from .cache import Cache
-from .helpers import (
+from peakina.cache import Cache
+from peakina.helpers import (
     TypeEnum,
     detect_encoding,
     detect_sep,
@@ -29,11 +29,10 @@ from .helpers import (
     validate_kwargs,
     validate_sep,
 )
-from .io import Fetcher, MatchEnum
+from peakina.io import Fetcher, MatchEnum
 
 AVAILABLE_SCHEMES = set(Fetcher.registry) - {""}  # discard the empty string scheme
 PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | AVAILABLE_SCHEMES
-NOTSET = object()
 
 
 @dataclass
@@ -75,7 +74,7 @@ class DataSource:
             return {}  # no metadata for matched datasources
         with self.fetcher.open(self.uri) as f:
             assert self.type is not None
-            return get_metadata(f.name, self.type)
+            return get_metadata(f.name, self.type, self.reader_kwargs)
 
     @staticmethod
     def _get_single_df(
@@ -91,7 +90,7 @@ class DataSource:
         allowed_params = get_reader_allowed_params(filetype)
 
         # Check encoding
-        encoding = kwargs.get("encoding")
+        encoding = kwargs.get("encoding", "utf-8")
         if "encoding" in allowed_params:
             if not validate_encoding(stream.name, encoding):
                 encoding = detect_encoding(stream.name)
@@ -106,12 +105,6 @@ class DataSource:
             df = pd_read(stream.name, filetype, kwargs)
         finally:
             stream.close()
-
-        # In case of sheets, the df can be a dictionary
-        if kwargs.get("sheet_name", NOTSET) is None:
-            for sheet_name, _df in df.items():
-                _df["__sheet__"] = sheet_name
-            df = pd.concat(df.values(), sort=False)
 
         return df
 
