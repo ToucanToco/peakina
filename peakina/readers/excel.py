@@ -37,8 +37,9 @@ def read_excel(
             sheet_df["__sheet__"] = sheet_name
         df = pd.concat(df.values(), sort=False)
 
-    if preview_nrows is not None:
-        return df[preview_offset : preview_offset + preview_nrows]
+    if preview_nrows is not None or preview_offset:
+        offset = None if preview_nrows is None else preview_offset + preview_nrows
+        return df[preview_offset:offset]
     return df
 
 
@@ -48,22 +49,22 @@ def excel_meta(
     """
     Returns a dictionary with the meta information of the excel file.
     """
-    from peakina.helpers import EXTRA_PEAKINA_READER_KWARGS
-
-    excel_reader_kwargs = {
-        k: v for k, v in reader_kwargs.items() if k not in EXTRA_PEAKINA_READER_KWARGS
-    }
     excel_file = pd.ExcelFile(filepath_or_buffer)
-    df = pd.read_excel(excel_file, **excel_reader_kwargs)
+    sheet_names = excel_file.sheet_names
 
-    if isinstance(df, dict):
-        nrows = [{k: v.shape[0]} for k, v in df.items()]
+    df = read_excel(excel_file, **reader_kwargs)
+
+    if (sheet_name := reader_kwargs.get("sheet_name", 0)) is None:
+        # multiple sheets together
         return {
-            "sheetnames": excel_file.sheet_names,
-            "nrows": nrows,
+            "sheetnames": sheet_names,
+            "df_rows": df.shape[0],
+            "total_rows": sum(excel_file.parse(sheet_name).shape[0] for sheet_name in sheet_names),
         }
-
-    return {
-        "sheetnames": excel_file.sheet_names,
-        "nrows": df.shape[0],
-    }
+    else:
+        # single sheet
+        return {
+            "sheetnames": sheet_names,
+            "df_rows": df.shape[0],
+            "total_rows": excel_file.parse(sheet_name).shape[0],
+        }

@@ -73,17 +73,68 @@ def test_simple_xls_preview(path):
 
 def test_xls_metadata(path):
     """It should be able to get metadata of an excel file"""
+    ds = DataSource(path("fixture.xls"))
+    assert ds.get_df().shape == (170, 6)
+    assert ds.get_metadata() == {
+        "sheetnames": ["Data"],
+        "df_rows": 170,
+        "total_rows": 170,
+    }
+
+    ds = DataSource(
+        path("fixture.xls"),
+        reader_kwargs={"skipfooter": 5},
+    )
+    assert ds.get_df().shape == (165, 6)
+    assert ds.get_metadata() == {
+        "sheetnames": ["Data"],
+        "df_rows": 165,
+        "total_rows": 170,
+    }
+
+    ds = DataSource(
+        path("fixture.xls"),
+        reader_kwargs={"preview_offset": 7},
+    )
+    assert ds.get_df().shape == (163, 6)
+    assert ds.get_metadata() == {
+        "sheetnames": ["Data"],
+        "df_rows": 163,
+        "total_rows": 170,
+    }
+
     ds = DataSource(
         path("fixture.xls"),
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
     )
-    assert ds.get_metadata()["nrows"] == 170
+    assert ds.get_df().shape == (2, 6)
+    assert ds.get_metadata() == {
+        "sheetnames": ["Data"],
+        "df_rows": 2,
+        "total_rows": 170,
+    }
+
+    ds = DataSource(
+        path("fixture-multi-sheet.xlsx"),
+        reader_kwargs={"sheet_name": None, "preview_nrows": 1, "preview_offset": 1},
+    )
+    assert ds.get_df().shape == (1, 3)
+    assert ds.get_metadata() == {
+        "sheetnames": ["January", "February"],
+        "df_rows": 1,
+        "total_rows": 2,
+    }
 
     ds = DataSource(
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None, "preview_nrows": 2, "preview_offset": 2},
     )
-    assert ds.get_metadata()["nrows"] == [{"January": 1}, {"February": 1}]
+    assert ds.get_df().shape == (0, 3)
+    assert ds.get_metadata() == {
+        "sheetnames": ["January", "February"],
+        "df_rows": 0,
+        "total_rows": 2,
+    }
 
 
 def test_multisheet_xlsx(path):
