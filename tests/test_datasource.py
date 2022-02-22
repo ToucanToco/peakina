@@ -149,7 +149,11 @@ def test_basic_excel(path):
     ds = DataSource(path("fixture-multi-sheet.xlsx"))
     df = pd.DataFrame({"Month": [1], "Year": [2019]})
     assert ds.get_df().equals(df)
-    assert ds.get_metadata() == {"nrows": 1, "sheetnames": ["January", "February"]}
+    assert ds.get_metadata() == {
+        "df_rows": 1,
+        "sheetnames": ["January", "February"],
+        "total_rows": 1,
+    }
 
     # On match datasources, no metadata is returned:
     assert DataSource(path("fixture-multi-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
@@ -160,6 +164,11 @@ def test_multi_sheets_excel(path):
     ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None})
     df = pd.DataFrame({"Month": [1, 2], "Year": [2019, 2019], "__sheet__": ["January", "February"]})
     assert ds.get_df().equals(df)
+    assert ds.get_metadata() == {
+        "df_rows": 2,
+        "sheetnames": ["January", "February"],
+        "total_rows": 2,
+    }
 
 
 def test_basic_xml(path):
