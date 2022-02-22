@@ -53,7 +53,9 @@ def test_simple_csv_preview(path):
 
 
 def test_csv_metadata(path):
-    """It should be able to get metadata of a csv file"""
+    """
+    It should be able to get metadata of a csv file that contain 12 lines
+    """
     ds = DataSource(
         path("fixture-1.csv"),
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
@@ -61,23 +63,27 @@ def test_csv_metadata(path):
     assert ds.get_metadata()["df_rows"] == 2
     assert ds.get_metadata()["total_rows"] == 12
 
-    # with only nrows
+    # with only nrows we request 7 rows and we have df_rows == 7
     ds = DataSource(
         path("fixture-1.csv"),
         reader_kwargs={"preview_nrows": 7},
     )
     assert ds.get_metadata()["df_rows"] == 7
-    assert ds.get_metadata()["total_rows"] == 12
 
-    # With only offset
+    # With only offset, this means df_rows = total_rows - preview_offset
     ds = DataSource(
         path("fixture-1.csv"),
         reader_kwargs={"preview_offset": 3},
     )
     assert ds.get_metadata()["df_rows"] == 9
-    assert ds.get_metadata()["total_rows"] == 12
+
+    # we equest 15 lines and we can got only 12 as it's the maximum amount of rows we have
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"preview_nrows": 15},
+    )
+    assert ds.get_metadata()["df_rows"] == 12
 
     # when no kwargs are provided
     ds = DataSource(path("fixture-1.csv"))
     assert ds.get_metadata()["df_rows"] == 12
-    assert ds.get_metadata()["total_rows"] == 12

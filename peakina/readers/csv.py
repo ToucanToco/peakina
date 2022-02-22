@@ -51,24 +51,33 @@ def read_csv(
     )
 
 
+def _line_count(filepath_or_buffer: "FilePathOrBuffer") -> int:
+    with open(filepath_or_buffer) as f:
+        lines = 0
+        buf_size = 1024 * 1024
+        read_f = f.read  # loop optimization
+
+        buf = read_f(buf_size)
+        while buf:
+            lines += buf.count("\n")
+            buf = read_f(buf_size)
+
+        return lines
+
+
 def csv_meta(
     filepath_or_buffer: "FilePathOrBuffer", reader_kwrgs: Dict[str, Any]
 ) -> Dict[str, Any]:
+    total_rows = _line_count(filepath_or_buffer)
 
-    preview_nrows, preview_offset = None, None
-    if "preview_offset" in reader_kwrgs:
-        preview_offset = reader_kwrgs.pop("preview_offset")
+    preview_offset = reader_kwrgs.pop("preview_offset", 0)
+    preview_nrows = reader_kwrgs.pop("preview_nrows", None)
+    if preview_nrows is not None:
+        if preview_nrows <= preview_offset:
+            df_rows = preview_nrows
+        else:
+            df_rows = min(total_rows, preview_nrows - preview_offset)
+    else:
+        df_rows = total_rows - preview_offset
 
-    if "preview_nrows" in reader_kwrgs:
-        preview_nrows = reader_kwrgs.pop("preview_nrows")
-
-    df_rows = pd.read_csv(
-        filepath_or_buffer,
-        **reader_kwrgs,
-        skiprows=range(1, preview_offset + 1) if preview_offset else None,
-        nrows=preview_nrows,
-    ).shape[0]
-
-    total_rows = pd.read_csv(filepath_or_buffer, **reader_kwrgs).shape[0]
-
-    return {"total_rows": total_rows, "df_rows": df_rows}
+    return {"total_rows": _line_count(filepath_or_buffer), "df_rows": df_rows}
