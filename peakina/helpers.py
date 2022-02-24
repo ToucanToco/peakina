@@ -19,10 +19,14 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
 import chardet
 import pandas as pd
 
-
-from peakina.readers import read_csv, read_excel, read_json, read_xml
-from peakina.readers.csv import csv_meta
-from peakina.readers.excel import excel_meta
+from peakina.readers import (
+    csv_meta,
+    excel_meta,
+    read_csv,
+    read_excel,
+    read_json,
+    read_xml,
+)
 
 
 class TypeInfos(NamedTuple):
@@ -40,12 +44,13 @@ class TypeInfos(NamedTuple):
 # For files without MIME types, we make fake MIME types based on detected extension
 CUSTOM_MIMETYPES = {".parquet": "peakina/parquet"}
 
+EXTRA_PEAKINA_READER_KWARGS = ["preview_offset", "preview_nrows"]
 
 SUPPORTED_FILE_TYPES = {
     "csv": TypeInfos(
         ["text/csv", "text/tab-separated-values"],
         read_csv,
-        ["preview_offset", "preview_nrows", "skiprows"],
+        [],
         csv_meta,
     ),
     "excel": TypeInfos(
@@ -54,7 +59,7 @@ SUPPORTED_FILE_TYPES = {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ],
         read_excel,
-        ["keep_default_na", "encoding", "decimal", "preview_offset", "preview_nrows"],
+        ["encoding", "decimal"],
         excel_meta,
     ),
     "json": TypeInfos(
@@ -150,7 +155,9 @@ def validate_sep(filepath: str, sep: str = ",", encoding: str = "utf-8") -> bool
     (i.e. the dataframe has more than one column).
     """
     try:
-        df = read_csv(filepath, sep=sep, encoding=encoding, nrows=2)
+        # we want an error to be raised if we can't read the first two lines
+        # hence the parameter `error_bad_lines` set to `True`
+        df = read_csv(filepath, sep=sep, encoding=encoding, nrows=2, error_bad_lines=True)
         return len(df.columns) > 1
     except pd.errors.ParserError:
         return False
@@ -172,6 +179,7 @@ def validate_kwargs(kwargs: Dict[str, Any], t: Optional[TypeEnum]) -> bool:
         allowed_kwargs += get_reader_allowed_params(t)
         # Add extra allowed kwargs
         allowed_kwargs += SUPPORTED_FILE_TYPES[t].reader_kwargs
+        allowed_kwargs += EXTRA_PEAKINA_READER_KWARGS
     bad_kwargs = set(kwargs) - set(allowed_kwargs)
     if bad_kwargs:
         raise ValueError(f'Unsupported kwargs: {", ".join(map(repr, bad_kwargs))}')
@@ -187,6 +195,6 @@ def pd_read(filepath: str, t: str, kwargs: Dict[str, Any]) -> pd.DataFrame:
     return SUPPORTED_FILE_TYPES[t].reader(filepath, **kwargs)
 
 
-def get_metadata(filepath: str, datasource: "DataSource") -> Dict[str, Any]:  # noqa: F821
-    metadata_reader = SUPPORTED_FILE_TYPES[datasource.type].metadata_reader
-    return metadata_reader(filepath, datasource) if metadata_reader else {}
+def get_metadata(filepath: str, type: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    metadata_reader = SUPPORTED_FILE_TYPES[type].metadata_reader
+    return metadata_reader(filepath, reader_kwargs) if metadata_reader else {}

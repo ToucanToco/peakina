@@ -1,3 +1,5 @@
+from typing import Any, Dict, Optional
+
 import pytest
 
 from peakina.helpers import (
@@ -87,17 +89,28 @@ def test_validate_sep_error(path):
     assert not validate_sep(path("sep_parse_error.csv"))
 
 
-def test_validate_kwargs():
+@pytest.mark.parametrize(
+    "filetype,reader_kwargs,exception_str",
+    [
+        (TypeEnum.CSV, {"encoding": "utf8"}, None),
+        (TypeEnum.CSV, {"sheet_name": 0}, "Unsupported kwargs: 'sheet_name'"),
+        (TypeEnum.CSV, {"skipfooter": 2}, None),
+        (None, {"sheet_name": 0}, None),
+        (TypeEnum.EXCEL, {"keep_default_na": False, "encoding": "utf-8", "decimal": "."}, None),
+        (TypeEnum.EXCEL, {"skipfooter": 2}, None),
+        (TypeEnum.XML, {"filter": "."}, None),
+    ],
+)
+def test_validate_kwargs(
+    filetype: Optional[TypeEnum], reader_kwargs: Dict[str, Any], exception_str: Optional[str]
+) -> None:
     """It should raise an error if at least one kwarg is not in one of the methods"""
-    assert validate_kwargs({"encoding": "utf8"}, TypeEnum.CSV)
-    with pytest.raises(ValueError) as e:
-        validate_kwargs({"sheet_name": 0}, TypeEnum.CSV)
-    assert str(e.value) == "Unsupported kwargs: 'sheet_name'"
-    assert validate_kwargs({"sheet_name": 0}, None)
-    assert validate_kwargs(
-        {"keep_default_na": False, "encoding": "utf-8", "decimal": "."}, TypeEnum.EXCEL
-    )
-    assert validate_kwargs({"filter": "."}, TypeEnum.XML)
+    if exception_str is None:
+        assert validate_kwargs(reader_kwargs, filetype)
+    else:
+        with pytest.raises(ValueError) as e:
+            validate_kwargs(reader_kwargs, filetype)
+        assert str(e.value) == exception_str
 
 
 def test_mdtm_to_string():

@@ -33,7 +33,6 @@ from peakina.io import Fetcher, MatchEnum
 
 AVAILABLE_SCHEMES = set(Fetcher.registry) - {""}  # discard the empty string scheme
 PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | AVAILABLE_SCHEMES
-NOTSET = object()
 
 
 @dataclass
@@ -75,7 +74,7 @@ class DataSource:
             return {}  # no metadata for matched datasources
         with self.fetcher.open(self.uri) as f:
             assert self.type is not None
-            return get_metadata(f.name, self)
+            return get_metadata(f.name, self.type, self.reader_kwargs)
 
     @staticmethod
     def _get_single_df(
