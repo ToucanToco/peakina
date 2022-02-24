@@ -151,9 +151,9 @@ def test_multisheet_xlsx(path):
     assert ds.get_df().equals(
         pd.DataFrame(
             {
-                "Month": [1, 2],
-                "Year": [2019, 2019],
-                "__sheet__": ["January", "February"],
+                "Month": [1, 2, 3, 4],
+                "Year": [2019, 2019, 2021, 2022],
+                "__sheet__": ["January", "February", "February", "February"],
             }
         )
     )
@@ -178,8 +178,8 @@ def test_multisheet_xlsx(path):
     assert ds.get_df().equals(
         pd.DataFrame(
             {
-                "Month": [2],
-                "Year": [2019],
+                "Month": [2, 3, 4],
+                "Year": [2019, 2021, 2022],
             }
         )
     )
