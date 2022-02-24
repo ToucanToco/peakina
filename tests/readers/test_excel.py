@@ -25,8 +25,8 @@ def test_simple_xls_preview(path):
                     "moins souvent",
                     "jamais",
                 ],
-                "part": [9, 45, 35, 10, 1],
-                "clients": [896] * 5,
+                "part": [9.0, 45.0, 35.0, 10.0, 1.0],
+                "clients": [896.0] * 5,
                 "pays": ["France"] * 5,
             }
         )
@@ -44,8 +44,8 @@ def test_simple_xls_preview(path):
                 "breakdown": ["Par territoire"] * 2,
                 "catégorie": ["Agglo 1 2014"] * 2,
                 "fréquence": ["Au moins 1 fois/mois", "plusieurs fois/an"],
-                "part": [9, 45],
-                "clients": [896] * 2,
+                "part": [9.0, 45.0],
+                "clients": [896.0] * 2,
                 "pays": ["France"] * 2,
             }
         )
@@ -63,8 +63,8 @@ def test_simple_xls_preview(path):
                 "breakdown": ["Par territoire"] * 2,
                 "catégorie": ["Agglo 1 2014"] * 2,
                 "fréquence": ["1 fois/an", "moins souvent"],
-                "part": [35, 10],
-                "clients": [896] * 2,
+                "part": [35.0, 10.0],
+                "clients": [896.0] * 2,
                 "pays": ["France"] * 2,
             }
         )
