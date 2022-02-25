@@ -26,7 +26,9 @@ def _old_xls_rows_iterator(
     if preview_offset and preview_nrows is None:
         to_iter = range(preview_offset, wb.sheet_by_name(sh_name).nrows)
     elif preview_nrows is not None and preview_offset is not None:
-        to_iter = range(preview_offset, preview_offset + preview_nrows)
+        to_iter = range(preview_offset + 1, preview_offset + preview_nrows + 1)
+    elif preview_nrows is not None and preview_offset is None:
+        to_iter = range(preview_nrows + 1)
     else:
         to_iter = range(wb.sheet_by_name(sh_name).nrows)
 
@@ -82,7 +84,8 @@ def _build_row_subset(
     sheetnames: List[str],
     row_number: int,
     row_subset: List[str],
-) -> Tuple[int, List[str]]:
+    line_of_merged_sheets: int = 0,
+) -> List[str]:
 
     cells = [
         quote_if_needed(str(cell.value))
@@ -93,16 +96,14 @@ def _build_row_subset(
 
     if len(sheetnames) > 1:
         # TO add the column names at the top
-        if row_number == 0:
+        if row_number == 0 and line_of_merged_sheets == 0:
             row_subset.append(f'{",".join([*cells, "__sheet__"])}\n')
-        else:
+        elif row_number > 0:
             row_subset.append(f'{",".join([*cells, sh_name])}\n')
     else:
         row_subset.append(f'{",".join(cells)}\n')
 
-    row_number += 1
-
-    return row_number, row_subset
+    return row_subset
 
 
 def _get_row_subset_per_sheet(
@@ -115,6 +116,7 @@ def _get_row_subset_per_sheet(
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
     skipfooter: Optional[int] = None,
+    line_of_merged_sheets: int = 0,
 ) -> List[str]:
 
     row_iterator = _get_rows_iterator(wb, sh_name, preview_offset, preview_nrows)
@@ -125,29 +127,28 @@ def _get_row_subset_per_sheet(
         skipfooter if isinstance(skipfooter, int) else 0
     )
 
-    if isinstance(wb, openpyxl.workbook.Workbook):
-        for row_number, gen in row_iter_enumerated[:bottom_lines_to_skip]:
-            for row in gen:
-                if skiprows:
-                    if row_number < skiprows:
-                        continue
-                row_number, row_subset = _build_row_subset(
-                    row, sh_name, sheetnames, row_number, row_subset
-                )
-                if nrows:
-                    if row_number == nrows:
-                        break
-    else:
-        for row_number, row in row_iter_enumerated[:bottom_lines_to_skip]:
+    def __loop_and_fill_row_subsets(row_subset: List[str], loop_on: Any) -> List[str]:
+        for row_number, row in loop_on:
             if skiprows:
                 if row_number < skiprows:
                     continue
-            row_number, row_subset = _build_row_subset(
-                row, sh_name, sheetnames, row_number, row_subset
+            row_subset = _build_row_subset(
+                row, sh_name, sheetnames, row_number, row_subset, line_of_merged_sheets
             )
             if nrows:
                 if row_number == nrows:
                     break
+        return row_subset
+
+    if isinstance(wb, openpyxl.workbook.Workbook):
+        row_subset = __loop_and_fill_row_subsets(
+            row_subset, enumerate(row_iter_enumerated[:bottom_lines_to_skip][0][1])
+        )
+    else:
+        row_subset = __loop_and_fill_row_subsets(
+            row_subset, row_iter_enumerated[:bottom_lines_to_skip]
+        )
+
     return row_subset
 
 
@@ -166,7 +167,12 @@ def _read_sheets(
 
     """
 
+    # since we merge sheets in case of multiple sheets, we don't want column_names
+    # inside the list  of row_subset
+    # cleaning extras rows with __sheet__
+    line_of_merged_sheets = 0
     row_subset: List[str] = []
+
     for sh_name in sheet_names:
         row_subset = _get_row_subset_per_sheet(
             wb,
@@ -178,14 +184,12 @@ def _read_sheets(
             skiprows,
             nrows,
             skipfooter,
+            line_of_merged_sheets,
         )
+        line_of_merged_sheets += 1
 
     if isinstance(wb, openpyxl.workbook.Workbook):
         wb.close()
-
-    # cleaning extras rows with __sheet__
-    if len(sheet_names) > 1:
-        row_subset[1:] = [x for x in row_subset[1:] if "__sheet__" not in x]
 
     return row_subset
 
@@ -218,13 +222,16 @@ def read_excel(
         all_sheet_names = wb.sheetnames
 
         if preview_offset is not None and preview_nrows is not None:
-            # we get column names with the iterator
-            for sh_name in all_sheet_names:
-                column_names += [
-                    c.value
-                    for c in next(wb[sh_name].iter_rows(min_row=1, max_row=1))
-                    if c.value not in column_names
+            if sheet_name is None or sheet_name == "":
+                column_names = [
+                    c.value for c in next(wb[all_sheet_names[0]].iter_rows(min_row=1, max_row=1))
                 ]
+            else:
+                # we get column names with the iterator
+                for sh_name in all_sheet_names:
+                    column_names += [
+                        c.value for c in next(wb[sh_name].iter_rows(min_row=1, max_row=1))
+                    ]
 
     except InvalidFileException as e:
         LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
@@ -234,10 +241,19 @@ def read_excel(
         all_sheet_names = wb.sheet_names()
 
         if preview_offset is not None and preview_nrows is not None:
-            for sh_name in all_sheet_names:
-                column_names += [
-                    c.value for c in wb.sheet_by_name(sh_name).row(0) if c.value not in column_names
+            if sheet_name is None or sheet_name == "":
+                column_names = [
+                    c.value
+                    for c in wb.sheet_by_name(all_sheet_names[0]).row(0)
+                    if c.value not in column_names
                 ]
+            else:
+                for sh_name in all_sheet_names:
+                    column_names += [
+                        c.value
+                        for c in wb.sheet_by_name(sh_name).row(0)
+                        if c.value not in column_names
+                    ]
 
     sheet_names = [sheet_name] if sheet_name else all_sheet_names
     sheet_names = [all_sheet_names[0]] if sheet_name == "" else sheet_names
@@ -251,12 +267,9 @@ def read_excel(
             "header": None,
             "names": column_names,
         }
-    if nrows is None and preview_nrows is not None:
-        nrows = preview_nrows
 
     return pd.read_csv(
         StringIO("\n".join(row_subset)),
-        nrows=nrows,
         na_values=na_values,
         keep_default_na=keep_default_na,
         **kwargs,
@@ -268,61 +281,22 @@ def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
     Returns a dictionary with the meta information of the excel file.
     """
 
-    try:
-        wb = openpyxl.load_workbook(filepath, read_only=True)
-        sheet_names = wb.sheetnames
+    excel_file = pd.ExcelFile(filepath)
+    sheet_names = excel_file.sheet_names
 
-        if "sheet_name" in reader_kwargs and reader_kwargs["sheet_name"]:
-            nrows = wb[reader_kwargs["sheet_name"]].max_row
+    df = read_excel(excel_file, **reader_kwargs)
 
-            total_rows = 0 - len(sheet_names)
-            for s in sheet_names:
-                total_rows += wb[s].max_row
-        else:
-            nrows = wb[sheet_names[0]].max_row - 1
-            total_rows = nrows
-
-    except InvalidFileException:
-        wb = xlrd.open_workbook(filepath)
-        sheet_names = wb.sheet_names()
-        if "sheet_name" in reader_kwargs and reader_kwargs["sheet_name"]:
-            nrows = wb.sheet_by_name(reader_kwargs["sheet_name"]).nrows
-
-            total_rows = 0 - len(sheet_names)
-            for i, s in enumerate(sheet_names):
-                total_rows += wb.sheet_by_name(i).nrows
-        else:
-            nrows = wb.sheet_by_index(0).nrows - 1
-            total_rows = nrows
-
-    total_rows = 0 if total_rows < 0 else total_rows
-
-    if "nrows" in reader_kwargs:
-        meta_rows = {
-            "total_rows": total_rows,
-            "df_rows": reader_kwargs["nrows"],
-        }
-
-    start = 0 + reader_kwargs.get("skiprows", 0)
-    end = total_rows - reader_kwargs.get("skipfooter", 0)
-
-    preview_offset = reader_kwargs.get("preview_offset", 0)
-    preview_nrows = reader_kwargs.get("preview_nrows", None)
-
-    if preview_nrows is not None:
-        meta_rows = {
-            "total_rows": total_rows,
-            "df_rows": min(preview_nrows, max(end - start - preview_offset, 0)),
-        }
-    elif preview_offset:  # and `preview_nrows` is None
-        meta_rows = {
-            "total_rows": total_rows,
-            "df_rows": max(end - start - preview_offset, 0),
+    if (sheet_name := reader_kwargs.get("sheet_name", 0)) is None:
+        # multiple sheets together
+        return {
+            "sheetnames": sheet_names,
+            "df_rows": df.shape[0],
+            "total_rows": sum(excel_file.parse(sheet_name).shape[0] for sheet_name in sheet_names),
         }
     else:
-        meta_rows = {
-            "total_rows": total_rows,
-            "df_rows": end - start,
+        # single sheet
+        return {
+            "sheetnames": sheet_names,
+            "df_rows": df.shape[0],
+            "total_rows": excel_file.parse(sheet_name).shape[0],
         }
-
-    return {"sheetnames": sheet_names, **meta_rows}
