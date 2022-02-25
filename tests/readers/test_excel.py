@@ -146,6 +146,40 @@ def test_multiple_xls_metadata(path):
         "total_rows": 4,
     }
 
+    ds = DataSource(
+        path("fixture-multi-sheet.xlsx"),
+        reader_kwargs={"sheet_name": None, "preview_nrows": 2},
+    )
+    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
+    # the result is 3 lines here because we're previewing 2 rows from January's sheet (which is 1 as result) and
+    # 2 rows from February's sheet (which is 2 as result)
+    # 1 + 2 => 3 lines/rows
+    assert ds.get_df().shape == (3, 3)
+    assert ds.get_metadata() == {
+        "sheetnames": ["January", "February"],
+        "df_rows": 3,
+        "total_rows": 4,
+    }
+
+    ds = DataSource(
+        path("fixture-multi-sheet.xlsx"),
+        reader_kwargs={"sheet_name": None, "preview_offset": 2},
+    )
+    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
+    # the result is 0 lines/rows here because we're previewing an offset of 2 on available
+    # rows from January's sheet (1 row) (as result we have 0 from this sheet) and an offset of 2
+    #  on February's sheet rows (3rows) (as result we have 1 from this sheet)
+    # 0 + 1 => 1 lines/rows (the line from February sheet)
+    assert ds.get_df().shape == (1, 3)
+    assert ds.get_df().equals(
+        pd.DataFrame({"Month": [4], "Year": [2022], "__sheet__": ["February"]})
+    )
+    assert ds.get_metadata() == {
+        "sheetnames": ["January", "February"],
+        "df_rows": 1,
+        "total_rows": 4,
+    }
+
 
 def test_multisheet_xlsx(path):
     """It should be able to read multiple sheets and add them together"""
