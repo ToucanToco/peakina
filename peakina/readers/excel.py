@@ -16,8 +16,8 @@ LOGGER = logging.getLogger(__name__)
 def _old_xls_rows_iterator(
     wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
     sh_name: str,
-    preview_offset: Optional[int],
     preview_nrows: Optional[int],
+    preview_offset: Optional[int],
 ) -> Generator[Any, Any, Any]:
     """
     Depending on paginations inputs (preview_rows, preview_offset), we want to
@@ -42,8 +42,8 @@ def _old_xls_rows_iterator(
 def _new_xls_rows_iterator(
     wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
     sh_name: str,
-    preview_offset: Optional[int],
     preview_nrows: Optional[int],
+    preview_offset: Optional[int],
 ) -> Generator[Any, Any, Any]:
     """
     Depending on paginations inputs (preview_rows, preview_offset), we want to
@@ -53,10 +53,10 @@ def _new_xls_rows_iterator(
     """
 
     # +1 are here because this is 1-based indexing
-    if preview_nrows is not None:
-        if preview_offset is None:
-            preview_offset = 0
+    if preview_nrows is not None and preview_offset is not None:
         max_row = preview_offset + 1 + preview_nrows
+    elif preview_nrows is not None and preview_offset is None:
+        max_row = preview_nrows + 1
     else:
         max_row = None
 
@@ -76,8 +76,8 @@ def _new_xls_rows_iterator(
 def _get_rows_iterator(
     wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
     sheet_name: str,
-    preview_offset: Optional[int],
     preview_nrows: Optional[int],
+    preview_offset: Optional[int],
 ) -> Generator[Any, Any, Any]:
     """
     Depending on the excel type either it's the new format or the old one,
@@ -85,9 +85,9 @@ def _get_rows_iterator(
     """
 
     if isinstance(wb, xlrd.book.Book):
-        return _old_xls_rows_iterator(wb, sheet_name, preview_offset, preview_nrows)
+        return _old_xls_rows_iterator(wb, sheet_name, preview_nrows, preview_offset)
 
-    return _new_xls_rows_iterator(wb, sheet_name, preview_offset, preview_nrows)
+    return _new_xls_rows_iterator(wb, sheet_name, preview_nrows, preview_offset)
 
 
 def _build_row_subset(
@@ -103,18 +103,8 @@ def _build_row_subset(
 
     """
 
-    def _quote_if_needed(value: str) -> str:
-        """
-        Quote the value if needed
-        """
-        if value.find(",") != -1:
-            return f'"{value}"'
-        return value
-
     cells = [
-        _quote_if_needed(str(cell.value))
-        if type(cell) not in [str, int, float] and cell is not None
-        else _quote_if_needed(str(cell))
+        str(cell.value) if type(cell) not in [str, int, float] and cell is not None else str(cell)
         for cell in row
     ]
 
@@ -130,8 +120,8 @@ def _get_row_subset_per_sheet(
     wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
     sh_name: str,
     sheetnames: List[str],
-    preview_offset: Optional[int],
     preview_nrows: Optional[int],
+    preview_offset: Optional[int],
     row_subset: List[str],
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
@@ -142,7 +132,7 @@ def _get_row_subset_per_sheet(
     construct a list of row inside row_subset
     """
     # we get the row iterator from here
-    row_iterator = _get_rows_iterator(wb, sh_name, preview_offset, preview_nrows)
+    row_iterator = _get_rows_iterator(wb, sh_name, preview_nrows, preview_offset)
 
     def __loop_and_fill_row_subsets(row_subset: List[str], loop_on: Any) -> List[str]:
         headers_skipped = False
@@ -151,13 +141,10 @@ def _get_row_subset_per_sheet(
             if not headers_skipped:
                 headers_skipped = True
                 continue
-
             if skiprows:
-                if row_number < skiprows:
+                if row_number <= skiprows:
                     continue
-
             row_subset = _build_row_subset(row, sh_name, sheetnames, row_number, row_subset)
-
             if nrows:
                 if row_number == nrows:
                     break
@@ -178,8 +165,8 @@ def _get_row_subset_per_sheet(
 def _read_sheets(
     wb: Union[openpyxl.workbook.Workbook, xlrd.book.Book],
     sheet_names: List[Any],
-    preview_offset: Optional[int],
     preview_nrows: Optional[int],
+    preview_offset: Optional[int],
     nrows: Optional[int] = None,
     skiprows: Optional[int] = None,
     skipfooter: int = 0,
@@ -197,8 +184,8 @@ def _read_sheets(
             wb,
             sh_name,
             sheet_names,
-            preview_offset,
             preview_nrows,
+            preview_offset,
             row_subset,
             skiprows,
             nrows,
@@ -214,8 +201,8 @@ def _read_sheets(
 def read_excel(
     filepath: str,
     *,
-    preview_offset: Optional[int] = None,
     preview_nrows: Optional[int] = None,
+    preview_offset: Optional[int] = None,
     sheet_name: str = "",
     na_values: Any = None,
     keep_default_na: bool = False,
@@ -262,7 +249,7 @@ def read_excel(
     sheet_names = [all_sheet_names[0]] if sheet_name == "" else sheet_names
 
     row_subset = _read_sheets(
-        wb, sheet_names, preview_offset, preview_nrows, nrows, skiprows, skipfooter
+        wb, sheet_names, preview_nrows, preview_offset, nrows, skiprows, skipfooter
     )
 
     columns_kwargs = {}
@@ -277,6 +264,7 @@ def read_excel(
 
     return pd.read_csv(
         StringIO("\n".join(row_subset)),
+        nrows=nrows,
         na_values=na_values,
         keep_default_na=keep_default_na,
         **columns_kwargs,
