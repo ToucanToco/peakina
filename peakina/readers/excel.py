@@ -43,15 +43,20 @@ def _new_xls_rows_iterator(
     preview_nrows: Optional[int],
 ) -> Generator[Any, Any, Any]:
 
-    if preview_offset == 0:
-        preview_offset = 1  # skip the header
+    if preview_offset is not None and preview_nrows is not None:
+        max_row = preview_offset + 1 + preview_nrows
+    else:
+        max_row = None
+
+    if preview_offset:
+        min_row = preview_offset + 1
+    else:
+        min_row = None
 
     # +1 are here because this is 1-based indexing
     yield wb[sh_name].iter_rows(
-        min_row=preview_offset + 1 if preview_offset else None,
-        max_row=preview_offset + 1 + preview_nrows
-        if preview_offset is not None and preview_nrows is not None
-        else None,
+        min_row=max_row,
+        max_row=min_row,
         values_only=True,
     )
 
