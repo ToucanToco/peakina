@@ -19,14 +19,17 @@ def _old_xls_rows_iterator(
     preview_offset: Optional[int],
     preview_nrows: Optional[int],
 ) -> Generator[Any, Any, Any]:
+    """
+    Depending on paginations inputs (preview_rows, preview_offset), we want to
+    get an iterator object to loop on target rows, here we're returning an iterator
+    using yield for each iteration in the workbook
 
-    if preview_offset and preview_offset == 0:
-        preview_offset = 1  # skip the header
+    """
 
-    if preview_offset and preview_nrows is None:
+    if preview_nrows is None and preview_offset is not None:
         to_iter = range(preview_offset, wb.sheet_by_name(sh_name).nrows)
     elif preview_nrows is not None and preview_offset is not None:
-        to_iter = range(preview_offset + 1, preview_offset + preview_nrows + 1)
+        to_iter = range(preview_offset, preview_offset + preview_nrows + 1)
     elif preview_nrows is not None and preview_offset is None:
         to_iter = range(preview_nrows + 1)
     else:
@@ -42,9 +45,17 @@ def _new_xls_rows_iterator(
     preview_offset: Optional[int],
     preview_nrows: Optional[int],
 ) -> Generator[Any, Any, Any]:
+    """
+    Depending on paginations inputs (preview_rows, preview_offset), we want to
+    get an iterator object to loop on target rows, here we're returning an iterator
+    from the iter_rows built-in function from openpyxl
+
+    """
 
     # +1 are here because this is 1-based indexing
-    if preview_offset is not None and preview_nrows is not None:
+    if preview_nrows is not None:
+        if preview_offset is None:
+            preview_offset = 0
         max_row = preview_offset + 1 + preview_nrows
     else:
         max_row = None
@@ -56,8 +67,8 @@ def _new_xls_rows_iterator(
 
     # Then we return the generator
     yield wb[sh_name].iter_rows(
-        min_row=max_row,
-        max_row=min_row,
+        min_row=min_row,
+        max_row=max_row,
         values_only=True,
     )
 
@@ -68,20 +79,15 @@ def _get_rows_iterator(
     preview_offset: Optional[int],
     preview_nrows: Optional[int],
 ) -> Generator[Any, Any, Any]:
+    """
+    Depending on the excel type either it's the new format or the old one,
+    this method will return an iterator to read on its rows
+    """
 
     if isinstance(wb, xlrd.book.Book):
         return _old_xls_rows_iterator(wb, sheet_name, preview_offset, preview_nrows)
 
     return _new_xls_rows_iterator(wb, sheet_name, preview_offset, preview_nrows)
-
-
-def quote_if_needed(value: str) -> str:
-    """
-    Quote the value if needed
-    """
-    if value.find(",") != -1:
-        return f'"{value}"'
-    return value
 
 
 def _build_row_subset(
@@ -90,22 +96,30 @@ def _build_row_subset(
     sheetnames: List[str],
     row_number: int,
     row_subset: List[str],
-    line_of_merged_sheets: int = 0,
 ) -> List[str]:
+    """
+    THis method will build each row and add an extra row for the sheet_name
+    If we're in an excel with multiple sheets
+
+    """
+
+    def _quote_if_needed(value: str) -> str:
+        """
+        Quote the value if needed
+        """
+        if value.find(",") != -1:
+            return f'"{value}"'
+        return value
 
     cells = [
-        quote_if_needed(str(cell.value))
+        _quote_if_needed(str(cell.value))
         if type(cell) not in [str, int, float] and cell is not None
-        else quote_if_needed(str(cell))
+        else _quote_if_needed(str(cell))
         for cell in row
     ]
 
     if len(sheetnames) > 1:
-        # TO add the column names at the top
-        if row_number == 0 and line_of_merged_sheets == 0:
-            row_subset.append(f'{",".join([*cells, "__sheet__"])}\n')
-        elif row_number > 0:
-            row_subset.append(f'{",".join([*cells, sh_name])}\n')
+        row_subset.append(f'{",".join([*cells, sh_name])}\n')
     else:
         row_subset.append(f'{",".join(cells)}\n')
 
@@ -122,22 +136,32 @@ def _get_row_subset_per_sheet(
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
     skipfooter: int = 0,
-    line_of_merged_sheets: int = 0,
 ) -> List[str]:
-
+    """
+    This method will get an iterator for from the workboot and
+    construct a list of row inside row_subset
+    """
+    # we get the row iterator from here
     row_iterator = _get_rows_iterator(wb, sh_name, preview_offset, preview_nrows)
 
     def __loop_and_fill_row_subsets(row_subset: List[str], loop_on: Any) -> List[str]:
+        headers_skipped = False
         for row_number, row in loop_on:
+            # We want to skip the headers if we're in another sheet
+            if not headers_skipped:
+                headers_skipped = True
+                continue
+
             if skiprows:
                 if row_number < skiprows:
                     continue
-            row_subset = _build_row_subset(
-                row, sh_name, sheetnames, row_number, row_subset, line_of_merged_sheets
-            )
+
+            row_subset = _build_row_subset(row, sh_name, sheetnames, row_number, row_subset)
+
             if nrows:
                 if row_number == nrows:
                     break
+
         return row_subset
 
     if isinstance(wb, openpyxl.workbook.Workbook):
@@ -166,10 +190,6 @@ def _read_sheets(
 
     """
 
-    # since we merge sheets in case of multiple sheets, we don't want column_names
-    # inside the list  of row_subset
-    # cleaning extras rows with __sheet__
-    line_of_merged_sheets = 0
     row_subset: List[str] = []
 
     for sh_name in sheet_names:
@@ -183,9 +203,7 @@ def _read_sheets(
             skiprows,
             nrows,
             skipfooter,
-            line_of_merged_sheets,
         )
-        line_of_merged_sheets += 1
 
     if isinstance(wb, openpyxl.workbook.Workbook):
         wb.close()
@@ -220,17 +238,13 @@ def read_excel(
         wb = openpyxl.load_workbook(filepath, read_only=True)
         all_sheet_names = wb.sheetnames
 
-        if preview_offset is not None and preview_nrows is not None:
-            if sheet_name is None or sheet_name == "":
-                column_names = [
-                    c.value for c in next(wb[all_sheet_names[0]].iter_rows(min_row=1, max_row=1))
-                ]
-            else:
-                # we get column names with the iterator
-                for sh_name in all_sheet_names:
-                    column_names += [
-                        c.value for c in next(wb[sh_name].iter_rows(min_row=1, max_row=1))
-                    ]
+        # we get column names with the iterator
+        for sh_name in all_sheet_names:
+            column_names += [
+                c.value
+                for c in next(wb[sh_name].iter_rows(min_row=1, max_row=1))
+                if c.value not in column_names
+            ]
 
     except InvalidFileException as e:
         LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
@@ -239,20 +253,10 @@ def read_excel(
         )  # I used another variable to avoid bugs in pycharm autocomplete.
         all_sheet_names = wb.sheet_names()
 
-        if preview_offset is not None and preview_nrows is not None:
-            if sheet_name is None or sheet_name == "":
-                column_names = [
-                    c.value
-                    for c in wb.sheet_by_name(all_sheet_names[0]).row(0)
-                    if c.value not in column_names
-                ]
-            else:
-                for sh_name in all_sheet_names:
-                    column_names += [
-                        c.value
-                        for c in wb.sheet_by_name(sh_name).row(0)
-                        if c.value not in column_names
-                    ]
+        for sh_name in all_sheet_names:
+            column_names += [
+                c.value for c in wb.sheet_by_name(sh_name).row(0) if c.value not in column_names
+            ]
 
     sheet_names = [sheet_name] if sheet_name else all_sheet_names
     sheet_names = [all_sheet_names[0]] if sheet_name == "" else sheet_names
@@ -260,18 +264,22 @@ def read_excel(
     row_subset = _read_sheets(
         wb, sheet_names, preview_offset, preview_nrows, nrows, skiprows, skipfooter
     )
-    kwargs = {}
-    if preview_offset is not None and preview_nrows is not None:
-        kwargs = {
-            "header": None,
-            "names": column_names,
-        }
+
+    columns_kwargs = {}
+    if sheet_name is None:
+        if "__sheet__" not in column_names:  # type: ignore
+            column_names.append("__sheet__")
+
+    columns_kwargs = {
+        "header": None,
+        "names": column_names,
+    }
 
     return pd.read_csv(
         StringIO("\n".join(row_subset)),
         na_values=na_values,
         keep_default_na=keep_default_na,
-        **kwargs,
+        **columns_kwargs,
     )
 
 

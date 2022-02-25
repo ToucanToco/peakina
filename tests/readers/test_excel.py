@@ -126,7 +126,7 @@ def test_multiple_xls_metadata(path):
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None, "preview_nrows": 1, "preview_offset": 1},
     )
-    # because our new excel file has 3 entries in February sheet and 1 entry on January sheet
+    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
     assert ds.get_df().shape == (1, 3)
     assert ds.get_metadata() == {
         "sheetnames": ["January", "February"],
@@ -138,7 +138,7 @@ def test_multiple_xls_metadata(path):
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None, "preview_nrows": 2, "preview_offset": 2},
     )
-    # because our new excel file has 3 entries in February sheet and 1 entry on January sheet
+    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
     assert ds.get_df().shape == (1, 3)
     assert ds.get_metadata() == {
         "sheetnames": ["January", "February"],
@@ -153,6 +153,7 @@ def test_multisheet_xlsx(path):
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None},
     )
+    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
     assert ds.get_df().equals(
         pd.DataFrame(
             {
@@ -180,6 +181,7 @@ def test_multisheet_xlsx(path):
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": "February"},
     )
+    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
     assert ds.get_df().equals(
         pd.DataFrame(
             {
