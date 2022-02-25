@@ -276,22 +276,40 @@ def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
     Returns a dictionary with the meta information of the excel file.
     """
 
-    excel_file = pd.ExcelFile(filepath)
-    sheet_names = excel_file.sheet_names
+    sheet_names = []
+    total_rows = 0
+    try:
+        wb = openpyxl.load_workbook(filepath, read_only=True)
+        for sheet in wb.worksheets:
+            total_rows += sheet.max_row
+        sheet_names = wb.sheetnames
+    except InvalidFileException as e:
+        LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
+        wb = xlrd.open_workbook(
+            filepath
+        )  # I used another variable to avoid bugs in pycharm autocomplete.
+        sheet_names = wb.sheet_names()
+        for sheet in sheet_names:
+            total_rows += wb.sheet_by_name(sheet).nrows
 
-    df = read_excel(excel_file, **reader_kwargs)
+    # to not count headers of sheets as rows:
+    total_rows -= len(sheet_names)
 
-    if (sheet_name := reader_kwargs.get("sheet_name", 0)) is None:
+    df = read_excel(filepath, **reader_kwargs)
+
+    if (
+        "sheet_name" in reader_kwargs and not reader_kwargs["sheet_name"]
+    ) or "sheet_name" not in reader_kwargs:
         # multiple sheets together
         return {
             "sheetnames": sheet_names,
             "df_rows": df.shape[0],
-            "total_rows": sum(excel_file.parse(sheet_name).shape[0] for sheet_name in sheet_names),
+            "total_rows": total_rows,
         }
     else:
         # single sheet
         return {
             "sheetnames": sheet_names,
             "df_rows": df.shape[0],
-            "total_rows": excel_file.parse(sheet_name).shape[0],
+            "total_rows": total_rows,
         }
