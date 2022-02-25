@@ -120,17 +120,11 @@ def _get_row_subset_per_sheet(
     row_subset: List[str],
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
-    skipfooter: Optional[int] = None,
+    skipfooter: int = 0,
     line_of_merged_sheets: int = 0,
 ) -> List[str]:
 
     row_iterator = _get_rows_iterator(wb, sh_name, preview_offset, preview_nrows)
-
-    row_iter_enumerated = list(enumerate(row_iterator))
-
-    bottom_lines_to_skip = len(row_iter_enumerated) - (
-        skipfooter if isinstance(skipfooter, int) else 0
-    )
 
     def __loop_and_fill_row_subsets(row_subset: List[str], loop_on: Any) -> List[str]:
         for row_number, row in loop_on:
@@ -146,15 +140,15 @@ def _get_row_subset_per_sheet(
         return row_subset
 
     if isinstance(wb, openpyxl.workbook.Workbook):
-        row_subset = __loop_and_fill_row_subsets(
-            row_subset, enumerate(row_iter_enumerated[:bottom_lines_to_skip][0][1])
-        )
+        for generator in row_iterator:
+            row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(generator))
     else:
-        row_subset = __loop_and_fill_row_subsets(
-            row_subset, row_iter_enumerated[:bottom_lines_to_skip]
-        )
+        row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(row_iterator))
 
-    return row_subset
+    # to handle the skipfooter
+    lines_to_keep = len(row_subset) - skipfooter
+
+    return row_subset[:lines_to_keep]
 
 
 def _read_sheets(
@@ -164,7 +158,7 @@ def _read_sheets(
     preview_nrows: Optional[int],
     nrows: Optional[int] = None,
     skiprows: Optional[int] = None,
-    skipfooter: Optional[int] = None,
+    skipfooter: int = 0,
 ) -> List[Any]:
     """
     This method will loop over sheets, read content and return a list of rows
@@ -209,7 +203,7 @@ def read_excel(
     keep_default_na: bool = False,
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
-    skipfooter: Optional[int] = None,
+    skipfooter: int = 0,
 ) -> pd.DataFrame:
     """
     Uses openpyxl (with xlrd as fallback) to convert the excel sheet into a csv string.
