@@ -152,7 +152,7 @@ def test_basic_excel(path):
     assert ds.get_metadata() == {
         "df_rows": 1,
         "sheetnames": ["January", "February"],
-        "total_rows": 1,
+        "total_rows": 4,  # we have for rows as total here because january sheet has 1 row and February sheet has 3 (1 + 3)
     }
 
     # On match datasources, no metadata is returned:
