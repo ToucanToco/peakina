@@ -118,6 +118,9 @@ def test_xls_metadata(path):
         "total_rows": 170,
     }
 
+
+def test_multiple_xls_metadata(path):
+    """It should be able to get metadata of an excel file with multiple sheets"""
     # with multiple sheets
     ds = DataSource(
         path("fixture-multi-sheet.xlsx"),
