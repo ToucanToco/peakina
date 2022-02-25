@@ -43,6 +43,7 @@ def _new_xls_rows_iterator(
     preview_nrows: Optional[int],
 ) -> Generator[Any, Any, Any]:
 
+    # +1 are here because this is 1-based indexing
     if preview_offset is not None and preview_nrows is not None:
         max_row = preview_offset + 1 + preview_nrows
     else:
@@ -53,7 +54,7 @@ def _new_xls_rows_iterator(
     else:
         min_row = None
 
-    # +1 are here because this is 1-based indexing
+    # Then we return the generator
     yield wb[sh_name].iter_rows(
         min_row=max_row,
         max_row=min_row,
@@ -140,8 +141,7 @@ def _get_row_subset_per_sheet(
         return row_subset
 
     if isinstance(wb, openpyxl.workbook.Workbook):
-        for generator in row_iterator:
-            row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(generator))
+        row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(list(row_iterator)[0]))
     else:
         row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(row_iterator))
 
