@@ -301,19 +301,8 @@ def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
 
     df = read_excel(filepath, **reader_kwargs)
 
-    if (
-        "sheet_name" in reader_kwargs and not reader_kwargs["sheet_name"]
-    ) or "sheet_name" not in reader_kwargs:
-        # multiple sheets together
-        return {
-            "sheetnames": sheet_names,
-            "df_rows": df.shape[0],
-            "total_rows": total_rows,
-        }
-    else:
-        # single sheet
-        return {
-            "sheetnames": sheet_names,
-            "df_rows": df.shape[0],
-            "total_rows": total_rows,
-        }
+    return {
+        "sheetnames": sheet_names,
+        "df_rows": df.shape[0],
+        "total_rows": total_rows,
+    }
