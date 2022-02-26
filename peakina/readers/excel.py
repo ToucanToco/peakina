@@ -1,6 +1,7 @@
 """
 Module to add excel files support
 """
+import datetime
 import logging
 from io import StringIO
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union
@@ -104,7 +105,9 @@ def _build_row_subset(
     """
 
     cells = [
-        str(cell.value) if type(cell) not in [str, int, float] and cell is not None else str(cell)
+        str(cell.value)
+        if type(cell) not in [str, int, float, datetime.datetime] and cell is not None
+        else str(cell)
         for cell in row
     ]
 
@@ -221,6 +224,7 @@ def read_excel(
     """
 
     column_names = []
+
     try:
         wb = openpyxl.load_workbook(filepath, read_only=True)
         all_sheet_names = wb.sheetnames
