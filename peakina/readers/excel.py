@@ -105,9 +105,9 @@ def _build_row_subset(
     """
 
     cells = [
-        str(cell.value)
+        str(cell.value).replace(",", " ")
         if type(cell) not in [str, int, float, datetime.datetime] and cell is not None
-        else str(cell)
+        else str(cell).replace(",", " ")
         for cell in row
     ]
 
@@ -231,11 +231,10 @@ def read_excel(
 
         # we get column names with the iterator
         for sh_name in all_sheet_names:
-            column_names += [
-                c.value
-                for c in next(wb[sh_name].iter_rows(min_row=1, max_row=1))
-                if c.value not in column_names
-            ]
+            for column_list in [list(c) for c in wb[sh_name].iter_rows(min_row=1, max_row=1)]:
+                for co in column_list:
+                    if co.value not in column_names:
+                        column_names.append(co.value)
 
     except InvalidFileException as e:
         LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
@@ -250,7 +249,8 @@ def read_excel(
             ]
 
     sheet_names = [sheet_name] if sheet_name else all_sheet_names
-    sheet_names = [all_sheet_names[0]] if sheet_name == "" else sheet_names
+    if len(all_sheet_names) > 1:
+        sheet_names = [all_sheet_names[0]] if sheet_name == "" else sheet_names
 
     row_subset = _read_sheets(
         wb, sheet_names, preview_nrows, preview_offset, nrows, skiprows, skipfooter
