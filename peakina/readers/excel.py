@@ -104,6 +104,8 @@ def _build_row_subset(
 
     """
 
+    # we're removing "," from cells because we're going to be using comma as seperator for our csv payload
+    # and if we keep some cells with comma, it could generate fake mismatch errors on columns...
     cells = [
         str(cell.value).replace(",", " ")
         if type(cell) not in [str, int, float, datetime.datetime] and cell is not None
@@ -255,7 +257,6 @@ def read_excel(
         wb, sheet_names, preview_nrows, preview_offset, nrows, skiprows, skipfooter
     )
 
-    columns_kwargs = {}
     if sheet_name is None:
         if "__sheet__" not in column_names:  # type: ignore
             column_names.append("__sheet__")
@@ -279,7 +280,6 @@ def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
     Returns a dictionary with the meta information of the excel file.
     """
 
-    sheet_names = []
     total_rows = 0
     try:
         wb = openpyxl.load_workbook(filepath, read_only=True)
