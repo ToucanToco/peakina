@@ -99,7 +99,7 @@ def _build_row_subset(
     row_subset: List[str],
 ) -> List[str]:
     """
-    THis method will build each row and add an extra row for the sheet_name
+    This method will build each row and add an extra row for the sheet_name
     If we're in an excel with multiple sheets
 
     """
@@ -131,7 +131,7 @@ def _get_row_subset_per_sheet(
     skipfooter: int = 0,
 ) -> List[str]:
     """
-    This method will get an iterator for from the workboot and
+    This method will get an iterator from the workbook and
     construct a list of row inside row_subset
     """
     # we get the row iterator from here
@@ -238,9 +238,7 @@ def read_excel(
 
     except InvalidFileException as e:
         LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
-        wb = xlrd.open_workbook(
-            filepath
-        )  # I used another variable to avoid bugs in pycharm autocomplete.
+        wb = xlrd.open_workbook(filepath)
         all_sheet_names = wb.sheet_names()
 
         for sh_name in all_sheet_names:
@@ -289,9 +287,7 @@ def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
         sheet_names = wb.sheetnames
     except InvalidFileException as e:
         LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
-        wb = xlrd.open_workbook(
-            filepath
-        )  # I used another variable to avoid bugs in pycharm autocomplete.
+        wb = xlrd.open_workbook(filepath)
         sheet_names = wb.sheet_names()
         for sheet in sheet_names:
             total_rows += wb.sheet_by_name(sheet).nrows
