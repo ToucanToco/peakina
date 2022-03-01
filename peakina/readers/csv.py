@@ -23,7 +23,6 @@ def read_csv(
     preview_offset: int = 0,
     preview_nrows: Optional[int] = None,
     # change of default values
-    keep_default_na: bool = False,  # pandas default: `True`
     error_bad_lines: bool = False,  # pandas default: `True`
     **kwargs: Any,
 ) -> pd.DataFrame:
@@ -33,7 +32,6 @@ def read_csv(
     if preview_nrows is not None or preview_offset:
         chunks = pd.read_csv(
             filepath_or_buffer,
-            keep_default_na=keep_default_na,
             error_bad_lines=error_bad_lines,
             **kwargs,
             # keep the first row 0 (as the header) and then skip everything else up to row `preview_offset`
@@ -45,7 +43,6 @@ def read_csv(
 
     return pd.read_csv(
         filepath_or_buffer,
-        keep_default_na=keep_default_na,
         error_bad_lines=error_bad_lines,
         **kwargs,
     )
