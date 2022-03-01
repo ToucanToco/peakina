@@ -22,8 +22,10 @@ def read_csv(
     # extra `peakina` reader kwargs
     preview_offset: int = 0,
     preview_nrows: Optional[int] = None,
+    # We're keeping keep_default_na as True to follow
+    # the same behaviour for typing on default pandas
+    keep_default_na: bool = True,  # pandas default: `True`
     # change of default values
-    keep_default_na: bool = False,  # pandas default: `True`
     error_bad_lines: bool = False,  # pandas default: `True`
     **kwargs: Any,
 ) -> pd.DataFrame:
@@ -31,15 +33,23 @@ def read_csv(
     The read_csv method is able to make a preview by reading on chunks
     """
     if preview_nrows is not None or preview_offset:
+        """
+        We're passing 'na_filter' as False on the preview only because it optimise the reading on
+        large csv file, cf pandas doc :
+        https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html#:~:text=na_filter%3DFalse%20can%20improve%20the%20performance%20of%20reading%20a%20large%20file
+        In context of preview extraction, we also removed keep_default_na,
+        because if na_filter is False it's no necessarily to add it anymore,
+        cf: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html#:~:text=Note%20that%20if%20na_filter%20is%20passed%20in%20as%20False%2C%20the%20keep_default_na%20and%20na_values%20parameters%20will%20be%20ignored.
+        """
         chunks = pd.read_csv(
             filepath_or_buffer,
-            keep_default_na=keep_default_na,
             error_bad_lines=error_bad_lines,
             **kwargs,
             # keep the first row 0 (as the header) and then skip everything else up to row `preview_offset`
             skiprows=range(1, preview_offset + 1),
             nrows=preview_nrows,
             chunksize=PREVIEW_CHUNK_SIZE,
+            na_filter=False,
         )
         return next(chunks)
 
