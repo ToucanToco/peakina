@@ -155,7 +155,8 @@ def _get_row_subset_per_sheet(
         return row_subset
 
     if isinstance(wb, openpyxl.workbook.Workbook):
-        row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(list(row_iterator)[0]))
+        for row_iter in row_iterator:
+            row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(row_iter))
     else:
         row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(row_iterator))
 
