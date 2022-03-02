@@ -104,12 +104,26 @@ def _build_row_subset(
 
     """
 
-    # we're removing "," from cells because we're going to be using comma as seperator for our csv payload
-    # and if we keep some cells with comma, it could generate fake mismatch errors on columns...
+    def _infer_type(cell_value: Any) -> Any:
+        if type(cell_value) in [int, float, str]:
+            # we're removing "," from cells because we're going to be using comma as seperator for our csv payload
+            # and if we keep some cells with comma, it could generate fake mismatch errors on columns...
+            value = str(cell_value).replace(",", " ")
+        elif type(cell_value) == bool:
+            # we're assuming "True" and "False" will be considered as booleans
+            value = f'"{cell_value}"'
+        elif type(cell_value) in [datetime.datetime]:
+            # in teh context of only preview, i think it's okay to
+            # just have a representation of the date
+            value = cell_value.strftime("%m/%d/%Y %H:%M:%S")
+        else:
+            value = str(cell_value)
+        return value
+
     cells = [
-        str(cell.value).replace(",", " ")
-        if type(cell) not in [str, int, float, datetime.datetime] and cell is not None
-        else str(cell).replace(",", " ")
+        _infer_type(cell.value)
+        if type(cell) not in [str, int, float, bool, datetime.datetime] and cell is not None
+        else _infer_type(cell)
         for cell in row
     ]
 
@@ -271,6 +285,8 @@ def read_excel(
         nrows=nrows,
         na_values=na_values,
         keep_default_na=keep_default_na,
+        true_values=["True"],
+        false_values=["False"],
         **columns_kwargs,
     )
 
