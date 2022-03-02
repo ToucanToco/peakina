@@ -37,7 +37,10 @@ def _old_xls_rows_iterator(
         to_iter = range(wb.sheet_by_name(sh_name).nrows)
 
     for rx in to_iter:
-        yield wb.sheet_by_name(sh_name).row(rx)
+        try:
+            yield wb.sheet_by_name(sh_name).row(rx)
+        except IndexError:
+            break
 
 
 def _new_xls_rows_iterator(
