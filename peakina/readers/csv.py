@@ -11,9 +11,6 @@ if TYPE_CHECKING:
 
     FilePathOrBuffer = Union[str, bytes, PathLike[str], PathLike[bytes]]
 
-# The chunksize value for previews
-PREVIEW_CHUNK_SIZE = 1024
-
 
 @wraps(pd.read_csv)
 def read_csv(
@@ -37,9 +34,9 @@ def read_csv(
             # keep the first row 0 (as the header) and then skip everything else up to row `preview_offset`
             skiprows=range(1, preview_offset + 1),
             nrows=preview_nrows,
-            chunksize=PREVIEW_CHUNK_SIZE,
         )
-        return next(chunks)
+        # to prevent for the chunksize not present in params
+        return next(chunks) if not isinstance(chunks, pd.DataFrame) else chunks
 
     return pd.read_csv(
         filepath_or_buffer,
