@@ -237,6 +237,7 @@ def test_with_specials_types_xlsx(path):
                 None: [0, 1, 2],
                 "bools": [True, False, True],
                 "dates": ["03/02/2022 05:43:04", "03/02/2022 05:43:04", "03/02/2022 05:43:04"],
+                "floats": [12.35, 42.69, 1234567.0],
             }
         )
     )
