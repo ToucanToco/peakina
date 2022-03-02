@@ -224,3 +224,19 @@ def test_multisheet_xlsx(path):
             }
         )
     )
+
+
+def test_with_specials_types_xlsx(path):
+    """It should be able to read sheet and format types"""
+    ds = DataSource(
+        path("fixture-single-sheet-with-types.xlsx"),
+    )
+    assert ds.get_df().equals(
+        pd.DataFrame(
+            {
+                None: [0, 1, 2],
+                "bools": [True, False, True],
+                "dates": ["03/02/2022 05:43:04", "03/02/2022 05:43:04", "03/02/2022 05:43:04"],
+            }
+        )
+    )
