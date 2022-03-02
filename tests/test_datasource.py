@@ -248,6 +248,14 @@ def test_basic_json(path):
     df = pd.DataFrame({"@id": [1, 2], "title": ["Keep on dancin'", "Small Talk"]})
     assert ds.get_df().equals(df)
 
+    jq_filter = '.records .record[] | .["@id"]|=tonumber'
+    ds = DataSource(
+        path("fixture.json"),
+        reader_kwargs={"filter": jq_filter, "lines": True, "preview_nrows": 1},
+    )
+    df = pd.DataFrame({"@id": [1], "title": ["Keep on dancin'"]})
+    assert ds.get_df().equals(df)
+
 
 def test_basic_parquet(path):
     """It should open a basic parquet file"""
