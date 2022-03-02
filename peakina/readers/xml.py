@@ -32,9 +32,13 @@ def transform_with_jq(data: Any, jq_filter: str) -> Union[PdDataList, PdDataDict
 def read_xml(
     filepath: str,
     encoding: str = "utf-8",
+    preview_offset: int = 0,
+    preview_nrows: Optional[int] = None,
     filter: Optional[str] = None,
 ) -> pd.DataFrame:
     data = xmltodict.parse(open(filepath).read(), encoding=encoding)
     if filter is not None:
         data = transform_with_jq(data, filter)
+    if isinstance(data, list) and isinstance(preview_nrows, int):
+        data = data[preview_offset : preview_nrows + preview_offset]
     return pd.DataFrame(data)
