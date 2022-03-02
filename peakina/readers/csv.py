@@ -28,8 +28,13 @@ def read_csv(
     """
     if preview_nrows is not None or preview_offset:
 
+        # In case we don't have the native nrows given in kwargs, we're going
+        # to use the provided preview_nrows
         if (nrows := kwargs.get("nrows")) is None:
             nrows = preview_nrows
+
+        # In case we don't have the native skiprows given in kwargs,
+        # we're going to use the provided preview_offset as range(1, preview_offset + 1)
         if (skiprows := kwargs.get("skiprows")) is None:
             skiprows = range(1, preview_offset + 1)
 
@@ -41,6 +46,9 @@ def read_csv(
             skiprows=skiprows,
             nrows=nrows,
         )
+        # if the chunksize is not in kwargs, we want to return the iterator
+        if kwargs.get("chunksize") is None:
+            return next(chunks) if not isinstance(chunks, pd.DataFrame) else chunks
         return chunks
 
     return pd.read_csv(
