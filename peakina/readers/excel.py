@@ -1,6 +1,7 @@
 """
 Module to add excel files support
 """
+import logging
 from io import StringIO
 from typing import Any, Generator, List, Optional, Tuple, Union
 
@@ -8,8 +9,6 @@ import openpyxl
 import pandas as pd
 import xlrd
 from openpyxl.utils.exceptions import InvalidFileException
-import logging
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -206,9 +205,7 @@ def read_excel(
 
     except InvalidFileException as e:
         LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
-        wb = xlrd.open_workbook(
-            filepath
-        )  # I used another variable to avoid bugs in pycharm autocomplete.
+        wb = xlrd.open_workbook(filepath)
         all_sheet_names = wb.sheet_names()
 
         if preview_offset is not None and preview_nrows is not None:
