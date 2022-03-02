@@ -105,6 +105,7 @@ def _build_row_subset(
     """
 
     def _infer_type(cell_value: Any) -> Any:
+        value = str(cell_value)
         if type(cell_value) in [int, float, str]:
             # we're removing "," from cells because we're going to be using comma as seperator for our csv payload
             # and if we keep some cells with comma, it could generate fake mismatch errors on columns...
@@ -116,8 +117,7 @@ def _build_row_subset(
             # in teh context of only preview, i think it's okay to
             # just have a representation of the date
             value = cell_value.strftime("%m/%d/%Y %H:%M:%S")
-        else:
-            value = str(cell_value)
+
         return value
 
     cells = [
