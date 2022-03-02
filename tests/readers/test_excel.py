@@ -226,6 +226,27 @@ def test_multisheet_xlsx(path):
     )
 
 
+def test_preview_sheet_more_lines_xlsx(path):
+    """It should not fail with an 'IndexError' when preview_nrows is bigger than the real amount of rows"""
+    ds = DataSource(
+        path("fixture.xls"),
+        reader_kwargs={"preview_nrows": 2000, "preview_offset": 2},
+    )
+    assert ds.get_df().shape == (168, 6)
+    assert ds.get_metadata() == {
+        "sheetnames": ["Data"],
+        "df_rows": 168,
+        "total_rows": 170,
+    }
+
+    ds = DataSource(
+        path("fixture-multi-sheet.xlsx"),
+        reader_kwargs={"sheet_name": "February", "preview_offset": 0, "preview_nrows": 1000},
+    )
+    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
+    assert ds.get_df().equals(pd.DataFrame({"Month": [2, 3, 4], "Year": [2019, 2021, 2022]}))
+
+
 def test_with_specials_types_xlsx(path):
     """It should be able to read sheet and format types"""
     ds = DataSource(

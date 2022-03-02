@@ -138,3 +138,31 @@ def test_csv_metadata(path):
         "df_rows": 12,
         "total_rows": 12,
     }
+
+
+def test_chunk_and_preview(path):
+    """It should be able to retrieve a dataframe with chunks"""
+    ds = DataSource(path("0_0.csv"), reader_kwargs={"chunksize": 1, "preview_nrows": 1})
+    assert ds.get_df().shape == (1, 2)
+
+    # with nrows and offset
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"chunksize": 3, "preview_nrows": 2, "preview_offset": 2},
+    )
+    assert ds.get_df().shape == (2, 2)
+    assert ds.get_metadata() == {
+        "df_rows": 2,
+        "total_rows": 12,
+    }
+
+    # we equest 15 lines and we can got only 12 as it's the maximum amount of rows we have
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"chunksize": 7, "preview_nrows": 15},
+    )
+    assert ds.get_df().shape == (12, 2)
+    assert ds.get_metadata() == {
+        "df_rows": 12,
+        "total_rows": 12,
+    }

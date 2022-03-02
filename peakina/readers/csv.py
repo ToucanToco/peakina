@@ -27,16 +27,29 @@ def read_csv(
     The read_csv method is able to make a preview by reading on chunks
     """
     if preview_nrows is not None or preview_offset:
+
+        # In case we don't have the native nrows given in kwargs, we're going
+        # to use the provided preview_nrows
+        if (nrows := kwargs.get("nrows")) is None:
+            nrows = preview_nrows
+
+        # In case we don't have the native skiprows given in kwargs,
+        # we're going to use the provided preview_offset as range(1, preview_offset + 1)
+        if (skiprows := kwargs.get("skiprows")) is None:
+            skiprows = range(1, preview_offset + 1)
+
         chunks = pd.read_csv(
             filepath_or_buffer,
             error_bad_lines=error_bad_lines,
             **kwargs,
             # keep the first row 0 (as the header) and then skip everything else up to row `preview_offset`
-            skiprows=range(1, preview_offset + 1),
-            nrows=preview_nrows,
+            skiprows=skiprows,
+            nrows=nrows,
         )
-        # to prevent for the chunksize not present in params
-        return next(chunks) if not isinstance(chunks, pd.DataFrame) else chunks
+        # if the chunksize is not in kwargs, we want to return the iterator
+        if kwargs.get("chunksize") is None:
+            return next(chunks) if not isinstance(chunks, pd.DataFrame) else chunks
+        return chunks
 
     return pd.read_csv(
         filepath_or_buffer,
