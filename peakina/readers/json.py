@@ -29,17 +29,23 @@ def read_json(
     *args: Any,
     **kwargs: Any,
 ) -> pd.DataFrame:
-    if filter is not None:
-        with open(path_or_buf, encoding=encoding) as f:
-            path_or_buf = transform_with_jq(f.read(), filter)
+    if filter is None:
+        filter = "."
 
-    # for the preview_nrows and the preview_offset, we're going to convert in to list here
-    if preview_nrows is not None:
-        # In case we don't have the native nrows given in kwargs, we're going
-        # to use the provided preview_nrows
-        if (nrows := kwargs.get("nrows")) is None:
-            nrows = preview_nrows
+    with open(path_or_buf, encoding=encoding) as f:
+        path_or_buf = transform_with_jq(f.read(), filter)
 
-        kwargs["nrows"] = nrows
+    # In case we don't have the native nrows given in kwargs, we're going
+    # to use the provided preview_nrows
+    if (nrows := kwargs.get("nrows", preview_nrows)) is not None:
+        if kwargs.get("lines") and kwargs.get("lines") is True:
+            # cf: https://github.com/pandas-dev/pandas/blob/main/pandas/io/json/_json.py#L671
+            kwargs["nrows"] = nrows
+        else:
+            data = json.loads(path_or_buf)
+            if isinstance(data, list):
+                path_or_buf = json.dumps(
+                    data[preview_offset : nrows + preview_offset]
+                )  # pragma: no cover
 
     return pd.read_json(path_or_buf, encoding=encoding, *args, **kwargs)
