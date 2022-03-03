@@ -30,12 +30,12 @@ def read_csv(
 
         # In case we don't have the native nrows given in kwargs, we're going
         # to use the provided preview_nrows
-        if (nrows := kwargs.get("nrows")) is None:
+        if (nrows := kwargs.pop("nrows", None)) is None:
             nrows = preview_nrows
 
         # In case we don't have the native skiprows given in kwargs,
         # we're going to use the provided preview_offset as range(1, preview_offset + 1)
-        if (skiprows := kwargs.get("skiprows")) is None:
+        if (skiprows := kwargs.pop("skiprows", None)) is None:
             skiprows = range(1, preview_offset + 1)
 
         chunks = pd.read_csv(
