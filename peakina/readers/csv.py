@@ -27,10 +27,14 @@ def read_csv(
     The read_csv method is able to make a preview by reading on chunks
     """
     if preview_nrows is not None or preview_offset:
+        if (skipfooter := kwargs.pop("skipfooter", None)) is None:
+            skipfooter = 0
 
         # In case we don't have the native nrows given in kwargs, we're going
         # to use the provided preview_nrows
-        if (nrows := kwargs.pop("nrows", None)) is None:
+        # and skipfooter should be equal to 0 because of this:
+        # cf : https://github.com/pandas-dev/pandas/blob/31c553f1e599e2695a33236e02511c2841ac9aa0/pandas/io/parsers/readers.py#L2209
+        if (nrows := kwargs.pop("nrows", None)) is None and skipfooter == 0:
             nrows = preview_nrows
 
         # In case we don't have the native skiprows given in kwargs,
@@ -44,6 +48,7 @@ def read_csv(
             **kwargs,
             # keep the first row 0 (as the header) and then skip everything else up to row `preview_offset`
             skiprows=skiprows,
+            skipfooter=skipfooter,
             nrows=nrows,
         )
         # if the chunksize is not in kwargs, we want to return the iterator
