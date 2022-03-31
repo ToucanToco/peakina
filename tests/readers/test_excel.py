@@ -265,8 +265,14 @@ def test_with_specials_types_xlsx(path):
 
 
 def test_read_with_dtype(path):
-    """Chech that read exel is able to handle provided dtypes"""
+    """Check that read excel is able to handle provided dtypes"""
     ds = DataSource(
         path("fixture-single-sheet.xlsx"), reader_kwargs={"dtype": {"Month": "str", "Year": "str"}}
     )
     assert isinstance(ds.get_df()["Month"][0], str)
+
+
+def test_read_excel_with_formula(path):
+    """check that read excel is able to handle a sheet with formula"""
+    ds = DataSource(path("formula_excel.xlsx"))
+    assert ds.get_df()["sum"][0] == 5

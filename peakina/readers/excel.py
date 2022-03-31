@@ -247,7 +247,7 @@ def read_excel(
     column_names = []
 
     try:
-        wb = openpyxl.load_workbook(filepath, read_only=True)
+        wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
         all_sheet_names = wb.sheetnames
 
         # we get column names with the iterator
