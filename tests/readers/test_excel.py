@@ -262,3 +262,11 @@ def test_with_specials_types_xlsx(path):
             }
         )
     )
+
+
+def test_read_with_dtype(path):
+    """Chech that read exel is able to handle provided dtypes"""
+    ds = DataSource(
+        path("fixture-single-sheet.xlsx"), reader_kwargs={"dtype": {"Month": "str", "Year": "str"}}
+    )
+    assert isinstance(ds.get_df()["Month"][0], str)
