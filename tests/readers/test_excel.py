@@ -276,3 +276,11 @@ def test_read_excel_with_formula(path):
     """check that read excel is able to handle a sheet with formula"""
     ds = DataSource(path("formula_excel.xlsx"))
     assert ds.get_df()["sum"][0] == 5
+
+
+def test_excel_meta_with_broken_max_row(path):
+    """check that read excel is able to retrieve max row when it's incorrectly set
+    to test, the fixture file formula_excel.xlsx has it's metadata broken
+    """
+    ds = DataSource(path("formula_excel.xlsx"))
+    assert ds.get_metadata() == {"df_rows": 3, "sheetnames": ["Sheet1"], "total_rows": 3}

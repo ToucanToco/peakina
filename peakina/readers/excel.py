@@ -303,9 +303,14 @@ def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
 
     total_rows = 0
     try:
-        wb = openpyxl.load_workbook(filepath, read_only=True)
+        wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
         for sheet in wb.worksheets:
-            total_rows += sheet.max_row
+            max_row = sheet.max_row
+            if not max_row:
+                sheet.reset_dimensions()
+                sheet.calculate_dimension(force=True)
+                max_row = sheet.max_row
+            total_rows += max_row
         sheet_names = wb.sheetnames
     except InvalidFileException as e:
         LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
