@@ -232,6 +232,7 @@ def read_excel(
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
     skipfooter: int = 0,
+    dtype: Optional[dict] = {}
 ) -> pd.DataFrame:
     """
     Uses openpyxl (with xlrd as fallback) to convert the excel sheet into a csv string.
@@ -291,6 +292,7 @@ def read_excel(
         true_values=["True"],
         false_values=["False"],
         **columns_kwargs,
+        dtype=dtype
     )
 
 
