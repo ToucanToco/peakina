@@ -4,7 +4,7 @@ Module to add excel files support
 import datetime
 import logging
 from io import StringIO
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Union
 
 import openpyxl
 import pandas as pd
@@ -100,14 +100,15 @@ def _build_row_subset(
     sheetnames: List[str],
     row_number: int,
     row_subset: List[str],
-) -> List[str]:
+) -> Tuple[List[str], Set[int]]:
     """
     This method will build each row and add an extra row for the sheet_name
     If we're in an excel with multiple sheets
 
     """
+    date_columns_indices = set()
 
-    def _infer_type(cell_value: Any) -> Any:
+    def _infer_type(cell_value: Any, cell_index: int) -> Any:
         value = str(cell_value)
         if type(cell_value) in [int, float, str]:
             # we're removing "," from cells because we're going to be using comma as seperator for our csv payload
@@ -119,15 +120,15 @@ def _build_row_subset(
         elif type(cell_value) in [datetime.datetime]:
             # in teh context of only preview, i think it's okay to
             # just have a representation of the date
-            value = cell_value.strftime("%m/%d/%Y %H:%M:%S")
-
+            value = cell_value.isoformat()
+            date_columns_indices.add(cell_index)
         return value
 
     cells = [
-        _infer_type(cell.value)
+        _infer_type(cell.value, cell_index)
         if type(cell) not in [str, int, float, bool, datetime.datetime] and cell is not None
-        else _infer_type(cell)
-        for cell in row
+        else _infer_type(cell, cell_index)
+        for cell_index, cell in enumerate(row)
     ]
 
     if len(sheetnames) > 1:
@@ -135,7 +136,7 @@ def _build_row_subset(
     else:
         row_subset.append(f'{",".join(cells)}\n')
 
-    return row_subset
+    return row_subset, date_columns_indices
 
 
 def _get_row_subset_per_sheet(
@@ -148,16 +149,20 @@ def _get_row_subset_per_sheet(
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
     skipfooter: int = 0,
-) -> List[str]:
+) -> Tuple[List[str], Set[int]]:
     """
     This method will get an iterator from the workbook and
     construct a list of row inside row_subset
     """
     # we get the row iterator from here
     row_iterator = _get_rows_iterator(wb, sh_name, preview_nrows, preview_offset)
+    date_columns_indices: Set[int] = set()
 
-    def __loop_and_fill_row_subsets(row_subset: List[str], loop_on: Any) -> List[str]:
+    def __loop_and_fill_row_subsets(
+        row_subset: List[str], loop_on: Any
+    ) -> Tuple[List[str], Set[int]]:
         headers_skipped = False
+        date_columns_indices: Set[int] = set()
         for row_number, row in loop_on:
             # We want to skip the headers if we're in another sheet
             if not headers_skipped:
@@ -166,23 +171,29 @@ def _get_row_subset_per_sheet(
             if skiprows:
                 if row_number <= skiprows:
                     continue
-            row_subset = _build_row_subset(row, sh_name, sheetnames, row_number, row_subset)
+            row_subset, date_columns_indices = _build_row_subset(
+                row, sh_name, sheetnames, row_number, row_subset
+            )
             if nrows:
                 if row_number == nrows:
                     break
 
-        return row_subset
+        return row_subset, date_columns_indices
 
     if isinstance(wb, openpyxl.workbook.Workbook):
         for row_iter in row_iterator:
-            row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(row_iter))
+            row_subset, date_columns_indices = __loop_and_fill_row_subsets(
+                row_subset, enumerate(row_iter)
+            )
     else:
-        row_subset = __loop_and_fill_row_subsets(row_subset, enumerate(row_iterator))
+        row_subset, date_columns_indices = __loop_and_fill_row_subsets(
+            row_subset, enumerate(row_iterator)
+        )
 
     # to handle the skipfooter
     lines_to_keep = len(row_subset) - skipfooter
 
-    return row_subset[:lines_to_keep]
+    return row_subset[:lines_to_keep], date_columns_indices
 
 
 def _read_sheets(
@@ -193,7 +204,7 @@ def _read_sheets(
     nrows: Optional[int] = None,
     skiprows: Optional[int] = None,
     skipfooter: int = 0,
-) -> List[Any]:
+) -> Tuple[List[Any], Set[int]]:
     """
     This method will loop over sheets, read content and return a list of rows
     depending on your inputs
@@ -201,9 +212,9 @@ def _read_sheets(
     """
 
     row_subset: List[str] = []
-
+    date_columns_indices: Set[int] = set()
     for sh_name in sheet_names:
-        row_subset = _get_row_subset_per_sheet(
+        row_subset, date_columns_indices = _get_row_subset_per_sheet(
             wb,
             sh_name,
             sheet_names,
@@ -218,7 +229,7 @@ def _read_sheets(
     if isinstance(wb, openpyxl.workbook.Workbook):
         wb.close()
 
-    return row_subset
+    return row_subset, date_columns_indices
 
 
 def read_excel(
@@ -271,7 +282,7 @@ def read_excel(
     if len(all_sheet_names) > 1:
         sheet_names = [all_sheet_names[0]] if sheet_name == "" else sheet_names
 
-    row_subset = _read_sheets(
+    row_subset, date_columns_indices = _read_sheets(
         wb, sheet_names, preview_nrows, preview_offset, nrows, skiprows, skipfooter
     )
 
@@ -283,7 +294,6 @@ def read_excel(
         "header": None,
         "names": column_names,
     }
-
     return pd.read_csv(
         StringIO("\n".join(row_subset)),
         nrows=nrows,
@@ -293,6 +303,7 @@ def read_excel(
         false_values=["False"],
         **columns_kwargs,
         dtype=dtype,
+        parse_dates=list(date_columns_indices),
     )
 
 

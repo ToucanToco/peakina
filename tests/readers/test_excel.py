@@ -252,12 +252,15 @@ def test_with_specials_types_xlsx(path):
     ds = DataSource(
         path("fixture-single-sheet-with-types.xlsx"),
     )
+    from datetime import datetime
+
+    test_dates = ["03/02/2022 05:43:04", "03/02/2022 05:43:04", "03/02/2022 05:43:04"]
     assert ds.get_df().equals(
         pd.DataFrame(
             {
                 None: [0, 1, 2],
                 "bools": [True, False, True],
-                "dates": ["03/02/2022 05:43:04", "03/02/2022 05:43:04", "03/02/2022 05:43:04"],
+                "dates": [datetime.strptime(d, "%m/%d/%Y %H:%M:%S") for d in test_dates],
                 "floats": [12.35, 42.69, 1234567.0],
             }
         )
