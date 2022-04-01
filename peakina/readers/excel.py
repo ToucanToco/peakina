@@ -3,6 +3,7 @@ Module to add excel files support
 """
 import datetime
 import logging
+from functools import wraps
 from io import StringIO
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Union
 
@@ -232,6 +233,7 @@ def _read_sheets(
     return row_subset, date_columns_indices
 
 
+@wraps(pd.read_excel)
 def read_excel(
     filepath: str,
     *,
@@ -243,7 +245,7 @@ def read_excel(
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
     skipfooter: int = 0,
-    dtype: Optional[Dict[str, str]] = {},
+    **kwargs: Any,
 ) -> pd.DataFrame:
     """
     Uses openpyxl (with xlrd as fallback) to convert the excel sheet into a csv string.
@@ -302,8 +304,8 @@ def read_excel(
         true_values=["True"],
         false_values=["False"],
         **columns_kwargs,
-        dtype=dtype,
         parse_dates=list(date_columns_indices),
+        **kwargs,
     )
 
 
