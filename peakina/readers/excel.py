@@ -245,7 +245,7 @@ def read_excel(
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
     skipfooter: int = 0,
-    **kwargs,
+    **kwargs: Any,
 ) -> pd.DataFrame:
     """
     Uses openpyxl (with xlrd as fallback) to convert the excel sheet into a csv string.
