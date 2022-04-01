@@ -16,8 +16,8 @@ def ftp_client(mocker):
 
 
 def test_open(ftp_client, mocker):
-    ret = ftp_open(url="foo")
-    assert ret.name.endswith(".ftptmp")  # check the suffix is the expected one
+    ret = ftp_open(url="foo.xls")
+    assert ret.name.endswith(".xls")  # check the suffix is the expected one
     assert os.path.exists(ret.name)
     ftp_client.retrbinary.assert_called_once()
     ret.close()
@@ -30,8 +30,8 @@ def test_open(ftp_client, mocker):
         ftp_listdir(url="foo")
 
     mocker.patch("peakina.io.ftp.ftp_utils.retry_pasv").side_effect = AttributeError
-    ret = ftp_open(url="foo")
-    assert ret.name.endswith(".ftptmp")  # check the suffix is the expected one
+    ret = ftp_open(url="foo.xls")
+    assert ret.name.endswith(".xls")  # check the suffix is the expected one
     assert os.path.exists(ret.name)
     ftp_client.getfo.assert_called_once()
     ret.close()

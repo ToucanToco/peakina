@@ -158,7 +158,8 @@ def retry_pasv(c: ftplib.FTP, cmd: str, *args: Any) -> Any:
 
 
 def _open(url: str) -> IO[bytes]:
-    ret = tempfile.NamedTemporaryFile(suffix=".ftptmp")
+    extension = url.split(".")[-1]
+    ret = tempfile.NamedTemporaryFile(suffix=f".{extension}")
     with client(url) as (c, path):
         try:
             retry_pasv(cast(ftplib.FTP, c), "retrbinary", f"RETR {path}", ret.write)
