@@ -99,7 +99,6 @@ def _build_row_subset(
     row: Union[List[Any], Tuple[Any]],
     sh_name: str,
     sheetnames: List[str],
-    row_number: int,
     row_subset: List[str],
 ) -> Tuple[List[str], Set[int]]:
     """
@@ -109,8 +108,9 @@ def _build_row_subset(
     """
     date_columns_indices = set()
 
-    def _infer_type(cell_value: Any, cell_index: int) -> Any:
+    def _cell_to_csv_string(cell_value: Any, cell_index: int) -> Any:
         value = str(cell_value)
+
         if type(cell_value) in [int, float, str]:
             # we're removing "," from cells because we're going to be using comma as seperator for our csv payload
             # and if we keep some cells with comma, it could generate fake mismatch errors on columns...
@@ -126,9 +126,9 @@ def _build_row_subset(
         return value
 
     cells = [
-        _infer_type(cell.value, cell_index)
+        _cell_to_csv_string(cell.value, cell_index)
         if type(cell) not in [str, int, float, bool, datetime.datetime] and cell is not None
-        else _infer_type(cell, cell_index)
+        else _cell_to_csv_string(cell, cell_index)
         for cell_index, cell in enumerate(row)
     ]
 
@@ -173,7 +173,7 @@ def _get_row_subset_per_sheet(
                 if row_number <= skiprows:
                     continue
             row_subset, date_columns_indices = _build_row_subset(
-                row, sh_name, sheetnames, row_number, row_subset
+                row, sh_name, sheetnames, row_subset
             )
             if nrows:
                 if row_number == nrows:
@@ -267,8 +267,7 @@ def read_excel(
         for sh_name in all_sheet_names:
             for column_list in [list(c) for c in wb[sh_name].iter_rows(min_row=1, max_row=1)]:
                 for co in column_list:
-                    if co.value not in column_names:
-                        column_names.append(co.value)
+                    column_names.append(co.value)
 
     except InvalidFileException as e:
         LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
@@ -276,9 +275,9 @@ def read_excel(
         all_sheet_names = wb.sheet_names()
 
         for sh_name in all_sheet_names:
-            column_names += [
-                c.value for c in wb.sheet_by_name(sh_name).row(0) if c.value not in column_names
-            ]
+            column_names = []
+            for c in wb.sheet_by_name(sh_name).row(0):
+                column_names.append(c.value)
 
     sheet_names = [sheet_name] if sheet_name else all_sheet_names
     if len(all_sheet_names) > 1:
@@ -292,18 +291,15 @@ def read_excel(
         if "__sheet__" not in column_names:  # type: ignore
             column_names.append("__sheet__")
 
-    columns_kwargs = {
-        "header": None,
-        "names": column_names,
-    }
+    csv_header = [",".join([c if c else "" for c in column_names])]
+
     return pd.read_csv(
-        StringIO("\n".join(row_subset)),
+        StringIO("\n".join(csv_header + row_subset)),
         nrows=nrows,
         na_values=na_values,
         keep_default_na=keep_default_na,
         true_values=["True"],
         false_values=["False"],
-        **columns_kwargs,
         parse_dates=list(date_columns_indices),
         **kwargs,
     )

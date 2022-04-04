@@ -1,5 +1,4 @@
 import pandas as pd
-
 from peakina import DataSource
 
 
@@ -287,3 +286,44 @@ def test_excel_meta_with_broken_max_row(path):
     """
     ds = DataSource(path("formula_excel.xlsx"))
     assert ds.get_metadata() == {"df_rows": 3, "sheetnames": ["Sheet1"], "total_rows": 3}
+
+
+def test_excel_duplicate_column_names(path):
+    """Check that an error is thrown when duplicate column names from excel file is detected"""
+    ds = DataSource(path("fixture_excel_duplicate_columns.xlsx"))
+    assert ds.get_df().equals(
+        pd.DataFrame(
+            {
+                'id': [1, 2, 3],
+                'duplicated_name': [41, 42, 43],
+                'duplicated_name.1': ['oui', 'non', 'peut être']
+            }
+        )
+    )
+
+
+def test_excel_empty_column_names(path):
+    """Check that excel files with empty column names are correctly handled"""
+    ds = DataSource(path("fixture_excel_empty_column_names.xlsx"))
+    assert ds.get_df().equals(
+        pd.DataFrame(
+            {
+                'id': [1,2,3],
+                'Unnamed: 0':[41, 42, 43]
+            }
+        )
+    )
+
+
+def test_excel_empty_column_names_in_between(path):
+    """Check that excel files with empty column name between two named columns are correctly handled"""
+    ds = DataSource(path("fixture_excel_empty_column_names_in_between.xlsx"))
+    assert ds.get_df().equals(
+        pd.DataFrame(
+            {
+                'id': [1, 2, 3],
+                'Unnamed: 1': [41, 42, 43],
+                'some column': ['oui', 'non', 'peut être']
+            }
+        )
+    )
