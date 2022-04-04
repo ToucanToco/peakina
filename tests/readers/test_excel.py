@@ -1,4 +1,5 @@
 import pandas as pd
+
 from peakina import DataSource
 
 
@@ -294,9 +295,9 @@ def test_excel_duplicate_column_names(path):
     assert ds.get_df().equals(
         pd.DataFrame(
             {
-                'id': [1, 2, 3],
-                'duplicated_name': [41, 42, 43],
-                'duplicated_name.1': ['oui', 'non', 'peut être']
+                "id": [1, 2, 3],
+                "duplicated_name": [41, 42, 43],
+                "duplicated_name.1": ["oui", "non", "peut être"],
             }
         )
     )
@@ -305,14 +306,7 @@ def test_excel_duplicate_column_names(path):
 def test_excel_empty_column_names(path):
     """Check that excel files with empty column names are correctly handled"""
     ds = DataSource(path("fixture_excel_empty_column_names.xlsx"))
-    assert ds.get_df().equals(
-        pd.DataFrame(
-            {
-                'id': [1,2,3],
-                'Unnamed: 0':[41, 42, 43]
-            }
-        )
-    )
+    assert ds.get_df().equals(pd.DataFrame({"id": [1, 2, 3], "Unnamed: 1": [41, 42, 43]}))
 
 
 def test_excel_empty_column_names_in_between(path):
@@ -321,9 +315,9 @@ def test_excel_empty_column_names_in_between(path):
     assert ds.get_df().equals(
         pd.DataFrame(
             {
-                'id': [1, 2, 3],
-                'Unnamed: 1': [41, 42, 43],
-                'some column': ['oui', 'non', 'peut être']
+                "id": [1, 2, 3],
+                "Unnamed: 1": [41, 42, 43],
+                "some column": ["oui", "non", "peut être"],
             }
         )
     )

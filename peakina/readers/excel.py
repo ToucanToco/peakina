@@ -100,7 +100,7 @@ def _build_row_subset(
     sh_name: str,
     sheetnames: List[str],
     row_subset: List[str],
-) -> Tuple[List[str], Set[int]]:
+) -> Tuple[List[str], Set[int], int]:
     """
     This method will build each row and add an extra row for the sheet_name
     If we're in an excel with multiple sheets
@@ -137,7 +137,7 @@ def _build_row_subset(
     else:
         row_subset.append(f'{",".join(cells)}\n')
 
-    return row_subset, date_columns_indices
+    return row_subset, date_columns_indices, len(cells)
 
 
 def _get_row_subset_per_sheet(
@@ -150,7 +150,7 @@ def _get_row_subset_per_sheet(
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
     skipfooter: int = 0,
-) -> Tuple[List[str], Set[int]]:
+) -> Tuple[List[str], Set[int], int]:
     """
     This method will get an iterator from the workbook and
     construct a list of row inside row_subset
@@ -158,12 +158,14 @@ def _get_row_subset_per_sheet(
     # we get the row iterator from here
     row_iterator = _get_rows_iterator(wb, sh_name, preview_nrows, preview_offset)
     date_columns_indices: Set[int] = set()
+    column_count = 0
 
     def __loop_and_fill_row_subsets(
         row_subset: List[str], loop_on: Any
-    ) -> Tuple[List[str], Set[int]]:
+    ) -> Tuple[List[str], Set[int], int]:
         headers_skipped = False
         date_columns_indices: Set[int] = set()
+        max_column_count = 0
         for row_number, row in loop_on:
             # We want to skip the headers if we're in another sheet
             if not headers_skipped:
@@ -172,29 +174,30 @@ def _get_row_subset_per_sheet(
             if skiprows:
                 if row_number <= skiprows:
                     continue
-            row_subset, date_columns_indices = _build_row_subset(
+            row_subset, date_columns_indices, column_count = _build_row_subset(
                 row, sh_name, sheetnames, row_subset
             )
+            max_column_count = max(max_column_count, column_count)
             if nrows:
                 if row_number == nrows:
                     break
 
-        return row_subset, date_columns_indices
+        return row_subset, date_columns_indices, max_column_count
 
     if isinstance(wb, openpyxl.workbook.Workbook):
         for row_iter in row_iterator:
-            row_subset, date_columns_indices = __loop_and_fill_row_subsets(
+            row_subset, date_columns_indices, column_count = __loop_and_fill_row_subsets(
                 row_subset, enumerate(row_iter)
             )
     else:
-        row_subset, date_columns_indices = __loop_and_fill_row_subsets(
+        row_subset, date_columns_indices, column_count = __loop_and_fill_row_subsets(
             row_subset, enumerate(row_iterator)
         )
 
     # to handle the skipfooter
     lines_to_keep = len(row_subset) - skipfooter
 
-    return row_subset[:lines_to_keep], date_columns_indices
+    return row_subset[:lines_to_keep], date_columns_indices, column_count
 
 
 def _read_sheets(
@@ -205,7 +208,7 @@ def _read_sheets(
     nrows: Optional[int] = None,
     skiprows: Optional[int] = None,
     skipfooter: int = 0,
-) -> Tuple[List[Any], Set[int]]:
+) -> Tuple[List[Any], Set[int], int]:
     """
     This method will loop over sheets, read content and return a list of rows
     depending on your inputs
@@ -215,7 +218,7 @@ def _read_sheets(
     row_subset: List[str] = []
     date_columns_indices: Set[int] = set()
     for sh_name in sheet_names:
-        row_subset, date_columns_indices = _get_row_subset_per_sheet(
+        row_subset, date_columns_indices, column_count = _get_row_subset_per_sheet(
             wb,
             sh_name,
             sheet_names,
@@ -230,7 +233,7 @@ def _read_sheets(
     if isinstance(wb, openpyxl.workbook.Workbook):
         wb.close()
 
-    return row_subset, date_columns_indices
+    return row_subset, date_columns_indices, column_count
 
 
 @wraps(pd.read_excel)
@@ -283,13 +286,16 @@ def read_excel(
     if len(all_sheet_names) > 1:
         sheet_names = [all_sheet_names[0]] if sheet_name == "" else sheet_names
 
-    row_subset, date_columns_indices = _read_sheets(
+    row_subset, date_columns_indices, column_count = _read_sheets(
         wb, sheet_names, preview_nrows, preview_offset, nrows, skiprows, skipfooter
     )
 
     if sheet_name is None:
         if "__sheet__" not in column_names:  # type: ignore
             column_names.append("__sheet__")
+
+    if column_count > len(column_names):  # blank column names are mandatorily after name columns
+        column_names += ["" for _ in range(column_count - len(column_names))]
 
     csv_header = [",".join([c if c else "" for c in column_names])]
 
