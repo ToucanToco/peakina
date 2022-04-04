@@ -290,5 +290,11 @@ def test_excel_meta_with_broken_max_row(path):
 
 
 def test_excel_with_null_values(path):
+    """
+    Null values should not be read as empty strings
+    They also should not impact type inference of their column
+    """
     ds = DataSource(path("excel-with-null-value.xlsx"))
-    assert list(ds.get_df()["value"].isnull()) == [False, True, False]
+    df = ds.get_df()
+    assert list(df["value"].isnull()) == [False, True, False]
+    assert pd.api.types.is_numeric_dtype(df["value"])

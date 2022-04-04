@@ -241,7 +241,7 @@ def read_excel(
     preview_offset: Optional[int] = None,
     sheet_name: str = "",
     na_values: Any = None,
-    keep_default_na: bool = False,
+    keep_default_na: bool = True,
     skiprows: Optional[int] = None,
     nrows: Optional[int] = None,
     skipfooter: int = 0,
