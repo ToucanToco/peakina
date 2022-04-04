@@ -133,9 +133,9 @@ def _build_row_subset(
     ]
 
     if len(sheetnames) > 1:
-        row_subset.append(f'{",".join([*cells, sh_name])}\n')
+        row_subset.append(f'{",".join([*cells, sh_name])}')
     else:
-        row_subset.append(f'{",".join(cells)}\n')
+        row_subset.append(f'{",".join(cells)}')
 
     return row_subset, date_columns_indices
 
