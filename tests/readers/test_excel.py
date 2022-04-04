@@ -287,3 +287,8 @@ def test_excel_meta_with_broken_max_row(path):
     """
     ds = DataSource(path("formula_excel.xlsx"))
     assert ds.get_metadata() == {"df_rows": 3, "sheetnames": ["Sheet1"], "total_rows": 3}
+
+
+def test_excel_with_null_values(path):
+    ds = DataSource(path("excel-with-null-value.xlsx"))
+    assert list(ds.get_df()["value"].isnull()) == [False, True, False]
