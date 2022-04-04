@@ -266,21 +266,30 @@ def read_excel(
         wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
         all_sheet_names = wb.sheetnames
 
+        all_column_names = set()
         # we get column names with the iterator
         for sh_name in all_sheet_names:
+            sh_column_names = []
             for column_list in [list(c) for c in wb[sh_name].iter_rows(min_row=1, max_row=1)]:
                 for co in column_list:
-                    column_names.append(co.value)
+                    sh_column_names.append(co.value)
+            all_column_names.add(tuple(sh_column_names))
+        if len(all_column_names) == 1:
+            column_names = list(all_column_names.pop())
 
     except InvalidFileException as e:
         LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
         wb = xlrd.open_workbook(filepath)
         all_sheet_names = wb.sheet_names()
 
+        all_column_names = set()
         for sh_name in all_sheet_names:
-            column_names = []
+            sh_column_names = []
             for c in wb.sheet_by_name(sh_name).row(0):
-                column_names.append(c.value)
+                sh_column_names.append(c.value)
+            all_column_names.add(tuple(sh_column_names))
+        if len(all_column_names) == 1:
+            column_names = list(all_column_names.pop())
 
     sheet_names = [sheet_name] if sheet_name else all_sheet_names
     if len(all_sheet_names) > 1:
