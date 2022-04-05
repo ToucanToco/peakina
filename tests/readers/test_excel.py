@@ -77,7 +77,7 @@ def test_simple_xls_preview(path):
 def test_xls_metadata(path):
     """It should be able to get metadata of an excel file"""
     # when no kwargs are provided
-    ds = DataSource(path("fixture.xls"))
+    ds = DataSource(path("fixture.xls"), reader_kwargs={"sheet_name": "Data"})
     assert ds.get_df().shape == (170, 6)
     assert ds.get_metadata() == {
         "sheetnames": ["Data"],
