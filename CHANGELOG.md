@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.11] -  2022-04-05
+
+### Changed
+- Revert Excel parsing to using pandas
+
 ## [0.5.3] - 2020-06-08
 
 ### Changed
