@@ -112,7 +112,7 @@ def test_xls_metadata(path):
 
 def test_multiple_xls_metadata(path):
     """It should be able to get metadata of an excel file with multiple sheets"""
-    # with multiple sheets
+    # for all sheets
     ds = DataSource(
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None, "preview_nrows": 1, "preview_offset": 1},
@@ -148,6 +148,18 @@ def test_multiple_xls_metadata(path):
         "sheetnames": ["January", "February"],
         "df_rows": 2,
         "total_rows": 4,
+    }
+
+    # for a specific sheet (not the first one)
+    ds = DataSource(
+        path("fixture-multi-sheet.xlsx"),
+        reader_kwargs={"sheet_name": "February"},
+    )
+    assert ds.get_df().shape == (3, 2)
+    assert ds.get_metadata() == {
+        "sheetnames": ["January", "February"],
+        "df_rows": 3,
+        "total_rows": 3,
     }
 
 
