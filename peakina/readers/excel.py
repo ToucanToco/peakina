@@ -4,13 +4,11 @@ Module to add excel files support
 import datetime
 import logging
 from functools import wraps
-from io import StringIO
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Union
 
 import openpyxl
 import pandas as pd
 import xlrd
-from openpyxl.utils.exceptions import InvalidFileException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -235,110 +233,47 @@ def _read_sheets(
 
 @wraps(pd.read_excel)
 def read_excel(
-    filepath: str,
-    *,
+    *args: Any,
     preview_nrows: Optional[int] = None,
-    preview_offset: Optional[int] = None,
-    sheet_name: str = "",
-    na_values: Any = None,
-    keep_default_na: bool = False,
-    skiprows: Optional[int] = None,
-    nrows: Optional[int] = None,
-    skipfooter: int = 0,
+    preview_offset: int = 0,
     **kwargs: Any,
 ) -> pd.DataFrame:
-    """
-    Uses openpyxl (with xlrd as fallback) to convert the excel sheet into a csv string.
-    This csv is then read by pandas to make a DataFrame.
 
-    Using this two steps, we are able to obtain better performance than pd.read_excel alone.
-    Also, these two libraries are able to read only the top of each sheet,
-    so we can create previews without reading the whole file.
+    df_or_dict: Union[Dict[str, pd.DataFrame], pd.DataFrame] = pd.read_excel(*args, **kwargs)
 
-    """
+    if isinstance(df_or_dict, dict):  # multiple sheets
+        for sheet_name, sheet_df in df_or_dict.items():
+            sheet_df["__sheet__"] = sheet_name
+        df = pd.concat(list(df_or_dict.values()))
+    else:
+        df = df_or_dict
 
-    column_names = []
+    if preview_nrows:
+        return df[preview_offset : preview_offset + preview_nrows or 0]
 
-    try:
-        wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
-        all_sheet_names = wb.sheetnames
-
-        # we get column names with the iterator
-        for sh_name in all_sheet_names:
-            for column_list in [list(c) for c in wb[sh_name].iter_rows(min_row=1, max_row=1)]:
-                for co in column_list:
-                    if co.value not in column_names:
-                        column_names.append(co.value)
-
-    except InvalidFileException as e:
-        LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
-        wb = xlrd.open_workbook(filepath)
-        all_sheet_names = wb.sheet_names()
-
-        for sh_name in all_sheet_names:
-            column_names += [
-                c.value for c in wb.sheet_by_name(sh_name).row(0) if c.value not in column_names
-            ]
-
-    sheet_names = [sheet_name] if sheet_name else all_sheet_names
-    if len(all_sheet_names) > 1:
-        sheet_names = [all_sheet_names[0]] if sheet_name == "" else sheet_names
-
-    row_subset, date_columns_indices = _read_sheets(
-        wb, sheet_names, preview_nrows, preview_offset, nrows, skiprows, skipfooter
-    )
-
-    if sheet_name is None:
-        if "__sheet__" not in column_names:  # type: ignore
-            column_names.append("__sheet__")
-
-    columns_kwargs = {
-        "header": None,
-        "names": column_names,
-    }
-    return pd.read_csv(
-        StringIO("\n".join(row_subset)),
-        nrows=nrows,
-        na_values=na_values,
-        keep_default_na=keep_default_na,
-        true_values=["True"],
-        false_values=["False"],
-        **columns_kwargs,
-        parse_dates=list(date_columns_indices),
-        **kwargs,
-    )
+    return df
 
 
 def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
     """
     Returns a dictionary with the meta information of the excel file.
     """
+    excel_file = pd.ExcelFile(filepath)
+    sheet_names = excel_file.sheet_names
 
-    total_rows = 0
-    try:
-        wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
-        for sheet in wb.worksheets:
-            max_row = sheet.max_row
-            if not max_row:
-                sheet.reset_dimensions()
-                sheet.calculate_dimension(force=True)
-                max_row = sheet.max_row
-            total_rows += max_row
-        sheet_names = wb.sheetnames
-    except InvalidFileException as e:
-        LOGGER.info(f"Failed to read file {filepath} with openpyxl. Trying xlrd.", exc_info=e)
-        wb = xlrd.open_workbook(filepath)
-        sheet_names = wb.sheet_names()
-        for sheet in sheet_names:
-            total_rows += wb.sheet_by_name(sheet).nrows
+    df = read_excel(excel_file, **reader_kwargs)
 
-    # to not count headers of sheets as rows:
-    total_rows -= len(sheet_names)
-
-    df = read_excel(filepath, **reader_kwargs)
-
-    return {
-        "sheetnames": sheet_names,
-        "df_rows": df.shape[0],
-        "total_rows": total_rows,
-    }
+    if (sheet_name := reader_kwargs.get("sheet_name", 0)) is None:
+        # multiple sheets together
+        return {
+            "sheetnames": sheet_names,
+            "df_rows": df.shape[0],
+            "total_rows": sum(excel_file.parse(sheet_name).shape[0] for sheet_name in sheet_names),
+        }
+    else:
+        # single sheet
+        return {
+            "sheetnames": sheet_names,
+            "df_rows": df.shape[0],
+            "total_rows": excel_file.parse(sheet_name).shape[0],
+        }
