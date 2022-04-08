@@ -20,7 +20,7 @@ def read_csv(
     preview_offset: int = 0,
     preview_nrows: Optional[int] = None,
     # change of default values
-    error_bad_lines: bool = False,  # pandas default: `True`
+    on_bad_lines: Literal["error", "warn", "skip"] = "skip",  # pandas default: "error"
     encoding_errors: Literal["strict", "ignore"] = "ignore",  # pandas default: "strict"
     **kwargs: Any,
 ) -> pd.DataFrame:
@@ -49,7 +49,7 @@ def read_csv(
 
         chunks = pd.read_csv(
             filepath_or_buffer,
-            error_bad_lines=error_bad_lines,
+            on_bad_lines=on_bad_lines,
             encoding_errors=encoding_errors,
             **all_kwargs,
         )
@@ -61,7 +61,7 @@ def read_csv(
 
     return pd.read_csv(
         filepath_or_buffer,
-        error_bad_lines=error_bad_lines,
+        on_bad_lines=on_bad_lines,
         encoding_errors=encoding_errors,
         **kwargs,
     )
