@@ -59,7 +59,7 @@ SUPPORTED_FILE_TYPES = {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ],
         read_excel,
-        ["encoding", "decimal"],
+        [],
         excel_meta,
     ),
     "json": TypeInfos(
