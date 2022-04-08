@@ -152,8 +152,8 @@ def validate_sep(filepath: str, sep: str = ",", encoding: Optional[str] = None) 
     """
     try:
         # we want an error to be raised if we can't read the first two lines
-        # hence the parameter `error_bad_lines` set to `True`
-        df = read_csv(filepath, sep=sep, encoding=encoding, nrows=2, error_bad_lines=True)
+        # hence the parameter `on_bad_lines` set to "error"
+        df = read_csv(filepath, sep=sep, encoding=encoding, nrows=2, on_bad_lines="error")
         return len(df.columns) > 1
     except pd.errors.ParserError:
         return False
