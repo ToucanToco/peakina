@@ -71,6 +71,12 @@ def test_csv_with_encoding(path):
     assert "unité économique" in df.columns
 
 
+def test_csv_default_encoding(path):
+    """We should set `None` as default encoding for pandas readers"""
+    df = DataSource(path("pika.csv")).get_df()
+    assert df.shape == (486, 19)
+
+
 def test_csv_with_sep_and_encoding(path):
     """It should be able to detect everything"""
     ds = DataSource(path("latin_1_sep.csv"))

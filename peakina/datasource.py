@@ -90,7 +90,7 @@ class DataSource:
         allowed_params = get_reader_allowed_params(filetype)
 
         # Check encoding
-        encoding = kwargs.get("encoding", "utf-8")
+        encoding = kwargs.get("encoding")
         if "encoding" in allowed_params:
             if not validate_encoding(stream.name, encoding):
                 encoding = detect_encoding(stream.name)
