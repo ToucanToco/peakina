@@ -2,7 +2,7 @@
 Module to add csv support
 """
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Union
 
 import pandas as pd
 
@@ -21,6 +21,7 @@ def read_csv(
     preview_nrows: Optional[int] = None,
     # change of default values
     error_bad_lines: bool = False,  # pandas default: `True`
+    encoding_errors: Literal["strict", "ignore"] = "ignore",  # pandas default: "strict"
     **kwargs: Any,
 ) -> pd.DataFrame:
     """
@@ -42,15 +43,17 @@ def read_csv(
         if (skiprows := kwargs.pop("skiprows", None)) is None:
             skiprows = range(1, preview_offset + 1)
 
+        # keep the first row 0 (as the header) and then skip everything else up to row `preview_offset`
+        all_kwargs = {"skiprows": skiprows, "skipfooter": skipfooter, "nrows": nrows}
+        all_kwargs.update(kwargs)
+
         chunks = pd.read_csv(
             filepath_or_buffer,
             error_bad_lines=error_bad_lines,
-            **kwargs,
-            # keep the first row 0 (as the header) and then skip everything else up to row `preview_offset`
-            skiprows=skiprows,
-            skipfooter=skipfooter,
-            nrows=nrows,
+            encoding_errors=encoding_errors,
+            **all_kwargs,
         )
+
         # if the chunksize is not in kwargs, we want to return the iterator
         if kwargs.get("chunksize") is None:
             return next(chunks) if not isinstance(chunks, pd.DataFrame) else chunks
@@ -59,6 +62,7 @@ def read_csv(
     return pd.read_csv(
         filepath_or_buffer,
         error_bad_lines=error_bad_lines,
+        encoding_errors=encoding_errors,
         **kwargs,
     )
 
