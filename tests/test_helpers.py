@@ -96,7 +96,12 @@ def test_validate_sep_error(path):
         (TypeEnum.CSV, {"sheet_name": 0}, "Unsupported kwargs: 'sheet_name'"),
         (TypeEnum.CSV, {"skipfooter": 2}, None),
         (None, {"sheet_name": 0}, None),
-        (TypeEnum.EXCEL, {"keep_default_na": False, "encoding": "utf-8", "decimal": "."}, None),
+        (
+            TypeEnum.EXCEL,
+            {"keep_default_na": False, "encoding": "utf-8"},
+            "Unsupported kwargs: 'encoding'",
+        ),
+        (TypeEnum.EXCEL, {"keep_default_na": False, "decimal": "."}, None),
         (TypeEnum.EXCEL, {"skipfooter": 2}, None),
         (TypeEnum.XML, {"filter": "."}, None),
     ],
