@@ -102,6 +102,13 @@ def test_csv_western_encoding(path):
     df_meta = ds.get_metadata()
     assert df_meta == {"df_rows": 2, "total_rows": 2}
 
+    # Encoding auto-detection
+    ds = DataSource(path("encoded_western_short.csv"))
+    df = ds.get_df()
+    assert df.shape == (2, 19)
+    df_meta = ds.get_metadata()
+    assert df_meta == {"df_rows": 2, "total_rows": 2}
+
 
 def test_csv_header_row(path):
     """
