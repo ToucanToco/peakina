@@ -86,6 +86,9 @@ def csv_meta(
 ) -> Dict[str, Any]:
     total_rows = _line_count(filepath_or_buffer, reader_kwargs.get("encoding"))
 
+    if not reader_kwargs.get("names") and (total_rows > 0):  # No header row
+        total_rows = total_rows - 1
+
     if "nrows" in reader_kwargs:
         return {
             "total_rows": total_rows,
