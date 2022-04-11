@@ -71,10 +71,62 @@ def test_csv_with_encoding(path):
     assert "unité économique" in df.columns
 
 
+def test_csv_with_trailing_newline(path):
+    """It should not count last empty line"""
+    meta = DataSource(path("trailing_newline.csv")).get_metadata()
+    assert meta["total_rows"] == 2
+
+
 def test_csv_default_encoding(path):
     """We should set `None` as default encoding for pandas readers"""
     df = DataSource(path("pika.csv")).get_df()
     assert df.shape == (486, 19)
+
+
+def test_csv_western_encoding(path):
+    """
+    It should be able to use a specific encoding
+    """
+    ds = DataSource(path("encoded_western_short.csv"), reader_kwargs={"encoding": "windows-1252"})
+    df = ds.get_df()
+    assert df.shape == (2, 19)
+    df_meta = ds.get_metadata()
+    assert df_meta == {"df_rows": 2, "total_rows": 2}
+
+    # with CLRF line-endings
+    ds = DataSource(
+        path("encoded_western_clrf_short.csv"), reader_kwargs={"encoding": "windows-1252"}
+    )
+    df = ds.get_df()
+    assert df.shape == (2, 19)
+    df_meta = ds.get_metadata()
+    assert df_meta == {"df_rows": 2, "total_rows": 2}
+
+    # Encoding auto-detection
+    ds = DataSource(path("encoded_western_short.csv"))
+    df = ds.get_df()
+    assert df.shape == (2, 19)
+    df_meta = ds.get_metadata()
+    assert df_meta == {"df_rows": 2, "total_rows": 2}
+
+
+def test_csv_header_row(path):
+    """
+    Total number of rows must not include the header rows
+    """
+    # Without header
+    ds_file_without_header = DataSource(path("0_0.csv"), reader_kwargs={"names": ["colA", "colB"]})
+    assert ds_file_without_header.get_df().shape == (3, 2)
+    meta = ds_file_without_header.get_metadata()
+    assert meta["total_rows"] == 3
+    assert meta["df_rows"] == 3
+
+    # With header
+    ds_file_with_header = DataSource(path("0_0.csv"))
+    assert ds_file_with_header.get_df().shape == (2, 2)
+    meta = ds_file_with_header.get_metadata()
+    assert meta["total_rows"] == 2
+    assert meta["df_rows"] == 2
 
 
 def test_csv_with_sep_and_encoding(path):

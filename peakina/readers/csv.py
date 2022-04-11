@@ -67,16 +67,22 @@ def read_csv(
     )
 
 
-def _line_count(filepath_or_buffer: "FilePathOrBuffer") -> int:
-    with open(filepath_or_buffer) as f:
+def _line_count(filepath_or_buffer: "FilePathOrBuffer", encoding: Optional[str]) -> int:
+    with open(filepath_or_buffer, encoding=encoding) as f:
         lines = 0
         buf_size = 1024 * 1024
         read_f = f.read  # loop optimization
 
-        buf = read_f(buf_size)
-        while buf:
-            lines += buf.count("\n")
+        trailing_newline: bool = False
+        while True:
             buf = read_f(buf_size)
+            lines += buf.count("\n")
+            if not buf:
+                break
+            trailing_newline = buf.endswith("\n")
+
+        if not trailing_newline:
+            lines += 1
 
         return lines
 
@@ -84,7 +90,10 @@ def _line_count(filepath_or_buffer: "FilePathOrBuffer") -> int:
 def csv_meta(
     filepath_or_buffer: "FilePathOrBuffer", reader_kwargs: Dict[str, Any]
 ) -> Dict[str, Any]:
-    total_rows = _line_count(filepath_or_buffer)
+    total_rows = _line_count(filepath_or_buffer, reader_kwargs.get("encoding"))
+
+    if "names" not in reader_kwargs and total_rows > 0:  # No header row
+        total_rows = total_rows - 1
 
     if "nrows" in reader_kwargs:
         return {
