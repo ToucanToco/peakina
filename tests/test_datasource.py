@@ -97,6 +97,26 @@ def test_csv_western_encoding(path):
     assert df_meta == {"df_rows": 2, "total_rows": 2}
 
 
+@pytest.mark.skip(reason="The line counter takes into account empty trailing lines")
+def test_csv_header_row(path):
+    """
+    Total number of rows must not include the header rows
+    """
+    # Without header
+    ds_file_without_header = DataSource(path("0_0.csv"), reader_kwargs={"names": ["colA", "colB"]})
+    assert ds_file_without_header.get_df().shape == (3, 2)
+    meta = ds_file_without_header.get_metadata()
+    assert meta["total_rows"] == 3
+    assert meta["df_rows"] == 3
+
+    # With header
+    ds_file_with_header = DataSource(path("0_0.csv"))
+    assert ds_file_with_header.get_df().shape == (2, 2)
+    meta = ds_file_with_header.get_metadata()
+    assert meta["total_rows"] == 2
+    assert meta["df_rows"] == 2
+
+
 def test_csv_with_sep_and_encoding(path):
     """It should be able to detect everything"""
     ds = DataSource(path("latin_1_sep.csv"))
