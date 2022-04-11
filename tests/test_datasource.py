@@ -71,9 +71,9 @@ def test_csv_with_encoding(path):
     assert "unité économique" in df.columns
 
 
-def test_csv_with_trailing_line(path):
+def test_csv_with_trailing_newline(path):
     """It should not count last empty line"""
-    meta = DataSource(path("trailing_line_empty.csv")).get_metadata()
+    meta = DataSource(path("trailing_newline.csv")).get_metadata()
     assert meta["total_rows"] == 2
 
 

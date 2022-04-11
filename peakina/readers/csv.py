@@ -69,13 +69,15 @@ def _line_count(filepath_or_buffer: "FilePathOrBuffer", encoding: Optional[str])
         buf_size = 1024 * 1024
         read_f = f.read  # loop optimization
 
-        buf = read_f(buf_size)
-        while buf:
-            finish_by_line_break = buf.endswith("\n")
-            lines += buf.count("\n")
+        trailing_newline: bool = False
+        while True:
             buf = read_f(buf_size)
+            lines += buf.count("\n")
+            if not buf:
+                break
+            trailing_newline = buf.endswith("\n")
 
-        if not finish_by_line_break:
+        if not trailing_newline:
             lines += 1
 
         return lines
