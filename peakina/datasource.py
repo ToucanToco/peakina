@@ -74,6 +74,15 @@ class DataSource:
             return {}  # no metadata for matched datasources
         with self.fetcher.open(self.uri) as f:
             assert self.type is not None
+
+            allowed_params = get_reader_allowed_params(self.type)
+            # Auto-detect encoding if not present
+            encoding = self.reader_kwargs.get("encoding")
+            if "encoding" in allowed_params:
+                if not validate_encoding(f.name, encoding):
+                    encoding = detect_encoding(f.name)
+                self.reader_kwargs["encoding"] = encoding
+
             return get_metadata(f.name, self.type, self.reader_kwargs)
 
     @staticmethod
