@@ -71,6 +71,12 @@ def test_csv_with_encoding(path):
     assert "unité économique" in df.columns
 
 
+def test_csv_with_trailing_line(path):
+    """It should not count last empty line"""
+    meta = DataSource(path("trailing_line_empty.csv")).get_metadata()
+    assert meta["total_rows"] == 2
+
+
 def test_csv_default_encoding(path):
     """We should set `None` as default encoding for pandas readers"""
     df = DataSource(path("pika.csv")).get_df()
@@ -97,7 +103,6 @@ def test_csv_western_encoding(path):
     assert df_meta == {"df_rows": 2, "total_rows": 2}
 
 
-@pytest.mark.skip(reason="The line counter takes into account empty trailing lines")
 def test_csv_header_row(path):
     """
     Total number of rows must not include the header rows
