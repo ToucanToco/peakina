@@ -77,6 +77,26 @@ def test_csv_default_encoding(path):
     assert df.shape == (486, 19)
 
 
+def test_csv_western_encoding(path):
+    """
+    It should be able to use a specific encoding
+    """
+    ds = DataSource(path("encoded_western_short.csv"), reader_kwargs={"encoding": "windows-1252"})
+    df = ds.get_df()
+    assert df.shape == (2, 19)
+    df_meta = ds.get_metadata()
+    assert df_meta == {"df_rows": 2, "total_rows": 2}
+
+    # with CLRF line-endings
+    ds = DataSource(
+        path("encoded_western_clrf_short.csv"), reader_kwargs={"encoding": "windows-1252"}
+    )
+    df = ds.get_df()
+    assert df.shape == (2, 19)
+    df_meta = ds.get_metadata()
+    assert df_meta == {"df_rows": 2, "total_rows": 2}
+
+
 def test_csv_with_sep_and_encoding(path):
     """It should be able to detect everything"""
     ds = DataSource(path("latin_1_sep.csv"))
