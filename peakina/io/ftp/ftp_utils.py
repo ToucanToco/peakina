@@ -42,9 +42,17 @@ class FTPS(ftplib.FTP_TLS):
         self.port = port or 990
         self.timeout = timeout
 
-        self._sock = socket.create_connection((self.host, self.port), self.timeout)
-        self.af = self._sock.family
-        self.sock: ssl.SSLSocket = self.context.wrap_socket(self._sock, server_hostname=self.host)
+        def _setup_sock() -> socket.socket:
+            _sock = socket.create_connection((self.host, self.port), self.timeout)
+            self.af = _sock.family
+            return _sock
+
+        try:
+            self.sock = self.context.wrap_socket(_setup_sock(), server_hostname=self.host)
+        except ssl.SSLError:  # pragma: no cover
+            # in some cases we must fallback to:
+            self.sock = _setup_sock()
+
         self.file = self.sock.makefile("r")
         self.welcome = self.getresp()
         return self.welcome
@@ -57,7 +65,7 @@ class FTPS(ftplib.FTP_TLS):
         conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
         if self._prot_p:  # type: ignore[attr-defined]
             conn = self.context.wrap_socket(
-                conn, server_hostname=self.host, session=self.sock.session
+                conn, server_hostname=self.host, session=self.sock.session  # type: ignore[union-attr]
             )  # this is the fix
         return conn, size
 
@@ -78,8 +86,17 @@ def ftps_client(params: ParseResult) -> Generator[Tuple[FTPS, str], None, None]:
     ftps = FTPS()
     try:
         ftps.connect(host=params.hostname or "", port=params.port, timeout=3)
-        ftps.prot_p()
-        ftps.login(user=params.username or "", passwd=params.password or "")
+        try:
+            ftps.prot_p()
+            ftps.login(user=params.username or "", passwd=params.password or "")
+        except Exception as e:
+            if "SSL/TLS required on the control channel" in str(e):
+                # This error means we should try the other way: first login, then prot_p:
+                ftps.login(user=params.username or "", passwd=params.password or "")
+                ftps.prot_p()
+            else:
+                raise
+
         yield ftps, params.path
 
     finally:
