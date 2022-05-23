@@ -89,7 +89,7 @@ def ftps_client(params: ParseResult) -> Generator[Tuple[FTPS, str], None, None]:
         try:
             ftps.prot_p()
             ftps.login(user=params.username or "", passwd=params.password or "")
-        except Exception as e:  # pragma: no cover
+        except Exception as e:
             if "SSL/TLS required on the control channel" in str(e):
                 # This error means we should try the other way: first login, then prot_p:
                 ftps.login(user=params.username or "", passwd=params.password or "")

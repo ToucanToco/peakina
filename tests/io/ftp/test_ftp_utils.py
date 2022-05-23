@@ -1,6 +1,7 @@
 import ftplib
 import os
 import socket
+import ssl
 
 from pytest import fixture, raises
 
@@ -124,6 +125,30 @@ def test_ftps_client(mocker):
     mock_ftps_client.connect.assert_called_once_with(host="ondine.com", port=123, timeout=3)
     mock_ftps_client.login.assert_called_once_with(passwd="", user="sacha")
     mock_ftps_client.quit.assert_called_once()
+
+
+def test_ftps_client_ssl_required_on_control_channel(mocker):
+    mock_ftps_client = mocker.patch("peakina.io.ftp.ftp_utils.FTPS").return_value
+    mock_ftps_client.prot_p.side_effect = [
+        ssl.SSLError("SSL/TLS required on the control channel"),
+        None,
+    ]
+    url = "ftps://sacha@ondine.com:123/picha/chu.csv"
+    ftp_open(url)
+
+    mock_ftps_client.connect.call_count == 2
+    mock_ftps_client.prot_p.call_count == 2
+    mock_ftps_client.login.call_count == 1
+    mock_ftps_client.login.assert_called_once_with(passwd="", user="sacha")
+    mock_ftps_client.quit.call_count == 2
+
+
+def test_ftps_client_other_error(mocker):
+    mock_ftps_client = mocker.patch("peakina.io.ftp.ftp_utils.FTPS").return_value
+    mock_ftps_client.prot_p.side_effect = [ssl.SSLError("meh"), None]
+    url = "ftps://sacha@ondine.com:123/picha/chu.csv"
+    ftp_open(url)
+    mock_ftps_client.login.call_count == 0  # never called
 
 
 def test_ftps_client_quit_resilience(mocker):
