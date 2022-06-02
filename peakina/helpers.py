@@ -24,6 +24,7 @@ from peakina.readers import (
     excel_meta,
     read_csv,
     read_excel,
+    read_file,
     read_json,
     read_xml,
 )
@@ -62,6 +63,10 @@ SUPPORTED_FILE_TYPES = {
         ["encoding", "decimal"],
         excel_meta,
     ),
+    "geojson": TypeInfos(
+        ["application/json"],
+        read_file,
+    ),
     "json": TypeInfos(
         ["application/json"],
         read_json,
@@ -81,6 +86,7 @@ class TypeEnum(str, Enum):
     JSON = "json"
     PARQUET = "parquet"
     XML = "xml"
+    GEOJSON = "geojson"
 
 
 def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
