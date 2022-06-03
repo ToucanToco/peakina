@@ -1,6 +1,6 @@
 from .csv import csv_meta, read_csv
 from .excel import excel_meta, read_excel
-from .geojson import read_file
+from .geodata import read_geo_data
 from .json import read_json
 from .xml import read_xml
 
@@ -16,5 +16,5 @@ __all__ = (
     # XML
     "read_xml",
     # GEOJSON
-    "read_file",
+    "read_geo_data",
 )
