@@ -43,7 +43,7 @@ class TypeInfos(NamedTuple):
 
 
 # For files without MIME types, we make fake MIME types based on detected extension
-CUSTOM_MIMETYPES = {".parquet": "peakina/parquet"}
+CUSTOM_MIMETYPES = {".parquet": "peakina/parquet", ".geojson": "application/geo+json"}
 
 EXTRA_PEAKINA_READER_KWARGS = ["preview_offset", "preview_nrows"]
 
@@ -64,7 +64,7 @@ SUPPORTED_FILE_TYPES = {
         excel_meta,
     ),
     "geojson": TypeInfos(
-        ["application/json"],
+        ["application/geo+json"],
         read_file,
     ),
     "json": TypeInfos(
@@ -97,7 +97,6 @@ def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
     if is_regex:
         filepath = filepath.rstrip("$")
     mimetype, _ = mimetypes.guess_type(filepath)
-
     # Fallback on custom MIME types
     if mimetype is None:
         _, fileext = os.path.splitext(filepath)
