@@ -26,7 +26,7 @@ def test_detect_type_no_regex():
         detect_type("file.doc")
     assert (
         str(e.value) == "Unsupported mimetype 'application/msword'. "
-        "Supported types are: 'csv', 'excel', 'json', 'parquet', 'xml'."
+        "Supported types are: 'csv', 'excel', 'geojson', 'json', 'parquet', 'xml'."
     )
     with pytest.raises(ValueError):
         detect_type("file*.csv$")
