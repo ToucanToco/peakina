@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.2] -   2022-06-06
+- geodata reader
+
+
 ## [0.7.11] -  2022-04-05
 
 ### Changed
@@ -86,6 +90,7 @@
 
 - Initial version, showtime!
 
+[0.8.2]: https://github.com/ToucanToco/peakina/compare/v0.8.1...v0.8.2
 [0.5.3]: https://github.com/ToucanToco/peakina/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/ToucanToco/peakina/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/ToucanToco/peakina/compare/v0.5.0...v0.5.1
