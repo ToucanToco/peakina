@@ -56,7 +56,7 @@ PyYAML = "^6.0"
 typing-extensions = "^4.1.1"
 
 # types
-types-chardet = "^4.0.3"
+types-chardet = "^4.0.4"
 types-certifi = "^2021.10.8"
 types-dataclasses = "^0.6.4"
 types-paramiko = "^2.8.12"
