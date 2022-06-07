@@ -97,6 +97,10 @@ def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
     if is_regex:
         filepath = filepath.rstrip("$")
     mimetype, _ = mimetypes.guess_type(filepath)
+
+    if mimetype in ("application/geo+json", "application/vnd.geo+json"):
+        return TypeEnum.GEODATA
+
     # Fallback on custom MIME types
     if mimetype is None:
         _, fileext = os.path.splitext(filepath)
