@@ -24,6 +24,7 @@ from peakina.readers import (
     excel_meta,
     read_csv,
     read_excel,
+    read_geo_data,
     read_json,
     read_xml,
 )
@@ -42,7 +43,7 @@ class TypeInfos(NamedTuple):
 
 
 # For files without MIME types, we make fake MIME types based on detected extension
-CUSTOM_MIMETYPES = {".parquet": "peakina/parquet"}
+CUSTOM_MIMETYPES = {".parquet": "peakina/parquet", ".geojson": "peakina/geo"}
 
 EXTRA_PEAKINA_READER_KWARGS = ["preview_offset", "preview_nrows"]
 
@@ -62,13 +63,17 @@ SUPPORTED_FILE_TYPES = {
         ["encoding", "decimal"],
         excel_meta,
     ),
+    "geodata": TypeInfos(
+        ["peakina/geo"],
+        read_geo_data,
+    ),
     "json": TypeInfos(
         ["application/json"],
         read_json,
         ["filter"],  # this option comes from read_json, which @wraps(pd.read_json)
     ),
     "parquet": TypeInfos(["peakina/parquet"], pd.read_parquet),
-    "xml": TypeInfos(["application/xml"], read_xml),
+    "xml": TypeInfos(["application/xml", "text/xml"], read_xml),
 }
 
 
@@ -81,6 +86,7 @@ class TypeEnum(str, Enum):
     JSON = "json"
     PARQUET = "parquet"
     XML = "xml"
+    GEODATA = "geodata"
 
 
 def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
@@ -91,6 +97,9 @@ def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
     if is_regex:
         filepath = filepath.rstrip("$")
     mimetype, _ = mimetypes.guess_type(filepath)
+
+    if mimetype in ("application/geo+json", "application/vnd.geo+json"):
+        return TypeEnum.GEODATA
 
     # Fallback on custom MIME types
     if mimetype is None:

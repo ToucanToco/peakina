@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional
+from unittest import mock
 
 import pytest
 
@@ -17,16 +18,24 @@ from peakina.helpers import (
 )
 
 
+def test_detect_geojson_type_for_coverage():
+    """Since the mimetypes module reads system files such as /etc/mime.types, It may or may
+    not return geojson mimetypes, depending on the environment. This test ensures coverage."""
+    with mock.patch("mimetypes.guess_type", return_value=("application/geo+json", None)):
+        assert detect_type("file.geojson") == "geodata"
+
+
 def test_detect_type_no_regex():
     """It should find the right type of a file and raise an exception if not supported"""
     assert detect_type("file.csv") == "csv"
     assert detect_type("file.tsv") == "csv"
     assert detect_type("file.xml") == "xml"
+    assert detect_type("file.geojson") == "geodata"
     with pytest.raises(ValueError) as e:
         detect_type("file.doc")
     assert (
         str(e.value) == "Unsupported mimetype 'application/msword'. "
-        "Supported types are: 'csv', 'excel', 'json', 'parquet', 'xml'."
+        "Supported types are: 'csv', 'excel', 'geodata', 'json', 'parquet', 'xml'."
     )
     with pytest.raises(ValueError):
         detect_type("file*.csv$")
