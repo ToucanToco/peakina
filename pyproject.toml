@@ -20,7 +20,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-certifi = "^2021.10.8"
+certifi = ">=2022.5.18,<2023.0.0"
 chardet = "^4.0.0"
 fastparquet = "^0.8.0"
 jq = "^1.2.1"
