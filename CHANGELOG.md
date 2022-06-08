@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.18]
+
+### Changed
+
+- Added `text/xml` to supported XML mimetypes
+- Make `peakina.helpers.detect_type` return GEODATA if the stdlib returns a geojson-like mimetype
+
 ## [0.7.11] -  2022-04-05
 
 ### Changed
