@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.4] -   2022-06-06
+
+### Changed
+
+- Dependency whose version was `<1` have been constrained to `>=0.x,<1` rather than `^0.x`
+
 ## [0.8.2] -   2022-06-06
 - geodata reader
 
