@@ -3,7 +3,7 @@ Module to add excel files support
 """
 import logging
 from functools import wraps
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import pandas as pd
 
@@ -13,12 +13,12 @@ LOGGER = logging.getLogger(__name__)
 @wraps(pd.read_excel)
 def read_excel(
     *args: Any,
-    preview_nrows: Optional[int] = None,
+    preview_nrows: int | None = None,
     preview_offset: int = 0,
     **kwargs: Any,
 ) -> pd.DataFrame:
 
-    df_or_dict: Union[Dict[str, pd.DataFrame], pd.DataFrame] = pd.read_excel(*args, **kwargs)
+    df_or_dict: dict[str, pd.DataFrame] | pd.DataFrame = pd.read_excel(*args, **kwargs)
 
     if isinstance(df_or_dict, dict):  # multiple sheets
         for sheet_name, sheet_df in df_or_dict.items():
@@ -33,7 +33,7 @@ def read_excel(
     return df
 
 
-def excel_meta(filepath: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+def excel_meta(filepath: str, reader_kwargs: dict[str, Any]) -> dict[str, Any]:
     """
     Returns a dictionary with the meta information of the Excel file.
     """

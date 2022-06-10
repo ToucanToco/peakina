@@ -10,33 +10,21 @@ from functools import partial
 from ipaddress import ip_address
 from os.path import basename, join
 from time import sleep
-from typing import (
-    IO,
-    Any,
-    Callable,
-    ContextManager,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import IO, Any, Callable, ContextManager, Generator, cast
 from urllib.parse import ParseResult, quote, unquote, urlparse
 
 import paramiko
 
 FTP_SCHEMES = ["ftp", "ftps", "sftp"]
 
-FTPClient = Union[ftplib.FTP, paramiko.SFTPClient]
+FTPClient = ftplib.FTP | paramiko.SFTPClient
 
 
 class FTPS(ftplib.FTP_TLS):
     ssl_version = ssl.PROTOCOL_TLSv1_2
 
     def connect(  # type: ignore[override]
-        self, host: str, port: Optional[int], timeout: int = 60
+        self, host: str, port: int | None, timeout: int = 60
     ) -> str:
         self.host = host
         self.port = port or 990
@@ -58,8 +46,8 @@ class FTPS(ftplib.FTP_TLS):
         return self.welcome
 
     def ntransfercmd(  # type: ignore[override]
-        self, cmd: str, rest: Optional[str] = None
-    ) -> Tuple[socket.socket, int]:
+        self, cmd: str, rest: str | None = None
+    ) -> tuple[socket.socket, int]:
         # override ntransfercmd so it reuses the sock session, to prevent SSLEOFError.
         # cf. https://stackoverflow.com/questions/40536061/ssleoferror-on-ftps-using-python-ftplib
         conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
@@ -69,7 +57,7 @@ class FTPS(ftplib.FTP_TLS):
             )  # this is the fix
         return conn, size
 
-    def makepasv(self) -> Tuple[str, int]:
+    def makepasv(self) -> tuple[str, int]:
         # override makepasv so it rewrites the dst address if the server gave a broken one.
         # Inspired by:
         # https://github.com/lavv17/lftp/blob/d67fc14d085849a6b0418bb3e912fea2e94c18d1/src/ftpclass.cc#L774
@@ -82,7 +70,7 @@ class FTPS(ftplib.FTP_TLS):
 
 
 @contextmanager
-def ftps_client(params: ParseResult) -> Generator[Tuple[FTPS, str], None, None]:
+def ftps_client(params: ParseResult) -> Generator[tuple[FTPS, str], None, None]:
     ftps = FTPS()
     try:
         ftps.connect(host=params.hostname or "", port=params.port, timeout=3)
@@ -105,7 +93,7 @@ def ftps_client(params: ParseResult) -> Generator[Tuple[FTPS, str], None, None]:
 
 
 @contextmanager
-def ftp_client(params: ParseResult) -> Generator[Tuple[ftplib.FTP, str], None, None]:
+def ftp_client(params: ParseResult) -> Generator[tuple[ftplib.FTP, str], None, None]:
     port = params.port or 21
     ftp = ftplib.FTP()
     try:
@@ -119,7 +107,7 @@ def ftp_client(params: ParseResult) -> Generator[Tuple[ftplib.FTP, str], None, N
 
 
 @contextmanager
-def sftp_client(params: ParseResult) -> Generator[Tuple[paramiko.SFTPClient, str], None, None]:
+def sftp_client(params: ParseResult) -> Generator[tuple[paramiko.SFTPClient, str], None, None]:
     port = params.port or 22
     ssh_client = paramiko.SSHClient()
     try:
@@ -149,10 +137,10 @@ def _urlparse(url: str) -> ParseResult:
     return ParseResult(*[unquote(param) for param in url_params])
 
 
-def client(url: str) -> ContextManager[Tuple[FTPClient, str]]:
+def client(url: str) -> ContextManager[tuple[FTPClient, str]]:
     parse_result = _urlparse(url)
-    ftp_client_mapping: Dict[
-        str, Callable[[ParseResult], ContextManager[Tuple[FTPClient, str]]]
+    ftp_client_mapping: dict[
+        str, Callable[[ParseResult], ContextManager[tuple[FTPClient, str]]]
     ] = {
         "ftp": ftp_client,
         "ftps": ftps_client,
@@ -199,7 +187,7 @@ def ftp_open(url: str, retry: int = 4) -> IO[bytes]:  # type: ignore
             sleep(sleep_time)
 
 
-def _get_all_files(c: FTPClient, path: str) -> List[str]:
+def _get_all_files(c: FTPClient, path: str) -> list[str]:
     try:
         # retry_pasv returns path + the file
         return [basename(x) for x in retry_pasv(cast(ftplib.FTP, c), "nlst", path)]
@@ -209,12 +197,12 @@ def _get_all_files(c: FTPClient, path: str) -> List[str]:
         return cast(paramiko.SFTPClient, c).listdir(path)
 
 
-def ftp_listdir(url: str) -> List[str]:
+def ftp_listdir(url: str) -> list[str]:
     with client(url) as (c, path):
         return _get_all_files(c, path)
 
 
-def _get_mtime(c: FTPClient, path: str) -> Optional[int]:
+def _get_mtime(c: FTPClient, path: str) -> int | None:
     """Returns timestamp of last modification"""
     try:
         mdtm = cast(ftplib.FTP, c).sendcmd("MDTM " + path)
@@ -233,12 +221,12 @@ def _get_mtime(c: FTPClient, path: str) -> Optional[int]:
         return None
 
 
-def ftp_mtime(url: str) -> Optional[int]:
+def ftp_mtime(url: str) -> int | None:
     with client(url) as (cl_ftp, path):
         return _get_mtime(cl_ftp, path)
 
 
-def dir_mtimes(url: str) -> Dict[str, Optional[int]]:
+def dir_mtimes(url: str) -> dict[str, int | None]:
     with client(url) as (cl_ftp, path):
         mtimes_dir = {}
         all_files = _get_all_files(cl_ftp, path)

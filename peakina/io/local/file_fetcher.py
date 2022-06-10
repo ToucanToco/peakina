@@ -1,5 +1,5 @@
 import os
-from typing import IO, List
+from typing import IO
 
 from ..fetcher import Fetcher, register
 
@@ -9,7 +9,7 @@ class FileFetcher(Fetcher):
     def open(self, filepath: str) -> IO[str]:
         return open(filepath)
 
-    def listdir(self, dirpath: str) -> List[str]:
+    def listdir(self, dirpath: str) -> list[str]:
         return os.listdir(dirpath)
 
     def mtime(self, filepath: str) -> int:

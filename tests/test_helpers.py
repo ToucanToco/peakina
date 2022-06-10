@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -116,7 +116,7 @@ def test_validate_sep_error(path):
     ],
 )
 def test_validate_kwargs(
-    filetype: Optional[TypeEnum], reader_kwargs: Dict[str, Any], exception_str: Optional[str]
+    filetype: TypeEnum | None, reader_kwargs: dict[str, Any], exception_str: str | None
 ) -> None:
     """It should raise an error if at least one kwarg is not in one of the methods"""
     if exception_str is None:

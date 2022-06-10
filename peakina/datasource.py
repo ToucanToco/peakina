@@ -9,7 +9,7 @@ from contextlib import suppress
 from dataclasses import asdict, field
 from datetime import timedelta
 from hashlib import md5
-from typing import IO, Any, Dict, Generator, Iterable, Optional, Union
+from typing import IO, Any, Generator, Iterable
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
@@ -38,14 +38,14 @@ PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | AVAILABLE_SCHEM
 @dataclass
 class DataSource:
     uri: str
-    type: Optional[TypeEnum] = None
-    match: Optional[MatchEnum] = None
-    expire: Optional[timedelta] = None
-    reader_kwargs: Dict[str, Any] = field(default_factory=dict)
-    fetcher_kwargs: Dict[str, Any] = field(default_factory=dict)
+    type: TypeEnum | None = None
+    match: MatchEnum | None = None
+    expire: timedelta | None = None
+    reader_kwargs: dict[str, Any] = field(default_factory=dict)
+    fetcher_kwargs: dict[str, Any] = field(default_factory=dict)
 
     def __post_init_post_parse__(self) -> None:
-        self._fetcher: Optional[Fetcher] = None
+        self._fetcher: Fetcher | None = None
         self.scheme = urlparse(self.uri).scheme
         if self.scheme not in PD_VALID_URLS:
             raise AttributeError(f"Invalid scheme {self.scheme!r}")
@@ -68,7 +68,7 @@ class DataSource:
         filename = slugify(os.path.basename(self.uri), separator="_")
         return f"_{filename}_{hash_}"
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         """Return datasource metadata (e.g. excel sheetnames)"""
         if self.match:
             return {}  # no metadata for matched datasources
@@ -87,8 +87,8 @@ class DataSource:
 
     @staticmethod
     def _get_single_df(
-        stream: Union[IO[bytes], IO[str]], filetype: Optional[TypeEnum], **kwargs: Any
-    ) -> Union[pd.DataFrame, Iterable[pd.DataFrame]]:
+        stream: IO[bytes] | IO[str], filetype: TypeEnum | None, **kwargs: Any
+    ) -> pd.DataFrame | Iterable[pd.DataFrame]:
         """
         Read a stream and retrieve the data frame or data frame generator (chunks)
         It uses `stream.name`, which is the path to a local file (often temporary)
@@ -123,7 +123,7 @@ class DataSource:
             overriden_args = {**my_args, "uri": uri, "match": None}
             yield DataSource(**overriden_args)  # type: ignore[arg-type]
 
-    def get_dfs(self, cache: Optional[Cache] = None) -> Generator[pd.DataFrame, None, None]:
+    def get_dfs(self, cache: Cache | None = None) -> Generator[pd.DataFrame, None, None]:
         """
         From the conf of the datasource, returns a generator
         with all the dataframes
@@ -161,17 +161,17 @@ class DataSource:
                     cache.set(key=cache_key, value=df, mtime=cache_mtime)
                 yield df
 
-    def get_df(self, cache: Optional[Cache] = None) -> pd.DataFrame:
+    def get_df(self, cache: Cache | None = None) -> pd.DataFrame:
         return pd.concat([x for x in self.get_dfs(cache=cache)], sort=False).reset_index(drop=True)
 
 
 def read_pandas(
     uri: str,
     *,
-    type: Optional[TypeEnum] = None,
-    match: Optional[MatchEnum] = None,
-    expire: Optional[timedelta] = None,
-    fetcher_kwargs: Optional[Dict[str, Any]] = None,
+    type: TypeEnum | None = None,
+    match: MatchEnum | None = None,
+    expire: timedelta | None = None,
+    fetcher_kwargs: dict[str, Any] | None = None,
     **reader_kwargs: Any,
 ) -> pd.DataFrame:
     return DataSource(

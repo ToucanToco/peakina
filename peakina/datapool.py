@@ -1,5 +1,5 @@
 from os import path
-from typing import TYPE_CHECKING, Any, Dict, Hashable, Optional
+from typing import TYPE_CHECKING, Any, Hashable
 
 from peakina.cache import Cache
 from peakina.datasource import DataSource
@@ -11,12 +11,12 @@ if TYPE_CHECKING:
 class DataPool:
     def __init__(
         self,
-        config: Dict[Hashable, Dict[str, Any]],
+        config: dict[Hashable, dict[str, Any]],
         data_sources_dir: str = "",
-        cache: Optional[Cache] = None,
+        cache: Cache | None = None,
     ) -> None:
         self.cache = cache
-        self.datasources: Dict[Hashable, DataSource] = {}
+        self.datasources: dict[Hashable, DataSource] = {}
         for ds_id, ds_conf in config.items():
             ds = DataSource(**ds_conf)
 

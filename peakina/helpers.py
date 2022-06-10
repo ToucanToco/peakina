@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 from enum import Enum
 from itertools import islice
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
+from typing import Any, Callable, NamedTuple, cast
 
 import chardet
 import pandas as pd
@@ -32,14 +32,14 @@ from peakina.readers import (
 
 class TypeInfos(NamedTuple):
     # All the MIME types for a given type of file
-    mime_types: List[str]
+    mime_types: list[str]
     # The method to open a given type of file with the `filepath` as first parameter
     # It needs to return a dataframe
     reader: Callable[..., pd.DataFrame]
     # If the default reader has some missing declared kwargs, it's useful
     # to declare them for `validate_kwargs` method
-    reader_kwargs: List[str] = []
-    metadata_reader: Optional[Callable[..., Dict[str, Any]]] = None
+    reader_kwargs: list[str] = []
+    metadata_reader: Callable[..., dict[str, Any]] | None = None
 
 
 # For files without MIME types, we make fake MIME types based on detected extension
@@ -89,7 +89,7 @@ class TypeEnum(str, Enum):
     GEODATA = "geodata"
 
 
-def detect_type(filepath: str, is_regex: bool = False) -> Optional[TypeEnum]:
+def detect_type(filepath: str, is_regex: bool = False) -> TypeEnum | None:
     """
     Detects the type of a file, which can be a regex or not!
     Can return None in case of generic extension (filepath='...*') with is_regex=True.
@@ -129,7 +129,7 @@ def bytes_head(filepath: str, n: int) -> bytes:
         return b"".join(line for line in islice(f, n))
 
 
-def str_head(filepath: str, n: int, encoding: Optional[str] = None) -> str:
+def str_head(filepath: str, n: int, encoding: str | None = None) -> str:
     """Returns the first `n` lines of a file as a string."""
     with open(filepath, encoding=encoding) as f:
         return "".join(line for line in islice(f, n))
@@ -140,7 +140,7 @@ def detect_encoding(filepath: str) -> str:
     return cast(str, chardet.detect(bytes_head(filepath, 100))["encoding"])
 
 
-def validate_encoding(filepath: str, encoding: Optional[str] = None) -> bool:
+def validate_encoding(filepath: str, encoding: str | None = None) -> bool:
     """Validates if `encoding` seems ok to read the file based on its 100 first lines."""
     try:
         str_head(filepath, 100, encoding)
@@ -149,12 +149,12 @@ def validate_encoding(filepath: str, encoding: Optional[str] = None) -> bool:
         return False
 
 
-def detect_sep(filepath: str, encoding: Optional[str] = None) -> str:
+def detect_sep(filepath: str, encoding: str | None = None) -> str:
     """Detect separator of a CSV file based on its 100 first lines"""
     return csv.Sniffer().sniff(str_head(filepath, 100, encoding)).delimiter
 
 
-def validate_sep(filepath: str, sep: str = ",", encoding: Optional[str] = None) -> bool:
+def validate_sep(filepath: str, sep: str = ",", encoding: str | None = None) -> bool:
     """
     Validates if the `sep` is a right separator of a CSV file
     (i.e. the dataframe has more than one column).
@@ -168,18 +168,18 @@ def validate_sep(filepath: str, sep: str = ",", encoding: Optional[str] = None) 
         return False
 
 
-def get_reader_allowed_params(t: TypeEnum) -> List[str]:
+def get_reader_allowed_params(t: TypeEnum) -> list[str]:
     reader = SUPPORTED_FILE_TYPES[t].reader
     return [kw for kw in inspect.signature(reader).parameters]
 
 
-def validate_kwargs(kwargs: Dict[str, Any], t: Optional[TypeEnum]) -> bool:
+def validate_kwargs(kwargs: dict[str, Any], t: TypeEnum | None) -> bool:
     """
     Validate that kwargs are at least in one signature of the methods
     Raises an error if it's not the case
     """
-    types: List[TypeEnum] = [t] if t is not None else [TypeEnum(t) for t in SUPPORTED_FILE_TYPES]
-    allowed_kwargs: List[str] = []
+    types: list[TypeEnum] = [t] if t is not None else [TypeEnum(t) for t in SUPPORTED_FILE_TYPES]
+    allowed_kwargs: list[str] = []
     for t in types:
         allowed_kwargs += get_reader_allowed_params(t)
         # Add extra allowed kwargs
@@ -196,10 +196,10 @@ def mdtm_to_string(mtime: int) -> str:
     return datetime.utcfromtimestamp(mtime).isoformat() + "Z"
 
 
-def pd_read(filepath: str, t: str, kwargs: Dict[str, Any]) -> pd.DataFrame:
+def pd_read(filepath: str, t: str, kwargs: dict[str, Any]) -> pd.DataFrame:
     return SUPPORTED_FILE_TYPES[t].reader(filepath, **kwargs)
 
 
-def get_metadata(filepath: str, type: str, reader_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+def get_metadata(filepath: str, type: str, reader_kwargs: dict[str, Any]) -> dict[str, Any]:
     metadata_reader = SUPPORTED_FILE_TYPES[type].metadata_reader
     return metadata_reader(filepath, reader_kwargs) if metadata_reader else {}

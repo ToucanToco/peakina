@@ -1,6 +1,6 @@
 import tempfile
 from email.utils import parsedate_to_datetime
-from typing import IO, Any, List, Optional
+from typing import IO, Any
 
 import certifi
 import urllib3
@@ -28,10 +28,10 @@ class HttpFetcher(Fetcher):
         ret.seek(0)
         return ret
 
-    def listdir(self, dirpath: str) -> List[str]:
+    def listdir(self, dirpath: str) -> list[str]:
         raise NotImplementedError
 
-    def mtime(self, filepath: str) -> Optional[int]:
+    def mtime(self, filepath: str) -> int | None:
         try:
             r = self.pool_manager.request("HEAD", filepath)
         except Exception:

@@ -2,7 +2,7 @@ import os
 import socket
 import time
 from contextlib import suppress
-from typing import Callable, Optional, Type
+from typing import Callable
 
 import boto3
 import pytest
@@ -115,7 +115,7 @@ def wait_for_container(
     checker_callable: Callable[[int], bool],
     host_port: int,
     image: str,
-    skip_exception: Optional[Type[Exception]] = None,
+    skip_exception: type[Exception] | None = None,
     timeout: int = 60,
 ) -> None:
     skip_exception = skip_exception or Exception
