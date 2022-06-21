@@ -59,7 +59,7 @@ typing-extensions = "^4.1.1"
 types-chardet = "^4.0.3"
 types-certifi = "^2021.10.8"
 types-dataclasses = ">=0.6.4,<1"
-types-paramiko = "^2.8.12"
+types-paramiko = "^2.11.0"
 types-python-slugify = "^5.0.3"
 types-PyYAML = "^6.0.6"
 
