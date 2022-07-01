@@ -4,17 +4,15 @@ from datetime import timedelta
 from enum import Enum
 from pathlib import Path
 from time import time
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import Any, TypedDict
 
 import pandas as pd
 
-if TYPE_CHECKING:
-    from typing_extensions import TypedDict
 
-    class InMemoryCached(TypedDict):
-        value: pd.DataFrame
-        mtime: float
-        created_at: float
+class InMemoryCached(TypedDict):
+    value: pd.DataFrame
+    mtime: float
+    created_at: float
 
 
 class CacheEnum(str, Enum):
@@ -34,9 +32,9 @@ class Cache(metaclass=ABCMeta):
     @staticmethod
     def should_invalidate(
         *,
-        mtime: Optional[float] = None,
+        mtime: float | None = None,
         cached_mtime: float,
-        expire: Optional[timedelta] = None,
+        expire: timedelta | None = None,
         cached_created_at: float,
     ) -> bool:
         now = time()
@@ -50,12 +48,12 @@ class Cache(metaclass=ABCMeta):
 
     @abstractmethod
     def get(
-        self, key: str, mtime: Optional[float] = None, expire: Optional[timedelta] = None
+        self, key: str, mtime: float | None = None, expire: timedelta | None = None
     ) -> pd.DataFrame:
         """get a cached value"""
 
     @abstractmethod
-    def set(self, key: str, value: pd.DataFrame, mtime: Optional[float] = None) -> None:
+    def set(self, key: str, value: pd.DataFrame, mtime: float | None = None) -> None:
         """set a cached value"""
 
     @abstractmethod
@@ -65,10 +63,10 @@ class Cache(metaclass=ABCMeta):
 
 class InMemoryCache(Cache):
     def __init__(self) -> None:
-        self._cache: Dict[str, "InMemoryCached"] = {}
+        self._cache: dict[str, InMemoryCached] = {}
 
     def get(
-        self, key: str, mtime: Optional[float] = None, expire: Optional[timedelta] = None
+        self, key: str, mtime: float | None = None, expire: timedelta | None = None
     ) -> pd.DataFrame:
         cached = self._cache[key]
         if self.should_invalidate(
@@ -80,7 +78,7 @@ class InMemoryCache(Cache):
             self.delete(key)
         return self._cache[key]["value"]
 
-    def set(self, key: str, value: pd.DataFrame, mtime: Optional[float] = None) -> None:
+    def set(self, key: str, value: pd.DataFrame, mtime: float | None = None) -> None:
         mtime = mtime or time()
         self._cache[key] = {"value": value, "mtime": mtime, "created_at": time()}
 
@@ -92,7 +90,7 @@ class InMemoryCache(Cache):
 class HDFCache(Cache):
     META_DF_KEY = "__meta__"
 
-    def __init__(self, cache_dir: Union[str, Path]) -> None:
+    def __init__(self, cache_dir: str | Path) -> None:
         self.cache_dir = Path(cache_dir).resolve()
 
     def get_metadata(self) -> pd.DataFrame:
@@ -118,7 +116,7 @@ class HDFCache(Cache):
         df.to_hdf(self.cache_dir / self.META_DF_KEY, self.META_DF_KEY, mode="w")
 
     def get(
-        self, key: str, mtime: Optional[float] = None, expire: Optional[timedelta] = None
+        self, key: str, mtime: float | None = None, expire: timedelta | None = None
     ) -> pd.DataFrame:
         metadata = self.get_metadata()
         try:
@@ -140,7 +138,7 @@ class HDFCache(Cache):
         except FileNotFoundError:
             raise KeyError(key)
 
-    def set(self, key: str, value: pd.DataFrame, mtime: Optional[float] = None) -> None:
+    def set(self, key: str, value: pd.DataFrame, mtime: float | None = None) -> None:
         mtime = mtime or time()
         infos = {"key": key, "mtime": mtime, "created_at": time()}
         metadata = self.get_metadata()

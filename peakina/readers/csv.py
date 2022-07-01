@@ -2,14 +2,14 @@
 Module to add csv support
 """
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Union
+from typing import TYPE_CHECKING, Any, Literal
 
 import pandas as pd
 
 if TYPE_CHECKING:
     from os import PathLike
 
-    FilePathOrBuffer = Union[str, bytes, PathLike[str], PathLike[bytes]]
+    FilePathOrBuffer = str | bytes | PathLike[str] | PathLike[bytes]
 
 
 @wraps(pd.read_csv)
@@ -18,7 +18,7 @@ def read_csv(
     *,
     # extra `peakina` reader kwargs
     preview_offset: int = 0,
-    preview_nrows: Optional[int] = None,
+    preview_nrows: int | None = None,
     # change of default values
     on_bad_lines: Literal["error", "warn", "skip"] = "skip",  # pandas default: "error"
     encoding_errors: Literal["strict", "ignore"] = "ignore",  # pandas default: "strict"
@@ -67,7 +67,7 @@ def read_csv(
     )
 
 
-def _line_count(filepath_or_buffer: "FilePathOrBuffer", encoding: Optional[str]) -> int:
+def _line_count(filepath_or_buffer: "FilePathOrBuffer", encoding: str | None) -> int:
     with open(filepath_or_buffer, encoding=encoding) as f:
         lines = 0
         buf_size = 1024 * 1024
@@ -88,8 +88,8 @@ def _line_count(filepath_or_buffer: "FilePathOrBuffer", encoding: Optional[str])
 
 
 def csv_meta(
-    filepath_or_buffer: "FilePathOrBuffer", reader_kwargs: Dict[str, Any]
-) -> Dict[str, Any]:
+    filepath_or_buffer: "FilePathOrBuffer", reader_kwargs: dict[str, Any]
+) -> dict[str, Any]:
     total_rows = _line_count(filepath_or_buffer, reader_kwargs.get("encoding"))
 
     if "names" not in reader_kwargs and total_rows > 0:  # No header row
