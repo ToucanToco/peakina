@@ -1207,7 +1207,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-dataclasses"
-version = "0.6.5"
+version = "0.6.6"
 description = "Typing stubs for dataclasses"
 category = "dev"
 optional = false
@@ -2547,8 +2547,8 @@ types-cryptography = [
     {file = "types_cryptography-3.3.21-py3-none-any.whl", hash = "sha256:bdeb6dd07280ac724e05f02e0d8ef01fdef729b18bb07d635d64de83171a4e70"},
 ]
 types-dataclasses = [
-    {file = "types-dataclasses-0.6.5.tar.gz", hash = "sha256:c3226d0a93289f53aac7b55ced17fb18473e278247abdb8d85a8956f5fb4faa6"},
-    {file = "types_dataclasses-0.6.5-py3-none-any.whl", hash = "sha256:2d6347ff290a17e802400ddc747c2e2c05f3d64dc4c29de9818dc497b808180a"},
+    {file = "types-dataclasses-0.6.6.tar.gz", hash = "sha256:4b5a2fcf8e568d5a1974cd69010e320e1af8251177ec968de7b9bb49aa49f7b9"},
+    {file = "types_dataclasses-0.6.6-py3-none-any.whl", hash = "sha256:a0a1ab5324ba30363a15c9daa0f053ae4fff914812a1ebd8ad84a08e5349574d"},
 ]
 types-paramiko = [
     {file = "types-paramiko-2.11.1.tar.gz", hash = "sha256:6ca584b5131a1767dd7b077c17fd8f05d5fb5f910012f0f58691474d823ec8a5"},
