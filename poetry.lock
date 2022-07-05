@@ -1191,7 +1191,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-chardet"
-version = "4.0.4"
+version = "5.0.1"
 description = "Typing stubs for chardet"
 category = "dev"
 optional = false
@@ -1359,7 +1359,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d76c344d59fc75a26cb72d28726ffaff26b9fde5fed54fbf8776796d14472095"
+content-hash = "b1a7b6e33b8da98daf5ac538edaae2c0b1b1aa8528b73badc1a1b0a1c2932747"
 
 [metadata.files]
 aiobotocore = [
@@ -2540,8 +2540,8 @@ types-certifi = [
     {file = "types_certifi-2021.10.8.3-py3-none-any.whl", hash = "sha256:b2d1e325e69f71f7c78e5943d410e650b4707bb0ef32e4ddf3da37f54176e88a"},
 ]
 types-chardet = [
-    {file = "types-chardet-4.0.4.tar.gz", hash = "sha256:eeb10378b44261238444d61c8e12d97d8dee151f0f4b96cc9d4ac559ca8be299"},
-    {file = "types_chardet-4.0.4-py3-none-any.whl", hash = "sha256:43f7e32aba6faab0c4441075bfe7cd11807282456b913cd28c60e8ca7aeb8e4e"},
+    {file = "types-chardet-5.0.1.tar.gz", hash = "sha256:5f481eb9aa258f177c14b59b6a2968b2e93b67c77b5fcba228de54ca93940add"},
+    {file = "types_chardet-5.0.1-py3-none-any.whl", hash = "sha256:d6bfdb92a3e764ab84acbbedda9885055acad9f69b8f7eb2c7a75454a1455e42"},
 ]
 types-cryptography = [
     {file = "types-cryptography-3.3.21.tar.gz", hash = "sha256:ad1b9c63159c009f8676c7e41a4d595dfb96e8c03affa2e693e1617908bb409e"},
