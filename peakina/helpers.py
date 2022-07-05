@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 from enum import Enum
 from itertools import islice
-from typing import Any, Callable, NamedTuple, cast
+from typing import Any, Callable, NamedTuple
 
 import chardet
 import pandas as pd
@@ -137,7 +137,7 @@ def str_head(filepath: str, n: int, encoding: str | None = None) -> str:
 
 def detect_encoding(filepath: str) -> str:
     """Detects the encoding of a file based on its 100 first lines."""
-    return cast(str, chardet.detect(bytes_head(filepath, 100))["encoding"])
+    return chardet.detect(bytes_head(filepath, 100))["encoding"]
 
 
 def validate_encoding(filepath: str, encoding: str | None = None) -> bool:
