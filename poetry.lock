@@ -400,7 +400,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "fsspec"
-version = "2022.5.0"
+version = "2022.7.1"
 description = "File-system specification"
 category = "main"
 optional = false
@@ -1083,20 +1083,20 @@ use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
 name = "s3fs"
-version = "2022.5.0"
+version = "2022.7.1"
 description = "Convenient Filesystem interface over S3"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 
 [package.dependencies]
-aiobotocore = ">=2.3.0,<2.4.0"
-aiohttp = "<=4"
-fsspec = "2022.5.0"
+aiobotocore = ">=2.3.4,<2.4.0"
+aiohttp = "*"
+fsspec = "2022.7.1"
 
 [package.extras]
-awscli = ["aiobotocore[awscli] (>=2.3.0,<2.4.0)"]
-boto3 = ["aiobotocore[boto3] (>=2.3.0,<2.4.0)"]
+awscli = ["aiobotocore[awscli] (>=2.3.4,<2.4.0)"]
+boto3 = ["aiobotocore[boto3] (>=2.3.4,<2.4.0)"]
 
 [[package]]
 name = "s3transfer"
@@ -1852,8 +1852,8 @@ frozenlist = [
     {file = "frozenlist-1.3.0.tar.gz", hash = "sha256:ce6f2ba0edb7b0c1d8976565298ad2deba6f8064d2bebb6ffce2ca896eb35b0b"},
 ]
 fsspec = [
-    {file = "fsspec-2022.5.0-py3-none-any.whl", hash = "sha256:2c198c50eb541a80bbd03540b07602c4a957366f3fb416a1f270d34bd4ff0926"},
-    {file = "fsspec-2022.5.0.tar.gz", hash = "sha256:7a5459c75c44e760fbe6a3ccb1f37e81e023cde7da8ba20401258d877ec483b4"},
+    {file = "fsspec-2022.7.1-py3-none-any.whl", hash = "sha256:36c5a8e7c4fc20cf32ef6934ac0a122accc8a593ddc8478d30c3ca4dbbd95500"},
+    {file = "fsspec-2022.7.1.tar.gz", hash = "sha256:7f9fb19d811b027b97c4636c6073eb53bc4cbee2d3c4b33fa88b9f26906fd7d7"},
 ]
 geopandas = [
     {file = "geopandas-0.11.0-py3-none-any.whl", hash = "sha256:0991f279d4f9e3a04e3666f32b1ac64d6ba439933da3d9654a26031e0ccea5dc"},
@@ -2448,8 +2448,8 @@ requests = [
     {file = "requests-2.28.0.tar.gz", hash = "sha256:d568723a7ebd25875d8d1eaf5dfa068cd2fc8194b2e483d7b1f7c81918dbec6b"},
 ]
 s3fs = [
-    {file = "s3fs-2022.5.0-py3-none-any.whl", hash = "sha256:c7bb327303e931cf641f3cac9b6412a8f1e2908cebd3de30900cb872a4a9f5d2"},
-    {file = "s3fs-2022.5.0.tar.gz", hash = "sha256:b40a3cbfaf80cbabaf0e332331117ccac69290efdac347184fb3ab6003f70465"},
+    {file = "s3fs-2022.7.1-py3-none-any.whl", hash = "sha256:97d91bfd78085f33d22c9697824126dbcd2438236951d8ff2374bb718af74e58"},
+    {file = "s3fs-2022.7.1.tar.gz", hash = "sha256:4883d682cb96b769fca568dbbcaa33ff457ac8077a03af221e6f253adac05771"},
 ]
 s3transfer = [
     {file = "s3transfer-0.5.2-py3-none-any.whl", hash = "sha256:7a6f4c4d1fdb9a2b640244008e142cbc2cd3ae34b386584ef044dd0f27101971"},
