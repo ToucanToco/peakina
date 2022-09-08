@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.9.0] - 2022-09-27
+
+### Changed
+
+- build: python 3.10 support only.
+- dependencies updates:
+   -  bump types-chardet from 5.0.1 to 5.0.4
+   -  bump s3fs from 2022.5.0 to 2022.7.1
+   -  bump geopandas from 0.11.0 to 0.11.1
+   -  bump pre-commit from 2.19.0 to 2.20.0
+   -  bump pytest-sugar from 0.9.4 to 0.9.5
+   -  bump types-pyyaml from 6.0.9 to 6.0.11
+   -  bump urllib3 from 1.26.9 to 1.26.11
+   -  bump pytest-mock from 3.8.1 to 3.8.2
+   -  bump types-chardet from 4.0.4 to 5.0.1
+   -  bump pytest-mock from 3.7.0 to 3.8.1
+   -  bump mkdocs-material from 8.3.6 to 8.3.9
+   -  bump types-python-slugify from 5.0.4 to 6.1.0
+   -  bump black from 22.3.0 to 22.6.0
+   -  bump aiobotocore from 2.3.3 to 2.3.4
+   -  bump types-paramiko from 2.11.1 to 2.11.2
+   -  bump types-dataclasses from 0.6.5 to 0.6.6
+   -  bump chardet from 4.0.0 to 5.0.0
+   -  bump types-pyyaml from 6.0.8 to 6.0.9
+   -  bump types-paramiko from 2.11.0 to 2.11.1
+   -  bump geopandas from 0.10.2 to 0.11.0
+   -  bump mkdocs-material from 8.3.3 to 8.3.6
+   -  bump types-paramiko from 2.10.0 to 2.11.0
+   -  bump certifi from 2022.5.18.1 to 2022.6.15
+   -  bump actions/setup-python from 3 to 4
+   -  bump jq from 1.2.3 to 1.3.0
+   -  bump docker from 5.0.3 to 6.0.0
+- chore: Bump geopandas>=0.11.1
+
 ## [0.8.4] -   2022-06-06
 
 ### Changed
@@ -96,6 +130,9 @@
 
 - Initial version, showtime!
 
+[0.9.0]: https://github.com/ToucanToco/peakina/compare/v0.8.4...v0.9.0
+[0.8.4]: https://github.com/ToucanToco/peakina/compare/v0.8.3...v0.8.4
+[0.8.3]: https://github.com/ToucanToco/peakina/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/ToucanToco/peakina/compare/v0.8.1...v0.8.2
 [0.5.3]: https://github.com/ToucanToco/peakina/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/ToucanToco/peakina/compare/v0.5.1...v0.5.2
