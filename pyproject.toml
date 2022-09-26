@@ -38,7 +38,7 @@ geopandas = ">=0.10.2,<1"
 [tool.poetry.dev-dependencies]
 aiobotocore = {extras = ["boto3"], version = "^2.3.4"}
 black = "^22.6"
-docker = "^5.0.3"
+docker = "^6.0.0"
 flake8 = "^4.0.1"
 isort = "^5.10.1"
 mkdocs = "^1.2.3"
