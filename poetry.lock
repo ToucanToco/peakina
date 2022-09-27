@@ -1366,7 +1366,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "0fdff4462a22a728f45f03152ef1432c9d10f4cfd54907a34d3c57d412f8ee46"
+content-hash = "b03a309101a2d0931938400576bcb73f04d02f9861ae783b548ea2388e7f05a3"
 
 [metadata.files]
 aiobotocore = [
