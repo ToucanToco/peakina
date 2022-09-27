@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0] - 2022-09-27
+
+### Changed
+
+- build: python 3.10 support only.
+- chore: Bump geopandas>=0.11.1
+
 ## [0.8.4] -   2022-06-06
 
 ### Changed
@@ -96,6 +103,9 @@
 
 - Initial version, showtime!
 
+[0.9.0]: https://github.com/ToucanToco/peakina/compare/v0.8.4...v0.9.0
+[0.8.4]: https://github.com/ToucanToco/peakina/compare/v0.8.3...v0.8.4
+[0.8.3]: https://github.com/ToucanToco/peakina/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/ToucanToco/peakina/compare/v0.8.1...v0.8.2
 [0.5.3]: https://github.com/ToucanToco/peakina/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/ToucanToco/peakina/compare/v0.5.1...v0.5.2
