@@ -4,7 +4,14 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+  # poetry
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
+  # poetry LTS
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "release/v0.9"
