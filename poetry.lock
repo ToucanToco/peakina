@@ -1226,7 +1226,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-paramiko"
-version = "2.11.6"
+version = "2.12.0.1"
 description = "Typing stubs for paramiko"
 category = "dev"
 optional = false
@@ -1370,7 +1370,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "0b096d07d3d5268a602240bdf7b05a9c1c46a83ce9143f68139fa1fcb1558410"
+content-hash = "6bba59c61a5bba0734b28b9825bc1fe9fe8b540c67019433042a86f5abcfd28c"
 
 [metadata.files]
 aiobotocore = [
@@ -2580,8 +2580,8 @@ types-dataclasses = [
     {file = "types_dataclasses-0.6.6-py3-none-any.whl", hash = "sha256:a0a1ab5324ba30363a15c9daa0f053ae4fff914812a1ebd8ad84a08e5349574d"},
 ]
 types-paramiko = [
-    {file = "types-paramiko-2.11.6.tar.gz", hash = "sha256:cfc9f12047bcf5cfaa6b7a5ad9d777d41ff4fe04ca2bb9bcf55c88dff02037e5"},
-    {file = "types_paramiko-2.11.6-py3-none-any.whl", hash = "sha256:9d6adb74a645c28e01e8539b218e8b8a4bab0b73925c60aca35993cc87f7d5a0"},
+    {file = "types-paramiko-2.12.0.1.tar.gz", hash = "sha256:591c30cfd1ee75b755863d43eea54b68fb7c19cfaa2a10229ea55637f74d3da5"},
+    {file = "types_paramiko-2.12.0.1-py3-none-any.whl", hash = "sha256:43807361500feb5a87177ef4524f2f2caf8c3bb112666cd83f4acd84d9d0a179"},
 ]
 types-python-slugify = [
     {file = "types-python-slugify-6.1.0.tar.gz", hash = "sha256:556d9b387ef632e588445b9e0edbb0e57e939ab387e53a05ad9c5a6d1321b2a3"},
