@@ -1239,7 +1239,7 @@ types-cryptography = "*"
 
 [[package]]
 name = "types-python-slugify"
-version = "6.1.0"
+version = "7.0.0.1"
 description = "Typing stubs for python-slugify"
 category = "dev"
 optional = false
@@ -1372,7 +1372,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "2f4d9db1e3be2f95229475f9d4612cf29ff4753d7d7857ac5ade9fcfe3cb267d"
+content-hash = "a26b6d19eaa88311323376f2c0e65dadab26197b122bac11ad57ffaa0c35bd9b"
 
 [metadata.files]
 aiobotocore = [
@@ -2602,8 +2602,8 @@ types-paramiko = [
     {file = "types_paramiko-2.12.0.1-py3-none-any.whl", hash = "sha256:43807361500feb5a87177ef4524f2f2caf8c3bb112666cd83f4acd84d9d0a179"},
 ]
 types-python-slugify = [
-    {file = "types-python-slugify-6.1.0.tar.gz", hash = "sha256:556d9b387ef632e588445b9e0edbb0e57e939ab387e53a05ad9c5a6d1321b2a3"},
-    {file = "types_python_slugify-6.1.0-py3-none-any.whl", hash = "sha256:663de4a7ce61c5448e838ffd2e34748df6631d4588dc0ed9a7c2bf973c0314ed"},
+    {file = "types-python-slugify-7.0.0.1.tar.gz", hash = "sha256:6b2d16e1465896df0e3685bd38eab7b8f945a3a7c18c4a2c2ef391b0e48dfce8"},
+    {file = "types_python_slugify-7.0.0.1-py3-none-any.whl", hash = "sha256:3644bb44a25847ba5c8f9d15757f1d4b76064857c30e93517723618bd1152a19"},
 ]
 types-pyyaml = [
     {file = "types-PyYAML-6.0.12.2.tar.gz", hash = "sha256:6840819871c92deebe6a2067fb800c11b8a063632eb4e3e755914e7ab3604e83"},
