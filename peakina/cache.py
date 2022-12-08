@@ -2,8 +2,9 @@ from abc import ABCMeta, abstractmethod
 from contextlib import suppress
 from datetime import timedelta
 from enum import Enum
+from functools import lru_cache, wraps
 from pathlib import Path
-from time import time
+from time import monotonic_ns, time
 from typing import Any, TypedDict
 
 import pandas as pd
@@ -158,3 +159,39 @@ class HDFCache(Cache):
         self.set_metadata(metadata)
         with suppress(FileNotFoundError):
             (self.cache_dir / key).unlink()
+
+
+# taken from https://gist.github.com/Morreski/c1d08a3afa4040815eafd3891e16b945
+def timed_lru_cache(
+    _func: Any = None, *, seconds: int = 600, maxsize: int = 128, typed: bool = False
+) -> Any:
+    """Extension of functools lru_cache with a timeout
+
+    Parameters:
+    seconds (int): Timeout in seconds to clear the WHOLE cache, default = 10 minutes
+    maxsize (int): Maximum Size of the Cache
+    typed (bool): Same value of different type will be a different entry
+
+    """
+
+    def wrapper_cache(f: Any) -> Any:
+        f = lru_cache(maxsize=maxsize, typed=typed)(f)
+        f.delta = seconds * 10**9
+        f.expiration = monotonic_ns() + f.delta
+
+        @wraps(f)
+        def wrapped_f(*args: Any, **kwargs: Any) -> Any:
+            if monotonic_ns() >= f.expiration:
+                f.cache_clear()
+                f.expiration = monotonic_ns() + f.delta
+            return f(*args, **kwargs)
+
+        wrapped_f.cache_info = f.cache_info  # type: ignore [attr-defined]
+        wrapped_f.cache_clear = f.cache_clear  # type: ignore [attr-defined]
+        return wrapped_f
+
+    # To allow decorator to be used without arguments
+    if _func is None:
+        return wrapper_cache
+    else:
+        return wrapper_cache(_func)

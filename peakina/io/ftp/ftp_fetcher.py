@@ -1,12 +1,13 @@
 import os
-from functools import lru_cache
 from typing import IO, Any
+
+from peakina.cache import timed_lru_cache
 
 from ..fetcher import Fetcher, register
 from .ftp_utils import FTP_SCHEMES, dir_mtimes, ftp_mtime, ftp_open
 
 
-@lru_cache(maxsize=3)
+@timed_lru_cache(maxsize=3, seconds=60)  # type: ignore [misc]
 def _get_mtimes_cache(**kwargs: Any) -> dict[str, dict[str, int | None]]:
     """
     This function allows to share a common _mtime_cache object between several
