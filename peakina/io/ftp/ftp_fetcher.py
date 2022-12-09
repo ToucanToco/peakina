@@ -21,7 +21,8 @@ def get_mtimes_cache(**kwargs: Any) -> dict[str, dict[str, int | None]]:
 class FTPFetcher(Fetcher):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        self._mtimes_cache: dict[str, dict[str, int | None]] = get_mtimes_cache(**kwargs)
+        # self._mtimes_cache: dict[str, dict[str, int | None]] = get_mtimes_cache(**kwargs)
+        self._mtimes_cache: dict[str, dict[str, int | None]] = {}
 
     def get_dir_mtimes(self, dirpath: str) -> dict[str, int | None]:
         if dirpath not in self._mtimes_cache:

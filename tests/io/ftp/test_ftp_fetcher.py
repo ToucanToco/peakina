@@ -4,7 +4,7 @@ from peakina.io.ftp import ftp_fetcher
 
 
 def test_ftp_fetcher(mocker, ftp_path):
-    ftp_fetcher._get_mtimes_cache.cache_clear()
+    # ftp_fetcher._get_mtimes_cache.cache_clear()
     fetcher = ftp_fetcher.FTPFetcher()
     mtime_spy = mocker.spy(ftp_fetcher, "ftp_mtime")
 
@@ -25,6 +25,6 @@ def test_ftp_fetcher(mocker, ftp_path):
     assert mtime_spy.call_count == 0
 
     # this new fetcher should reuse the same mtime_cache
-    other_fetcher = ftp_fetcher.FTPFetcher()
-    other_fetcher.mtime(myfile_path)
-    assert mtime_spy.call_count == 0  # <- no call
+    # other_fetcher = ftp_fetcher.FTPFetcher()
+    # other_fetcher.mtime(myfile_path)
+    # assert mtime_spy.call_count == 0  # <- no call
