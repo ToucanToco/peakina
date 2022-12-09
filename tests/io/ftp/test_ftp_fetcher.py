@@ -25,6 +25,6 @@ def test_ftp_fetcher(mocker, ftp_path):
     assert mtime_spy.call_count == 0
 
     # this new fetcher should reuse the same mtime_cache
-    # other_fetcher = ftp_fetcher.FTPFetcher()
-    # other_fetcher.mtime(myfile_path)
-    # assert mtime_spy.call_count == 0  # <- no call
+    other_fetcher = ftp_fetcher.FTPFetcher()
+    other_fetcher.mtime(myfile_path)
+    assert mtime_spy.call_count == 0  # <- no call
