@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.1] - 2022-12-09
+
+### Fixed
+
+- Fixed: failed to fetch preview of multiple sftp files by sharing mtime cache between same ftp fetchers.
+
 ## [0.9.0] - 2022-09-27
 
 ### Changed
@@ -103,6 +109,7 @@
 
 - Initial version, showtime!
 
+[0.9.1]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/ToucanToco/peakina/compare/v0.8.4...v0.9.0
 [0.8.4]: https://github.com/ToucanToco/peakina/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/ToucanToco/peakina/compare/v0.8.2...v0.8.3
