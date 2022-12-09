@@ -179,7 +179,7 @@ def timed_lru_cache(
 
         @wraps(f)
         def wrapped_f(*args: Any, **kwargs: Any) -> Any:
-            if monotonic_ns() >= f.expiration:
+            if monotonic_ns() >= f.expiration:  # pragma: no cover
                 f.cache_clear()
                 f.expiration = monotonic_ns() + f.delta
             return f(*args, **kwargs)
@@ -191,5 +191,5 @@ def timed_lru_cache(
     # To allow decorator to be used without arguments
     if _func is None:
         return wrapper_cache
-    else:
+    else:  # pragma: no cover
         return wrapper_cache(_func)
