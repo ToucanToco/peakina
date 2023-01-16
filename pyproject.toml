@@ -20,7 +20,7 @@ classifiers = [
 python = "^3.8"
 certifi = ">=2022.5.18,<2023.0.0"
 chardet = ">=4,<6"
-fastparquet = ">=0.8.0,<1"
+fastparquet = ">=0.8.0,<2023"
 jq = "^1.2.1"
 openpyxl = "^3.0.9"
 pandas = "^1.4.2"
