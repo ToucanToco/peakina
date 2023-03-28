@@ -50,7 +50,7 @@ class DataSource:
         if self.scheme not in PD_VALID_URLS:
             raise AttributeError(f"Invalid scheme {self.scheme!r}")
 
-        self.type = self.type or detect_type(self.uri, is_regex=bool(self.match))
+        self.type = self.type or detect_type(self.uri.split("?")[0], is_regex=bool(self.match))
 
         validate_kwargs(self.reader_kwargs, self.type)
 

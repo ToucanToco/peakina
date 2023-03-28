@@ -36,6 +36,7 @@ def test_type():
         DataSource("myfile.csv$")
     assert DataSource("myfile.tsv$", match=MatchEnum.GLOB).type is TypeEnum.CSV
     assert DataSource("myfile.*", match=MatchEnum.GLOB).type is None
+    assert DataSource("http://test.s3.com/myfile.csv?this=is&a=query&string=0").type is TypeEnum.CSV
 
 
 def test_validation_kwargs(mocker):
