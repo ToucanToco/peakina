@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.2] - 2023-03-30
+
+### Fixed
+
+- Fixed: failed to extract type from giben url that contains query params in it.
+
 ## [0.9.1] - 2022-12-09
 
 ### Fixed
@@ -109,6 +115,7 @@
 
 - Initial version, showtime!
 
+[0.9.1]: https://github.com/ToucanToco/peakina/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/ToucanToco/peakina/compare/v0.8.4...v0.9.0
 [0.8.4]: https://github.com/ToucanToco/peakina/compare/v0.8.3...v0.8.4
