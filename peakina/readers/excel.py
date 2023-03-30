@@ -17,7 +17,6 @@ def read_excel(
     preview_offset: int = 0,
     **kwargs: Any,
 ) -> pd.DataFrame:
-
     df_or_dict: dict[str, pd.DataFrame] | pd.DataFrame = pd.read_excel(*args, **kwargs)
 
     if isinstance(df_or_dict, dict):  # multiple sheets

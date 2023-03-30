@@ -143,7 +143,6 @@ def container_starter(request, docker, docker_pull):
         skip_exception=None,
         timeout=None,
     ):
-
         if docker_pull:
             print(f"Pulling {image} image")
             docker.pull(image)
