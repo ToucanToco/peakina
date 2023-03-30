@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Fixed: failed to extract type from giben url that contains query params in it.
+- Fixed: it is now possible to extract a file's mime type from an URI containing query params.
 
 ## [0.9.1] - 2022-12-09
 
