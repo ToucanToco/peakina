@@ -38,7 +38,7 @@ def test_type():
     assert DataSource("myfile.*", match=MatchEnum.GLOB).type is None
     assert DataSource("http://test.s3.com/myfile.csv?this=is&a=query&string=0").type is TypeEnum.CSV
     assert DataSource("s3://bucket/object.xlsx").type is TypeEnum.EXCEL
-    assert DataSource("s3+protocol://bucket/object.json?q=x").type is TypeEnum.JSON
+    assert DataSource("s3://bucket/object.json?q=x").type is TypeEnum.JSON
 
 
 def test_validation_kwargs(mocker):
