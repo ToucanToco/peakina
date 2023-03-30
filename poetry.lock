@@ -2516,14 +2516,14 @@ files = [
 
 [[package]]
 name = "types-chardet"
-version = "5.0.4"
+version = "5.0.4.3"
 description = "Typing stubs for chardet"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-chardet-5.0.4.tar.gz", hash = "sha256:449a98338fa264ddee88dd3a8141989f0ae920bcc720460c54b9f4374a6c1bb3"},
-    {file = "types_chardet-5.0.4-py3-none-any.whl", hash = "sha256:6946e22f32789a473852570810b4afe632172fae03c04bdbffe670606cc4ac11"},
+    {file = "types-chardet-5.0.4.3.tar.gz", hash = "sha256:45eacdd010ef7cf9d1a3c619cd19dd13a3b86cd62d3b45e06ed0ea53a14ad111"},
+    {file = "types_chardet-5.0.4.3-py3-none-any.whl", hash = "sha256:f7b8b0cc809281f5f40e719cfdf37b009170150a98bf98abd79f7b68d3c7f710"},
 ]
 
 [[package]]
