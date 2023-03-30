@@ -1,10 +1,16 @@
 # Changelog
 
+## [0.10.0] - 2023-03-30
+
+### Misc
+
+- To split releases, 0.10.x will track updates on main and the branch release/v0.9 for 0.9.x releases.
+
 ## [0.9.2] - 2023-03-30
 
 ### Fixed
 
-- Fixed: failed to extract type from giben url that contains query params in it.
+- Fixed: it is now possible to extract a file's mime type from an URI containing query params.
 
 ## [0.9.1] - 2022-12-09
 
@@ -115,6 +121,7 @@
 
 - Initial version, showtime!
 
+[0.10.0]: https://github.com/ToucanToco/peakina/compare/v0.9.2...v0.10.0
 [0.9.2]: https://github.com/ToucanToco/peakina/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/ToucanToco/peakina/compare/v0.8.4...v0.9.0
