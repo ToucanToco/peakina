@@ -1,15 +1,10 @@
 # Changelog
 
-## [0.9.2] - 2023-03-30
+## [0.10.0] - 2023-03-30
 
 ### Fixed
 
-- Fixed: failed to extract type from giben url that contains query params in it.
-
-## [0.9.1] - 2022-12-09
-
-### Fixed
-
+- Fixed: it is now possible to extract a file's mime type from an URI containing query params.
 - Fixed: failed to fetch preview of multiple sftp files by sharing mtime cache between same ftp fetchers.
 
 ## [0.9.0] - 2022-09-27
@@ -115,8 +110,7 @@
 
 - Initial version, showtime!
 
-[0.9.2]: https://github.com/ToucanToco/peakina/compare/v0.9.1...v0.9.2
-[0.9.1]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.9.1
+[0.10.0]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/ToucanToco/peakina/compare/v0.8.4...v0.9.0
 [0.8.4]: https://github.com/ToucanToco/peakina/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/ToucanToco/peakina/compare/v0.8.2...v0.8.3
