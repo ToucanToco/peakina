@@ -2,20 +2,9 @@
 
 ## [0.9.3] - 2023-03-30
 
-### Misc
-
-- To split releases, 0.10.x will track updates on main and the branch release/v0.9 for 0.9.x releases.
-
-## [0.9.2] - 2023-03-30
-
 ### Fixed
 
 - Fixed: it is now possible to extract a file's mime type from an URI containing query params.
-
-## [0.9.1] - 2022-12-09
-
-### Fixed
-
 - Fixed: failed to fetch preview of multiple sftp files by sharing mtime cache between same ftp fetchers.
 
 ## [0.9.0] - 2022-09-27
