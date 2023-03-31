@@ -32,7 +32,7 @@ def parse_s3_url(url: str, file: bool = True) -> tuple[str | None, str | None, s
     scheme = urlchunks.scheme
     assert scheme in S3_SCHEMES, f"{scheme} unsupported, use one of {S3_SCHEMES}"
     assert not urlchunks.params, f"s3 url should not have params, got {urlchunks.params}"
-    assert not urlchunks.query, f"s3 url should not have query, got {urlchunks.query}"
+    # assert not urlchunks.query, f"s3 url should not have query, got {urlchunks.query}"
     assert not urlchunks.fragment, f"s3 url should not have fragment, got {urlchunks.fragment}"
 
     access_key: str | None = None
@@ -71,7 +71,15 @@ def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -
 def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[bytes]:
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
-    fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
+
+    if client_kwargs is not None and "session_token" in client_kwargs:
+        session_token = client_kwargs.pop("session_token")
+        fs = s3fs.S3FileSystem(
+            key=access_key, secret=secret, token=session_token, client_kwargs=client_kwargs
+        )
+    else:
+        fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
+
     path = f"{bucketname}/{objectname}"
     ret = tempfile.NamedTemporaryFile(suffix=".s3tmp")
     file = _s3_open_file_with_retries(fs, path, 3)
