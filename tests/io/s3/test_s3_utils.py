@@ -65,11 +65,18 @@ def test_s3_open_with_token(mocker: MockerFixture) -> None:
     s3fs_file_system = mocker.patch("s3fs.S3FileSystem")
     s3fs_file_system.return_value.open.return_value = io.BytesIO(b"a,b\n0,1\n")
     # called with a session_token
-    s3_open("s3://my_key:my_secret@mybucket/file.csv", client_kwargs={"session_token": "xxxx"})
+    s3_open(
+        "s3://my_key:my_secret@mybucket/file.csv",
+        client_kwargs={"something": "else", "session_token": "xxxx"},
+    )
     s3fs_file_system.assert_called_once_with(
-        token="xxxx", secret="my_secret", key="my_key", client_kwargs={}
+        token="xxxx", secret="my_secret", key="my_key", client_kwargs={"something": "else"}
     )
 
     # called with an empty dict
     s3_open("s3://my_key:my_secret@mybucket/file.csv", client_kwargs={})
+    s3fs_file_system.assert_called_with(secret="my_secret", key="my_key", client_kwargs={})
+
+    # called with None
+    s3_open("s3://my_key:my_secret@mybucket/file.csv", client_kwargs=None)
     s3fs_file_system.assert_called_with(secret="my_secret", key="my_key", client_kwargs=None)
