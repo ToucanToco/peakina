@@ -82,8 +82,12 @@ def test_s3_open_with_token(mocker: MockerFixture) -> None:
 
     # called with an empty dict
     s3_open("s3://my_key:my_secret@mybucket/file.csv", client_kwargs={})
-    s3fs_file_system.assert_called_with(secret="my_secret", key="my_key", client_kwargs={})
+    s3fs_file_system.assert_called_with(
+        secret="my_secret", key="my_key", token=None, client_kwargs={}
+    )
 
     # called with None
     s3_open("s3://my_key:my_secret@mybucket/file.csv", client_kwargs=None)
-    s3fs_file_system.assert_called_with(secret="my_secret", key="my_key", client_kwargs=None)
+    s3fs_file_system.assert_called_with(
+        secret="my_secret", key="my_key", token=None, client_kwargs=None
+    )
