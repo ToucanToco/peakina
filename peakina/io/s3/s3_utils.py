@@ -72,19 +72,26 @@ def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[byte
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
 
-    if isinstance(client_kwargs, dict) and "session_token" in client_kwargs:
-        session_token = client_kwargs.pop("session_token")
-        fs = s3fs.S3FileSystem(
-            key=access_key,
-            secret=secret,
-            token=session_token,
-            client_kwargs=client_kwargs,
-        )
+    if isinstance(client_kwargs, dict):
+        if "session_token" in client_kwargs:
+            session_token = client_kwargs.pop("session_token")
+            fs = s3fs.S3FileSystem(
+                key=access_key,
+                secret=secret,
+                token=session_token,
+                client_kwargs=client_kwargs or None,
+            )
+        else:
+            fs = s3fs.S3FileSystem(
+                key=access_key,
+                secret=secret,
+                client_kwargs=client_kwargs,
+            )
     else:
         fs = s3fs.S3FileSystem(
             key=access_key,
             secret=secret,
-            client_kwargs=client_kwargs,
+            client_kwargs=client_kwargs or None,
         )
 
     path = f"{bucketname}/{objectname}"
