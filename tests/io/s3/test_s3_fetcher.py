@@ -55,7 +55,9 @@ def test_s3_fetcher_open_retry(s3_fetcher, s3_endpoint_url, mocker):
     s3_client.upload_file("tests/fixtures/for_retry_0_0.csv", "mybucket", "for_retry_0_0.csv")
 
     class S3FileSystemThatFailsOpen(S3FileSystem):  # type:ignore[misc]
-        def __init__(self, key: str, secret: str, client_kwargs: dict[str, Any]) -> None:
+        def __init__(
+            self, key: str, secret: str, client_kwargs: dict[str, Any], token: str | None
+        ) -> None:
             super().__init__(key=key, secret=secret, client_kwargs=client_kwargs)
             self.invalidated_cache = False
 
