@@ -72,13 +72,20 @@ def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[byte
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
 
-    if client_kwargs is not None and "session_token" in client_kwargs:  # pragma: no cover
+    if client_kwargs is not None and "session_token" in client_kwargs:
         session_token = client_kwargs.pop("session_token")
         fs = s3fs.S3FileSystem(
-            key=access_key, secret=secret, token=session_token, client_kwargs=client_kwargs
+            key=access_key,
+            secret=secret,
+            token=session_token,
+            client_kwargs=client_kwargs,
         )
     else:
-        fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
+        fs = s3fs.S3FileSystem(
+            key=access_key,
+            secret=secret,
+            client_kwargs=client_kwargs,
+        )
 
     path = f"{bucketname}/{objectname}"
     ret = tempfile.NamedTemporaryFile(suffix=".s3tmp")
