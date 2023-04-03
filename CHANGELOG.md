@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.4] - 2023-04-03
+
+### Changed
+
+- S3: Now it is possible to forward the `session_token` to s3fs reader.
+
 ## [0.9.3] - 2023-03-30
 
 ### Fixed
