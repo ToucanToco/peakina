@@ -71,7 +71,14 @@ def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -
 def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[bytes]:
     """opens a s3 url and returns a file-like object"""
     access_key, secret, bucketname, objectname = parse_s3_url(url)
-    fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs)
+
+    token = None
+    if client_kwargs is not None and "session_token" in client_kwargs:
+        token = client_kwargs["session_token"]
+        client_kwargs = {k: v for k, v in client_kwargs.items() if k != "session_token"} or None
+
+    fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs, token=token)
+
     path = f"{bucketname}/{objectname}"
     ret = tempfile.NamedTemporaryFile(suffix=".s3tmp")
     file = _s3_open_file_with_retries(fs, path, 3)
