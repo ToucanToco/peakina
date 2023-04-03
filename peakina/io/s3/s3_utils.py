@@ -84,7 +84,7 @@ def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[byte
         fs = s3fs.S3FileSystem(
             key=access_key,
             secret=secret,
-            client_kwargs=client_kwargs,
+            client_kwargs=client_kwargs or None,
         )
 
     path = f"{bucketname}/{objectname}"
