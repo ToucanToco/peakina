@@ -32,7 +32,7 @@ def parse_s3_url(url: str, file: bool = True) -> tuple[str | None, str | None, s
     scheme = urlchunks.scheme
     assert scheme in S3_SCHEMES, f"{scheme} unsupported, use one of {S3_SCHEMES}"
     assert not urlchunks.params, f"s3 url should not have params, got {urlchunks.params}"
-    # assert not urlchunks.query, f"s3 url should not have query, got {urlchunks.query}"
+    assert not urlchunks.query, f"s3 url should not have query, got {urlchunks.query}"
     assert not urlchunks.fragment, f"s3 url should not have fragment, got {urlchunks.fragment}"
 
     access_key: str | None = None
