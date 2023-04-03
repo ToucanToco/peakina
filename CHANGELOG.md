@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.1] - 2023-04-03
+
+### Changed
+
+- S3: Now it is possible to forward the aws `session_token` to s3fs reader.
+
 ## [0.10.0] - 2023-03-30
 
 ### Fixed
@@ -110,6 +116,7 @@
 
 - Initial version, showtime!
 
+[0.10.1]: https://github.com/ToucanToco/peakina/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/ToucanToco/peakina/compare/v0.8.4...v0.9.0
 [0.8.4]: https://github.com/ToucanToco/peakina/compare/v0.8.3...v0.8.4
