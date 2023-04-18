@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## [0.11.0] - 2023-04-18
 
+- Added support for python 3.11
 - Replaced `fastparquet` dependency with `pyarrow`
 
 ## [0.10.1] - 2023-04-03
