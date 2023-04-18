@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Replaced `fastparquet` dependency with `pyarrow`
+
 ## [0.10.1] - 2023-04-03
 
 ### Changed
