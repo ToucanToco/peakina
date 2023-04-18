@@ -67,6 +67,9 @@ def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -
             # and we give some time to S3 to settle the file status
             sleep(1)
 
+    logger.error(f"could not open {path}")
+    raise Exception(f"Unable to access the target file : {path}")
+
 
 def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[bytes]:
     """opens a s3 url and returns a file-like object"""

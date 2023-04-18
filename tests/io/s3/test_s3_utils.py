@@ -91,3 +91,9 @@ def test_s3_open_with_token(mocker: MockerFixture) -> None:
     s3fs_file_system.assert_called_with(
         secret="my_secret", key="my_key", token=None, client_kwargs=None
     )
+
+    mocker.patch(
+        "peakina.io.s3.s3_utils._s3_open_file_with_retries", side_effect=Exception("Raise an error")
+    )
+    with raises(Exception):
+        s3_open("s3://my_key:my_secret@mybucket/file.csv", client_kwargs=None)
