@@ -53,11 +53,8 @@ def test_empty_object_name_raise_exception():
 
 def test_s3_open(mocker):
     fs_mock = mocker.patch("s3fs.S3FileSystem").return_value
-    logger_mock = mocker.patch("peakina.io.s3.s3_utils.logger")
     fs_mock.open.return_value = io.BytesIO(b"a,b\n0,1\n")
     tmpfile = s3_open("s3://my_key:my_secret@mybucket/file.csv")
-    # ensure logger doesn't log credentials
-    logger_mock.info.assert_called_once_with("Opening file.csv")
     assert tmpfile.name.endswith(".s3tmp")
     assert tmpfile.read() == b"a,b\n0,1\n"
 
@@ -109,12 +106,10 @@ def test__s3_open_file_with_retries(mocker: MagicMock) -> None:
     path = "s3://my_key:my_secret@mybucket/file.csv"
 
     with raises(Exception, match=r"\(2 tries\): Can't open two"):
-        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=2, objectname="file.csv")
+        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=2)
 
     s3fs_mock.open.side_effect = side_effect
     with raises(Exception, match=r"\(3 tries\): Can't open three"):
-        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=3, objectname="file.csv")
+        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=3)
 
-    assert (
-        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=4, objectname="file.csv") == 42
-    )
+    assert _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=4) == 42

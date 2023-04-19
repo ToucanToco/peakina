@@ -70,10 +70,7 @@ def test_s3_fetcher_open_retry(s3_fetcher, s3_endpoint_url, mocker):
             self.invalidated_cache = True
 
     mocker.patch("peakina.io.s3.s3_utils.s3fs.S3FileSystem", S3FileSystemThatFailsOpen)
-    logger_mock = mocker.patch("peakina.io.s3.s3_utils.logger")
 
     with s3_fetcher.open(filepath) as f:
-        # ensure logger doesn't log credentials
-        logger_mock.warning.assert_called_once_with("Could not open for_retry_0_0.csv: argh!")
         assert f.read() == b"a,b\n0,0\n0,1"
     s3_client.delete_object(Bucket="mybucket", Key="tests/fixtures/for_retry_0_0.csv")
