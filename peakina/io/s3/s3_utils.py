@@ -53,12 +53,14 @@ def parse_s3_url(url: str, file: bool = True) -> tuple[str | None, str | None, s
 
 
 def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -> Any:
+    exception_err = None
     for _ in range(retries):
         try:
             logger.info(f"opening {path}")
             file = fs.open(path)
             return file
         except Exception as ex:
+            exception_err = ex
             logger.warning(f"could not open {path}: {ex}")
             # if the file has just been uploaded, then it might not be visible immediatly
             # but the fail to open has been cached by s3fs
@@ -68,7 +70,7 @@ def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -
             sleep(1)
 
     logger.error(f"could not open {path}")
-    raise Exception(f"Unable to access the target file : {path}")
+    raise Exception(f"Unable to access the target file : {path}") from exception_err
 
 
 def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[bytes]:
