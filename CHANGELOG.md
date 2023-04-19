@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.5] - 2023-04-19
+
+### Added
+
+- S3: Update error message by adding more context on file reading when it's not accessible.
+
 ## [0.9.4] - 2023-04-03
 
 ### Changed
@@ -116,6 +122,7 @@
 
 - Initial version, showtime!
 
+[0.9.5]: https://github.com/ToucanToco/peakina/compare/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.9.4
 [0.9.3]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.9.3
 [0.9.0]: https://github.com/ToucanToco/peakina/compare/v0.8.4...v0.9.0
