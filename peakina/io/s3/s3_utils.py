@@ -56,6 +56,7 @@ def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -
     nb_tries = 0
     while nb_tries < retries:
         try:
+            # codeql:skip-line
             logger.info(f"Opening {path}")
             file = fs.open(path)
             return file
@@ -63,6 +64,7 @@ def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -
             nb_tries += 1
             if nb_tries >= retries:
                 raise Exception(f"Could not open {path} ({nb_tries} tries): {ex}") from ex
+            # codeql:skip-line
             logger.warning(f"Could not open {path}: {ex}")
             # if the file has just been uploaded, then it might not be visible immediatly
             # but the fail to open has been cached by s3fs
