@@ -109,10 +109,12 @@ def test__s3_open_file_with_retries(mocker: MagicMock) -> None:
     path = "s3://my_key:my_secret@mybucket/file.csv"
 
     with raises(Exception, match=r"\(2 tries\): Can't open two"):
-        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=2)
+        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=2, objectname="file.csv")
 
     s3fs_mock.open.side_effect = side_effect
     with raises(Exception, match=r"\(3 tries\): Can't open three"):
-        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=3)
+        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=3, objectname="file.csv")
 
-    assert _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=4) == 42
+    assert (
+        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=4, objectname="file.csv") == 42
+    )

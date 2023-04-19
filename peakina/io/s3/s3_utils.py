@@ -52,19 +52,20 @@ def parse_s3_url(url: str, file: bool = True) -> tuple[str | None, str | None, s
     return access_key, secret, urlchunks.hostname, objectname
 
 
-def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -> Any:
-    object_in_path = path.split("/")[1]
+def _s3_open_file_with_retries(
+    fs: s3fs.S3FileSystem, path: str, retries: int, objectname: str
+) -> Any:
     nb_tries = 0
     while nb_tries < retries:
         try:
-            logger.info(f"Opening {object_in_path}")
+            logger.info(f"Opening {objectname}")
             file = fs.open(path)
             return file
         except Exception as ex:
             nb_tries += 1
             if nb_tries >= retries:
                 raise Exception(f"Could not open {path} ({nb_tries} tries): {ex}") from ex
-            logger.warning(f"Could not open {object_in_path}: {ex}")
+            logger.warning(f"Could not open {objectname}: {ex}")
             # if the file has just been uploaded, then it might not be visible immediatly
             # but the fail to open has been cached by s3fs
             # so, we invalidate the cache
@@ -86,7 +87,7 @@ def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[byte
 
     path = f"{bucketname}/{objectname}"
     ret = tempfile.NamedTemporaryFile(suffix=".s3tmp")
-    file = _s3_open_file_with_retries(fs, path, 3)
+    file = _s3_open_file_with_retries(fs, path, 3, objectname)
     ret.write(file.read())
     ret.seek(0)
     file.close()
