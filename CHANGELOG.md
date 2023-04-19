@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.11.1] - 2023-04-19
+
+### Added
+
+- S3 fetcher: Add context from the original exception in case a file cannot be read after several retries
+
 ## [0.11.0] - 2023-04-18
 
 - Added support for python 3.11
@@ -121,6 +127,8 @@
 
 - Initial version, showtime!
 
+[0.11.1]: https://github.com/ToucanToco/peakina/compare/v0.11.0...v0.11.1
+[0.11.0]: https://github.com/ToucanToco/peakina/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/ToucanToco/peakina/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/ToucanToco/peakina/compare/v0.8.4...v0.9.0
