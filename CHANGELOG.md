@@ -4,7 +4,7 @@
 
 ### Added
 
-- S3: Update error message by adding more context on file reading when it's not accessible.
+- S3 fetcher: Add context from the original exception in case a file cannot be read after several retries
 
 ## [0.11.0] - 2023-04-18
 
