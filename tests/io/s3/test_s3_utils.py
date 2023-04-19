@@ -4,7 +4,11 @@ from unittest.mock import MagicMock
 from pytest import raises
 from pytest_mock import MockerFixture
 
-from peakina.io.s3.s3_utils import parse_s3_url as pu, s3_open
+from peakina.io.s3.s3_utils import (
+    _s3_open_file_with_retries,
+    parse_s3_url as pu,
+    s3_open,
+)
 
 
 def test_parse_s3_url_no_credentials():
@@ -53,7 +57,7 @@ def test_s3_open(mocker):
     fs_mock.open.return_value = io.BytesIO(b"a,b\n0,1\n")
     tmpfile = s3_open("s3://my_key:my_secret@mybucket/file.csv")
     # ensure logger doesn't log credentials
-    logger_mock.info.assert_called_once_with("opening mybucket/file.csv")
+    logger_mock.info.assert_called_once_with("Opening mybucket/file.csv")
     assert tmpfile.name.endswith(".s3tmp")
     assert tmpfile.read() == b"a,b\n0,1\n"
 
@@ -91,3 +95,24 @@ def test_s3_open_with_token(mocker: MockerFixture) -> None:
     s3fs_file_system.assert_called_with(
         secret="my_secret", key="my_key", token=None, client_kwargs=None
     )
+
+
+def test__s3_open_file_with_retries(mocker: MagicMock) -> None:
+    s3fs_mock = MagicMock()
+    side_effect = [
+        Exception("Can't open one"),
+        Exception("Can't open two"),
+        Exception("Can't open three"),
+        42,
+    ]
+    s3fs_mock.open.side_effect = side_effect
+    path = "s3://my_key:my_secret@mybucket/file.csv"
+
+    with raises(Exception, match=r"\(2 tries\): Can't open two"):
+        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=2)
+
+    s3fs_mock.open.side_effect = side_effect
+    with raises(Exception, match=r"\(3 tries\): Can't open three"):
+        _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=3)
+
+    assert _s3_open_file_with_retries(fs=s3fs_mock, path=path, retries=4) == 42
