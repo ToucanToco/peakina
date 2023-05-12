@@ -5,7 +5,7 @@ from enum import Enum
 from functools import lru_cache, wraps
 from pathlib import Path
 from time import monotonic_ns, time
-from typing import Any, TypedDict
+from typing import Any, Callable, TypedDict
 
 import pandas as pd
 
@@ -164,7 +164,7 @@ class HDFCache(Cache):
 # taken from https://gist.github.com/Morreski/c1d08a3afa4040815eafd3891e16b945
 def timed_lru_cache(
     _func: Any = None, *, seconds: int = 600, maxsize: int = 128, typed: bool = False
-) -> Any:
+) -> Callable[..., Any]:
     """Extension of functools lru_cache with a timeout
     Parameters:
     seconds (int): Timeout in seconds to clear the WHOLE cache, default = 10 minutes
@@ -172,7 +172,7 @@ def timed_lru_cache(
     typed (bool): Same value of different type will be a different entry
     """
 
-    def wrapper_cache(f: Any) -> Any:
+    def wrapper_cache(f: Any) -> Callable[..., Any]:
         f = lru_cache(maxsize=maxsize, typed=typed)(f)
         f.delta = seconds * 10**9
         f.expiration = monotonic_ns() + f.delta
