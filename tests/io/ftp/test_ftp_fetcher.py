@@ -1,9 +1,10 @@
 import pandas as pd
+from pytest_mock import MockerFixture
 
 from peakina.io.ftp import ftp_fetcher
 
 
-def test_ftp_fetcher(mocker, ftp_path):
+def test_ftp_fetcher(mocker: MockerFixture, ftp_path: str) -> None:
     ftp_fetcher.get_mtimes_cache.cache_clear()
     fetcher = ftp_fetcher.FTPFetcher()
     mtime_spy = mocker.spy(ftp_fetcher, "ftp_mtime")
