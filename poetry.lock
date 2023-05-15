@@ -2409,18 +2409,6 @@ files = [
 ]
 
 [[package]]
-name = "types-cryptography"
-version = "3.3.21"
-description = "Typing stubs for cryptography"
-category = "dev"
-optional = false
-python-versions = "*"
-files = [
-    {file = "types-cryptography-3.3.21.tar.gz", hash = "sha256:ad1b9c63159c009f8676c7e41a4d595dfb96e8c03affa2e693e1617908bb409e"},
-    {file = "types_cryptography-3.3.21-py3-none-any.whl", hash = "sha256:bdeb6dd07280ac724e05f02e0d8ef01fdef729b18bb07d635d64de83171a4e70"},
-]
-
-[[package]]
 name = "types-dataclasses"
 version = "0.6.6"
 description = "Typing stubs for dataclasses"
@@ -2434,18 +2422,18 @@ files = [
 
 [[package]]
 name = "types-paramiko"
-version = "2.11.6"
+version = "3.0.0.10"
 description = "Typing stubs for paramiko"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-paramiko-2.11.6.tar.gz", hash = "sha256:cfc9f12047bcf5cfaa6b7a5ad9d777d41ff4fe04ca2bb9bcf55c88dff02037e5"},
-    {file = "types_paramiko-2.11.6-py3-none-any.whl", hash = "sha256:9d6adb74a645c28e01e8539b218e8b8a4bab0b73925c60aca35993cc87f7d5a0"},
+    {file = "types-paramiko-3.0.0.10.tar.gz", hash = "sha256:6cbc2b6169d97ce80a25fa8e991e80c3eca36eae305a1426212772428980bf26"},
+    {file = "types_paramiko-3.0.0.10-py3-none-any.whl", hash = "sha256:ab842aa11592f52f9bdc6aa384458f02e4a6e721438028160a9c5d9e60f325b6"},
 ]
 
 [package.dependencies]
-types-cryptography = "*"
+cryptography = ">=37.0.0"
 
 [[package]]
 name = "types-python-slugify"
@@ -2785,4 +2773,4 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "0b096d07d3d5268a602240bdf7b05a9c1c46a83ce9143f68139fa1fcb1558410"
+content-hash = "516dd3aa5bc3056678cd05eecd9fd30b815d96938cba209b4fa3c6dd01068131"
