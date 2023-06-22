@@ -121,7 +121,7 @@ class DataSource:
         my_args = asdict(self)
         for uri in self.fetcher.get_filepath_list(self.uri, self.match):
             overriden_args = {**my_args, "uri": uri, "match": None}
-            yield DataSource(**overriden_args)  # type: ignore[arg-type]
+            yield DataSource(**overriden_args)
 
     def get_dfs(self, cache: Cache | None = None) -> Generator[pd.DataFrame, None, None]:
         """
