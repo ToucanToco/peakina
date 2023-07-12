@@ -13,7 +13,7 @@ from typing import IO, Any, Generator, Iterable
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
-from pydantic import __version__ as pydantic_version
+from pydantic import ConfigDict, __version__ as pydantic_version
 from pydantic.dataclasses import dataclass
 from slugify import slugify
 
@@ -45,13 +45,13 @@ class DataSource:
     type: TypeEnum | None = None
     match: MatchEnum | None = None
     expire: timedelta | None = None
-    _fetcher: Fetcher | None = None
     reader_kwargs: dict[str, Any] = field(default_factory=dict)
     fetcher_kwargs: dict[str, Any] = field(default_factory=dict)
 
     if _PYDANTIC_VERSION_ONE is True:
 
         def __post_init_post_parse__(self) -> None:
+            self._fetcher: Fetcher | None = None
             self.scheme = urlparse(self.uri).scheme
             if self.scheme not in PD_VALID_URLS:
                 raise AttributeError(f"Invalid scheme {self.scheme!r}")
@@ -63,6 +63,7 @@ class DataSource:
     else:
 
         def __post_init__(self) -> None:
+            self._fetcher: Fetcher | None = None  # type: ignore[no-redef]
             self.scheme = urlparse(self.uri).scheme
             if self.scheme not in PD_VALID_URLS:
                 raise AttributeError(f"Invalid scheme {self.scheme!r}")
@@ -70,6 +71,8 @@ class DataSource:
             self.type = self.type or detect_type(urlparse(self.uri).path, is_regex=bool(self.match))
 
             validate_kwargs(self.reader_kwargs, self.type)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @property
     def fetcher(self) -> Fetcher:
