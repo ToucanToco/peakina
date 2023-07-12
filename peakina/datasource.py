@@ -48,6 +48,8 @@ class DataSource:
     reader_kwargs: dict[str, Any] = field(default_factory=dict)
     fetcher_kwargs: dict[str, Any] = field(default_factory=dict)
 
+    # TODO: This is temporary, in the future we will only support V2
+    # and get rid of this condition + update the CI (link/test)
     if _PYDANTIC_VERSION_ONE is True:
 
         def __post_init_post_parse__(self) -> None:
