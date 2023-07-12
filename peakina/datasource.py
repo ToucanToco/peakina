@@ -44,7 +44,7 @@ class DataSource:
     reader_kwargs: dict[str, Any] = field(default_factory=dict)
     fetcher_kwargs: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init_post_parse__(self) -> None:
+    def __post_init__(self) -> None:
         self._fetcher: Fetcher | None = None
         self.scheme = urlparse(self.uri).scheme
         if self.scheme not in PD_VALID_URLS:
