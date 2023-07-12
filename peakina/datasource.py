@@ -50,7 +50,7 @@ class DataSource:
 
     # TODO: This is temporary, in the future we will only support V2
     # and get rid of this condition + update the CI (link/test)
-    if _PYDANTIC_VERSION_ONE is True:
+    if _PYDANTIC_VERSION_ONE:
 
         def __post_init_post_parse__(self) -> None:
             self._fetcher: Fetcher | None = None
@@ -74,7 +74,7 @@ class DataSource:
 
             validate_kwargs(self.reader_kwargs, self.type)
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+        model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @property
     def fetcher(self) -> Fetcher:
