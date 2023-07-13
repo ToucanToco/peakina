@@ -13,6 +13,7 @@ from typing import IO, Any, Generator, Iterable
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
+from pydantic import ConfigDict, __version__ as pydantic_version
 from pydantic.dataclasses import dataclass
 from slugify import slugify
 
@@ -35,6 +36,9 @@ AVAILABLE_SCHEMES = set(Fetcher.registry) - {""}  # discard the empty string sch
 PD_VALID_URLS = set(uses_relative + uses_netloc + uses_params) | AVAILABLE_SCHEMES
 
 
+_PYDANTIC_VERSION_ONE = pydantic_version.startswith("1.")
+
+
 @dataclass
 class DataSource:
     uri: str
@@ -44,15 +48,33 @@ class DataSource:
     reader_kwargs: dict[str, Any] = field(default_factory=dict)
     fetcher_kwargs: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init_post_parse__(self) -> None:
-        self._fetcher: Fetcher | None = None
-        self.scheme = urlparse(self.uri).scheme
-        if self.scheme not in PD_VALID_URLS:
-            raise AttributeError(f"Invalid scheme {self.scheme!r}")
+    # TODO: This is temporary, in the future we will only support V2
+    # and get rid of this condition + update the CI (link/test)
+    if _PYDANTIC_VERSION_ONE:
 
-        self.type = self.type or detect_type(urlparse(self.uri).path, is_regex=bool(self.match))
+        def __post_init_post_parse__(self) -> None:
+            self._fetcher: Fetcher | None = None
+            self.scheme = urlparse(self.uri).scheme
+            if self.scheme not in PD_VALID_URLS:
+                raise AttributeError(f"Invalid scheme {self.scheme!r}")
 
-        validate_kwargs(self.reader_kwargs, self.type)
+            self.type = self.type or detect_type(urlparse(self.uri).path, is_regex=bool(self.match))
+
+            validate_kwargs(self.reader_kwargs, self.type)
+
+    else:
+
+        def __post_init__(self) -> None:
+            self._fetcher: Fetcher | None = None  # type: ignore[no-redef]
+            self.scheme = urlparse(self.uri).scheme
+            if self.scheme not in PD_VALID_URLS:
+                raise AttributeError(f"Invalid scheme {self.scheme!r}")
+
+            self.type = self.type or detect_type(urlparse(self.uri).path, is_regex=bool(self.match))
+
+            validate_kwargs(self.reader_kwargs, self.type)
+
+        model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @property
     def fetcher(self) -> Fetcher:

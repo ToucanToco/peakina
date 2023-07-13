@@ -1,5 +1,9 @@
 # Changelog
 
+### Changed
+
+- Support for pydantic V2 (We still support pydantic >=1 for now).
+
 ## [0.11.1] - 2023-04-19
 
 ### Added

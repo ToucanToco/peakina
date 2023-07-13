@@ -10,18 +10,35 @@ jobs:
         python-version:
           - "3.10"
           - "3.11"
+        pydantic-version:
+          - "^1.10"
+          - "^2.0"
+
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: install_system_deps
         run: sudo make install_system_deps
+
+      - name: Update Pydantic version on the toml & lock
+        run: |
+          pip install -U pip poetry
+          # we update the pydantic version corresponding to the matrix
+          sed -i "s/pydantic = \".*\"/pydantic = \"${PYDANTIC_VERSION}\"/" pyproject.toml
+          poetry lock --no-update
+        env:
+          PYDANTIC_VERSION: ${{ matrix.pydantic-version }}
+
       - name: install
         run: make install
+
       - name: lint
         run: make lint
+
       - name: mypy
         run: make mypy
 
@@ -32,19 +49,37 @@ jobs:
         python-version:
           - "3.10"
           - "3.11"
+        pydantic-version:
+          - "^1.10"
+          - "^2.0"
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: install_system_deps
       run: sudo make install_system_deps
+
+    - name: Update Pydantic version on the toml & lock
+      run: |
+        pip install -U pip poetry
+        # we update the pydantic version corresponding to the matrix
+        sed -i "s/pydantic = \".*\"/pydantic = \"${PYDANTIC_VERSION}\"/" pyproject.toml
+        poetry lock --no-update
+      env:
+        PYDANTIC_VERSION: ${{ matrix.pydantic-version }}
+
     - name: install
       run: make install
+
     - name: test
       run: make test
       env:
         FTP_PATH: ${{ secrets.FTP_PATH }}
+        PYDANTIC_VERSION: ${{ matrix.pydantic-version }}
+
     - name: Upload coverage
       uses: codecov/codecov-action@v3
