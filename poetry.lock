@@ -2348,13 +2348,13 @@ types-cryptography = "*"
 
 [[package]]
 name = "types-python-slugify"
-version = "6.1.0"
+version = "8.0.0.3"
 description = "Typing stubs for python-slugify"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-python-slugify-6.1.0.tar.gz", hash = "sha256:556d9b387ef632e588445b9e0edbb0e57e939ab387e53a05ad9c5a6d1321b2a3"},
-    {file = "types_python_slugify-6.1.0-py3-none-any.whl", hash = "sha256:663de4a7ce61c5448e838ffd2e34748df6631d4588dc0ed9a7c2bf973c0314ed"},
+    {file = "types-python-slugify-8.0.0.3.tar.gz", hash = "sha256:868e6610ab9a01c01b2ccc1b982363e694d6bbb4fcf32e0d82688c89dceb4e2c"},
+    {file = "types_python_slugify-8.0.0.3-py3-none-any.whl", hash = "sha256:2353c161c79ab6cce955b50720c6cd03586ec297558122236d130e4a19f21209"},
 ]
 
 [[package]]
@@ -2672,4 +2672,4 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "7b0f7b823b2d04fbc975555039930427da51535fcc66eaf5914d74b8244638fb"
+content-hash = "95c9a7e7fdd2095df9cea426d84a7fff3e8acfafc828644ac389968b84a4b97f"
