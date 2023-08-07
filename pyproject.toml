@@ -56,7 +56,7 @@ PyYAML = "^6.0"
 types-chardet = "^5.0.4"
 types-certifi = "^2021.10.8"
 types-dataclasses = ">=0.6.4,<1"
-types-paramiko = "^2.11.6"
+types-paramiko = "^3.3.0"
 types-python-slugify = "^6.1.0"
 types-PyYAML = "^6.0.12"
 
