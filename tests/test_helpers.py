@@ -20,8 +20,11 @@ from peakina.helpers import (
 
 def test_detect_geojson_type_for_coverage():
     """Since the mimetypes module reads system files such as /etc/mime.types, It may or may
-    not return geojson mimetypes, depending on the environment. This test ensures coverage."""
-    with mock.patch("mimetypes.guess_type", return_value=("application/geo+json", None)):
+    not return geojson mimetypes, depending on the environment. This test ensures coverage.
+    """
+    with mock.patch(
+        "mimetypes.guess_type", return_value=("application/geo+json", None)
+    ):
         assert detect_type("file.geojson") == "geodata"
 
 

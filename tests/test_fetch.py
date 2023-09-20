@@ -1,10 +1,10 @@
 import os
 
-from peakina import fetch
+from peakina import Fetch
 
 
 def test_fetch(path):
-    f = fetch(path("0_0.csv"))
+    f = Fetch(path("0_0.csv"))
     assert os.path.split(f.uri) == (f.dirpath, f.basename)
     assert f.scheme == ""
 

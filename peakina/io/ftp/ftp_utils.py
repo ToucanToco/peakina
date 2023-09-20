@@ -4,13 +4,15 @@ import re
 import socket
 import ssl
 import tempfile
+from collections.abc import Callable, Generator
+from contextlib import AbstractContextManager as ContextManager
 from contextlib import contextmanager, suppress
 from datetime import datetime
 from functools import partial
 from ipaddress import ip_address
 from os.path import basename, join
 from time import sleep
-from typing import IO, Any, Callable, ContextManager, Generator, cast
+from typing import IO, Any, cast
 from urllib.parse import ParseResult, quote, unquote, urlparse
 
 import paramiko
@@ -36,7 +38,9 @@ class FTPS(ftplib.FTP_TLS):
             return _sock
 
         try:
-            self.sock = self.context.wrap_socket(_setup_sock(), server_hostname=self.host)
+            self.sock = self.context.wrap_socket(
+                _setup_sock(), server_hostname=self.host
+            )
         except ssl.SSLError:  # pragma: no cover
             # in some cases we must fallback to:
             self.sock = _setup_sock()
@@ -63,7 +67,9 @@ class FTPS(ftplib.FTP_TLS):
         # https://github.com/lavv17/lftp/blob/d67fc14d085849a6b0418bb3e912fea2e94c18d1/src/ftpclass.cc#L774
         host, port = super().makepasv()
         if (
-            self.af == socket.AF_INET and ip_address(host).is_private and self.sock is not None
+            self.af == socket.AF_INET
+            and ip_address(host).is_private
+            and self.sock is not None
         ):  # pragma: no cover
             host = self.sock.getpeername()[0]
         return host, port
@@ -107,7 +113,9 @@ def ftp_client(params: ParseResult) -> Generator[tuple[ftplib.FTP, str], None, N
 
 
 @contextmanager
-def sftp_client(params: ParseResult) -> Generator[tuple[paramiko.SFTPClient, str], None, None]:
+def sftp_client(
+    params: ParseResult,
+) -> Generator[tuple[paramiko.SFTPClient, str], None, None]:
     port = params.port or 22
     ssh_client = paramiko.SSHClient()
     try:
@@ -171,7 +179,9 @@ def _open(url: str) -> IO[bytes]:
         except AttributeError:
             cast(paramiko.SFTPClient, c).getfo(path, ret)
         except ftplib.error_perm as e:
-            raise Exception(f"Can't open file {path}. Please make sure the file exists") from e
+            raise Exception(
+                f"Can't open file {path}. Please make sure the file exists"
+            ) from e
 
     ret.seek(0)
     return ret
@@ -183,7 +193,9 @@ def ftp_open(url: str, retry: int = 4) -> IO[bytes]:  # type: ignore
             return _open(url)
         except (AttributeError, OSError, ftplib.error_temp) as e:
             sleep_time = 2 * i**2
-            logging.getLogger(__name__).warning(f"Retry #{i}: Sleeping {sleep_time}s because {e}")
+            logging.getLogger(__name__).warning(
+                f"Retry #{i}: Sleeping {sleep_time}s because {e}"
+            )
             sleep(sleep_time)
 
 

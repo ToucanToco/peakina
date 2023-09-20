@@ -9,8 +9,10 @@ import fnmatch
 import os
 import re
 from abc import ABCMeta, abstractmethod
+from collections.abc import Callable
 from enum import Enum
-from typing import IO, Any, Callable, Pattern, TypeVar
+from re import Pattern
+from typing import IO, Any, TypeVar
 from urllib.parse import urlparse
 
 from peakina.helpers import mdtm_to_string
@@ -69,7 +71,9 @@ class Fetcher(metaclass=ABCMeta):
         """Get last modification time of a file"""
 
     @staticmethod
-    def is_matching(filename: str, match: MatchEnum | None, pattern: Pattern[str]) -> bool:
+    def is_matching(
+        filename: str, match: MatchEnum | None, pattern: Pattern[str]
+    ) -> bool:
         if match is None:
             return bool(filename == pattern.pattern)
         elif match is MatchEnum.GLOB:
@@ -77,7 +81,9 @@ class Fetcher(metaclass=ABCMeta):
         else:
             return bool(pattern.match(filename))
 
-    def get_filepath_list(self, filepath: str, match: MatchEnum | None = None) -> list[str]:
+    def get_filepath_list(
+        self, filepath: str, match: MatchEnum | None = None
+    ) -> list[str]:
         """Methods to retrieve all the pathes to open"""
         if match is None:
             return [filepath]
@@ -85,7 +91,9 @@ class Fetcher(metaclass=ABCMeta):
         dirpath, basename = os.path.split(filepath)
         pattern = re.compile(basename)
         all_filenames = self.listdir(dirpath)
-        matching_filenames = [f for f in all_filenames if self.is_matching(f, match, pattern)]
+        matching_filenames = [
+            f for f in all_filenames if self.is_matching(f, match, pattern)
+        ]
         return [os.path.join(dirpath, f) for f in sorted(matching_filenames)]
 
     def get_str_mtime(self, filepath: str) -> str | None:
@@ -96,10 +104,13 @@ class Fetcher(metaclass=ABCMeta):
         return mdtm_to_string(mdtime) if mdtime else None
 
     def get_mtime_dict(self, dirpath: str) -> dict[str, str | None]:
-        return {f: self.get_str_mtime(os.path.join(dirpath, f)) for f in self.listdir(dirpath)}
+        return {
+            f: self.get_str_mtime(os.path.join(dirpath, f))
+            for f in self.listdir(dirpath)
+        }
 
 
-class fetch:
+class Fetch:
     """class providing shortcuts for some Fetcher operations"""
 
     def __init__(self, uri: str, **fetcher_kwargs: Any) -> None:

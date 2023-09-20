@@ -226,7 +226,11 @@ def test_preview_sheet_more_lines_xlsx(path):
 
     ds = DataSource(
         path("fixture-multi-sheet.xlsx"),
-        reader_kwargs={"sheet_name": "February", "preview_offset": 0, "preview_nrows": 1000},
+        reader_kwargs={
+            "sheet_name": "February",
+            "preview_offset": 0,
+            "preview_nrows": 1000,
+        },
     )
     # because our excel file has 1 entry on January sheet and 3 entries in February sheet
     pd.testing.assert_frame_equal(
@@ -248,7 +252,9 @@ def test_with_specials_types_xlsx(path):
             {
                 "Unnamed: 0": [0, 1, 2],
                 "bools": [True, False, True],
-                "dates": [datetime.strptime(d, "%m/%d/%Y %H:%M:%S") for d in test_dates],
+                "dates": [
+                    datetime.strptime(d, "%m/%d/%Y %H:%M:%S") for d in test_dates
+                ],
                 "floats": [12.35, 42.69, 1234567.0],
             }
         ),
@@ -258,7 +264,8 @@ def test_with_specials_types_xlsx(path):
 def test_read_with_dtype(path):
     """Check that read excel is able to handle provided dtypes"""
     ds = DataSource(
-        path("fixture-single-sheet.xlsx"), reader_kwargs={"dtype": {"Month": "str", "Year": "str"}}
+        path("fixture-single-sheet.xlsx"),
+        reader_kwargs={"dtype": {"Month": "str", "Year": "str"}},
     )
     assert isinstance(ds.get_df()["Month"][0], str)
 
@@ -274,4 +281,8 @@ def test_excel_meta_with_broken_max_row(path):
     to test, the fixture file formula_excel.xlsx has it's metadata broken
     """
     ds = DataSource(path("formula_excel.xlsx"))
-    assert ds.get_metadata() == {"df_rows": 3, "sheetnames": ["Sheet1"], "total_rows": 3}
+    assert ds.get_metadata() == {
+        "df_rows": 3,
+        "sheetnames": ["Sheet1"],
+        "total_rows": 3,
+    }

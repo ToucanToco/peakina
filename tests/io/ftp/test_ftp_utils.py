@@ -50,7 +50,10 @@ def test_ftp_dir(mocker):
     """nlst now returns the parent dir. We should retrieve only the filenames"""
     client_mock = mocker.patch("peakina.io.ftp.ftp_utils.client")
     client_mock.return_value.__enter__.return_value = (ftplib.FTP_TLS(), "path")
-    mocker.patch("ftplib.FTP.nlst").return_value = ["/somepath/file1.csv", "/somepath/file2.csv"]
+    mocker.patch("ftplib.FTP.nlst").return_value = [
+        "/somepath/file1.csv",
+        "/somepath/file2.csv",
+    ]
     assert ftp_listdir("ftps://somepath") == ["file1.csv", "file2.csv"]
 
 
@@ -92,7 +95,11 @@ def test_dir_mtimes(ftp_client, mocker):
     ]
     get_mtime_mock = mocker.patch("peakina.io.ftp.ftp_utils._get_mtime")
     get_mtime_mock.side_effect = ["mtime1", "mtime2", None]
-    assert dir_mtimes("my_url") == {"file1.csv": "mtime1", "file2.csv": "mtime2", "file3.csv": None}
+    assert dir_mtimes("my_url") == {
+        "file1.csv": "mtime1",
+        "file2.csv": "mtime2",
+        "file3.csv": None,
+    }
     assert get_mtime_mock.call_args[0][1].startswith("path/file")
 
 
@@ -102,7 +109,9 @@ def test_ftp_client(mocker):
     url = "ftp://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
 
-    mock_ftp_client.connect.assert_called_once_with(host="ondine.com", port=123, timeout=3)
+    mock_ftp_client.connect.assert_called_once_with(
+        host="ondine.com", port=123, timeout=3
+    )
     mock_ftp_client.login.assert_called_once_with(passwd="", user="sacha")
     mock_ftp_client.quit.assert_called_once()
 
@@ -122,7 +131,9 @@ def test_ftps_client(mocker):
     url = "ftps://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
 
-    mock_ftps_client.connect.assert_called_once_with(host="ondine.com", port=123, timeout=3)
+    mock_ftps_client.connect.assert_called_once_with(
+        host="ondine.com", port=123, timeout=3
+    )
     mock_ftps_client.login.assert_called_once_with(passwd="", user="sacha")
     mock_ftps_client.quit.assert_called_once()
 
@@ -136,11 +147,11 @@ def test_ftps_client_ssl_required_on_control_channel(mocker):
     url = "ftps://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
 
-    mock_ftps_client.connect.call_count == 2
-    mock_ftps_client.prot_p.call_count == 2
-    mock_ftps_client.login.call_count == 1
+    assert mock_ftps_client.connect.call_count == 2
+    assert mock_ftps_client.prot_p.call_count == 2
+    assert mock_ftps_client.login.call_count == 1
     mock_ftps_client.login.assert_called_once_with(passwd="", user="sacha")
-    mock_ftps_client.quit.call_count == 2
+    assert mock_ftps_client.quit.call_count == 2
 
 
 def test_ftps_client_other_error(mocker):
@@ -148,7 +159,7 @@ def test_ftps_client_other_error(mocker):
     mock_ftps_client.prot_p.side_effect = [ssl.SSLError("meh"), None]
     url = "ftps://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
-    mock_ftps_client.login.call_count == 0  # never called
+    assert mock_ftps_client.login.call_count == 0  # never called
 
 
 def test_ftps_client_quit_resilience(mocker):
@@ -167,7 +178,11 @@ def test_sftp_client(mocker):
     ftp_open(url)
 
     mock_ssh_client.connect.assert_called_once_with(
-        timeout=3, hostname="atat.com", port=666, username="id#de@me*de", password="randompass"
+        timeout=3,
+        hostname="atat.com",
+        port=666,
+        username="id#de@me*de",
+        password="randompass",
     )
     mock_ssh_client.open_sftp.assert_called_once()
     mock_ssh_client.close.assert_called_once()

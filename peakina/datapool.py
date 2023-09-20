@@ -1,5 +1,6 @@
+from collections.abc import Hashable
 from os import path
-from typing import TYPE_CHECKING, Any, Hashable
+from typing import TYPE_CHECKING, Any
 
 from peakina.cache import Cache
 from peakina.datasource import DataSource

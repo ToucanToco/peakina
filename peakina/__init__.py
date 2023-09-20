@@ -4,7 +4,7 @@ from .cache import Cache, CacheEnum
 from .datapool import DataPool
 from .datasource import AVAILABLE_SCHEMES, DataSource, read_pandas
 from .helpers import TypeEnum
-from .io import MatchEnum, fetch
+from .io import Fetch, MatchEnum
 
 __version__ = lib_meta.version(__package__ or __name__)
 
@@ -16,6 +16,6 @@ __all__ = (
     "DataSource",
     "MatchEnum",
     "TypeEnum",
-    "fetch",
+    "Fetch",
     "read_pandas",
 )

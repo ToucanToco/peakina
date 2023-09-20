@@ -13,7 +13,9 @@ S3_SCHEMES = ["s3", "s3n", "s3a"]
 logger = logging.getLogger(__name__)
 
 
-def parse_s3_url(url: str, file: bool = True) -> tuple[str | None, str | None, str | None, str]:
+def parse_s3_url(
+    url: str, file: bool = True
+) -> tuple[str | None, str | None, str | None, str]:
     """parses a s3 url and extract credentials and s3 object path.
 
     A S3 URL looks like s3://aws_key:aws_secret@bucketname/objectname where
@@ -31,9 +33,13 @@ def parse_s3_url(url: str, file: bool = True) -> tuple[str | None, str | None, s
     urlchunks = urlparse(url)
     scheme = urlchunks.scheme
     assert scheme in S3_SCHEMES, f"{scheme} unsupported, use one of {S3_SCHEMES}"
-    assert not urlchunks.params, f"s3 url should not have params, got {urlchunks.params}"
+    assert (
+        not urlchunks.params
+    ), f"s3 url should not have params, got {urlchunks.params}"
     assert not urlchunks.query, f"s3 url should not have query, got {urlchunks.query}"
-    assert not urlchunks.fragment, f"s3 url should not have fragment, got {urlchunks.fragment}"
+    assert (
+        not urlchunks.fragment
+    ), f"s3 url should not have fragment, got {urlchunks.fragment}"
 
     access_key: str | None = None
     secret: str | None = None
@@ -45,7 +51,9 @@ def parse_s3_url(url: str, file: bool = True) -> tuple[str | None, str | None, s
         assert urlchunks.password, "s3 secret should not be empty"
         access_key = unquote(urlchunks.username)
         secret = unquote(urlchunks.password)
-    objectname = urlchunks.path.lstrip("/")  # remove leading /, it's not part of the objectname
+    objectname = urlchunks.path.lstrip(
+        "/"
+    )  # remove leading /, it's not part of the objectname
     if file:
         assert objectname, "s3 objectname can't be empty"
 
@@ -61,7 +69,9 @@ def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -
         except Exception as ex:
             nb_tries += 1
             if nb_tries >= retries:
-                raise Exception(f"Could not open {path} ({nb_tries} tries): {ex}") from ex
+                raise Exception(
+                    f"Could not open {path} ({nb_tries} tries): {ex}"
+                ) from ex
             # if the file has just been uploaded, then it might not be visible immediatly
             # but the fail to open has been cached by s3fs
             # so, we invalidate the cache
@@ -77,9 +87,13 @@ def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[byte
     token = None
     if client_kwargs is not None and "session_token" in client_kwargs:
         token = client_kwargs["session_token"]
-        client_kwargs = {k: v for k, v in client_kwargs.items() if k != "session_token"} or None
+        client_kwargs = {
+            k: v for k, v in client_kwargs.items() if k != "session_token"
+        } or None
 
-    fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs, token=token)
+    fs = s3fs.S3FileSystem(
+        key=access_key, secret=secret, client_kwargs=client_kwargs, token=token
+    )
 
     path = f"{bucketname}/{objectname}"
     ret = tempfile.NamedTemporaryFile(suffix=".s3tmp")
@@ -111,5 +125,6 @@ def dir_mtimes(
     # objectname can be empty or not ('subdir1/subdir2')
     bucketdir = f"{bucketname}/{objectname}".rstrip("/")
     return {
-        re.sub(rf"^{bucketdir}/", "", x["name"]): _get_timestamp(x) for x in fs.listdir(bucketdir)
+        re.sub(rf"^{bucketdir}/", "", x["name"]): _get_timestamp(x)
+        for x in fs.listdir(bucketdir)
     }

@@ -36,7 +36,10 @@ def test_type():
         DataSource("myfile.csv$")
     assert DataSource("myfile.tsv$", match=MatchEnum.GLOB).type is TypeEnum.CSV
     assert DataSource("myfile.*", match=MatchEnum.GLOB).type is None
-    assert DataSource("http://test.s3.com/myfile.csv?this=is&a=query&string=0").type is TypeEnum.CSV
+    assert (
+        DataSource("http://test.s3.com/myfile.csv?this=is&a=query&string=0").type
+        is TypeEnum.CSV
+    )
     assert DataSource("s3://bucket/object.xlsx").type is TypeEnum.EXCEL
     assert DataSource("s3://bucket/object.json?q=x").type is TypeEnum.JSON
 
@@ -59,7 +62,9 @@ def test_csv_with_sep(path):
     ds = DataSource(path("0_0_sep.csv"))
     assert ds.get_df().shape == (2, 2)
 
-    ds = DataSource(path("0_0_sep.csv"), reader_kwargs={"skipfooter": 1, "engine": "python"})
+    ds = DataSource(
+        path("0_0_sep.csv"), reader_kwargs={"skipfooter": 1, "engine": "python"}
+    )
     assert ds.get_df().shape == (1, 2)
     assert ds.get_df().to_dict(orient="records") == [{"a": 0, "b": 0}]
 
@@ -90,7 +95,9 @@ def test_csv_western_encoding(path):
     """
     It should be able to use a specific encoding
     """
-    ds = DataSource(path("encoded_western_short.csv"), reader_kwargs={"encoding": "windows-1252"})
+    ds = DataSource(
+        path("encoded_western_short.csv"), reader_kwargs={"encoding": "windows-1252"}
+    )
     df = ds.get_df()
     assert df.shape == (2, 19)
     df_meta = ds.get_metadata()
@@ -98,7 +105,8 @@ def test_csv_western_encoding(path):
 
     # with CLRF line-endings
     ds = DataSource(
-        path("encoded_western_clrf_short.csv"), reader_kwargs={"encoding": "windows-1252"}
+        path("encoded_western_clrf_short.csv"),
+        reader_kwargs={"encoding": "windows-1252"},
     )
     df = ds.get_df()
     assert df.shape == (2, 19)
@@ -118,7 +126,9 @@ def test_csv_header_row(path):
     Total number of rows must not include the header rows
     """
     # Without header
-    ds_file_without_header = DataSource(path("0_0.csv"), reader_kwargs={"names": ["colA", "colB"]})
+    ds_file_without_header = DataSource(
+        path("0_0.csv"), reader_kwargs={"names": ["colA", "colB"]}
+    )
     assert ds_file_without_header.get_df().shape == (3, 2)
     meta = ds_file_without_header.get_metadata()
     assert meta["total_rows"] == 3
@@ -213,18 +223,24 @@ def test_basic_excel(path):
     assert ds.get_metadata() == {
         "df_rows": 1,
         "sheetnames": ["January", "February"],
-        "total_rows": 4,  # we have for rows as total here because january sheet has 1 row and February sheet has 3 (1 + 3)
+        # we have for rows as total here because january sheet has 1 row and February sheet has 3 (1 + 3)
+        "total_rows": 4,
     }
 
     # On match datasources, no metadata is returned:
-    assert DataSource(path("fixture-multi-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
+    assert (
+        DataSource(path("fixture-multi-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata()
+        == {}
+    )
 
     # test with skiprows
     ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"skiprows": 2})
     assert ds.get_df().shape == (0, 2)
 
     # test with nrows and skiprows
-    ds = DataSource(path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 1, "skiprows": 2})
+    ds = DataSource(
+        path("fixture-single-sheet.xlsx"), reader_kwargs={"nrows": 1, "skiprows": 2}
+    )
     assert ds.get_df().shape == (0, 2)
 
     # test with skiprows and limit offset
@@ -243,7 +259,8 @@ def test_basic_excel(path):
 
     # test with the new file format type
     ds = DataSource(
-        path("fixture_new_format.xls"), reader_kwargs={"preview_nrows": 1, "preview_offset": 2}
+        path("fixture_new_format.xls"),
+        reader_kwargs={"preview_nrows": 1, "preview_offset": 2},
     )
     assert ds.get_df().shape == (1, 8)
 
@@ -256,13 +273,17 @@ def test_basic_excel(path):
     assert ds.get_df().shape == (7, 8)
 
     # test with nrows and skiprows
-    ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"nrows": 1, "skiprows": 2})
+    ds = DataSource(
+        path("fixture_new_format.xls"), reader_kwargs={"nrows": 1, "skiprows": 2}
+    )
     assert ds.get_df().shape == (1, 8)
 
 
 def test_multi_sheets_excel(path):
     """It should add a __sheet__ column when retrieving multiple sheet"""
-    ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None})
+    ds = DataSource(
+        path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None}
+    )
     # because our excel file has 1 entry on January sheet and 3 entries in February sheet
     df = pd.DataFrame(
         {
@@ -294,7 +315,9 @@ def test_basic_xml(path):
     assert ds.get_df().equals(df)
 
     jq_filter = '.records .record[] | .["@id"]|=tonumber'
-    ds = DataSource(path("fixture.xml"), reader_kwargs={"filter": jq_filter, "preview_nrows": 1})
+    ds = DataSource(
+        path("fixture.xml"), reader_kwargs={"filter": jq_filter, "preview_nrows": 1}
+    )
     df = pd.DataFrame({"@id": [1], "title": ["Keep on dancin'"]})
     assert ds.get_df().equals(df)
 
@@ -305,7 +328,9 @@ def test_basic_json(path):
     assert DataSource(path("fixture.json")).get_df().shape == (1, 1)
 
     jq_filter = '.records .record[] | .["@id"]|=tonumber'
-    ds = DataSource(path("fixture.json"), reader_kwargs={"filter": jq_filter, "lines": True})
+    ds = DataSource(
+        path("fixture.json"), reader_kwargs={"filter": jq_filter, "lines": True}
+    )
     df = pd.DataFrame({"@id": [1, 2], "title": ["Keep on dancin'", "Small Talk"]})
     assert ds.get_df().equals(df)
 
@@ -349,7 +374,9 @@ def test_chunk(path):
 
 def test_chunk_match(path):
     """It should be able to retrieve a dataframe with chunks and match"""
-    ds = DataSource(path("0_*.csv"), match=MatchEnum.GLOB, reader_kwargs={"chunksize": 1})
+    ds = DataSource(
+        path("0_*.csv"), match=MatchEnum.GLOB, reader_kwargs={"chunksize": 1}
+    )
     assert all(df.shape == (1, 3) for df in ds.get_dfs())
     df = ds.get_df()
     assert df.shape == (6, 3)
@@ -368,12 +395,20 @@ def test_cache(path, mocker):
 
     mock_time = mocker.patch("peakina.cache.time")
     mock_time.return_value = time.time() + 15  # fake 15s elapsed
-    assert ds.get_df(cache=cache).shape == (2, 2)  # 15 > 10: cache expires: read from disk
-    assert cache.get(ds.hash).shape == (2, 2)  # cache has been updated with the new data
+    assert ds.get_df(cache=cache).shape == (
+        2,
+        2,
+    )  # 15 > 10: cache expires: read from disk
+    assert cache.get(ds.hash).shape == (
+        2,
+        2,
+    )  # cache has been updated with the new data
 
     mock_time.reset_mock()
     cache.set(ds.hash, value=df, mtime=mtime)  # put back the fake df
     assert ds.get_df(cache=cache).shape == (3, 1)  # back to "retrieved from cache"
     # fake a file with a different mtime (e.g: a new file has been uploaded):
-    mocker.patch("peakina.io.local.file_fetcher.os.path.getmtime").return_value = mtime - 1
+    mocker.patch("peakina.io.local.file_fetcher.os.path.getmtime").return_value = (
+        mtime - 1
+    )
     assert ds.get_df(cache=cache).shape == (2, 2)  # cache has been invalidated

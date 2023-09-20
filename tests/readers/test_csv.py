@@ -41,7 +41,9 @@ def test_simple_csv_preview(path):
         reader_kwargs={"preview_nrows": 2},
     )
     assert ds.get_df().shape == (2, 2)
-    assert ds.get_df().equals(pd.DataFrame({"month": ["Jan-14", "Fev-14"], "value": [2.7, 3.2]}))
+    assert ds.get_df().equals(
+        pd.DataFrame({"month": ["Jan-14", "Fev-14"], "value": [2.7, 3.2]})
+    )
 
     # preview with `offset` and `nrows`
     ds = DataSource(
@@ -49,7 +51,9 @@ def test_simple_csv_preview(path):
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
     )
     assert ds.get_df().shape == (2, 2)
-    assert ds.get_df().equals(pd.DataFrame({"month": ["Mars-14", "Avr-14"], "value": [3.3, 3.1]}))
+    assert ds.get_df().equals(
+        pd.DataFrame({"month": ["Mars-14", "Avr-14"], "value": [3.3, 3.1]})
+    )
 
 
 def test_csv_metadata(path):

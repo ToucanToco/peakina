@@ -23,7 +23,13 @@ sample_geojson = {
             "geometry": {
                 "type": "Polygon",
                 "coordinates": [
-                    [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]
+                    [
+                        [100.0, 0.0],
+                        [101.0, 0.0],
+                        [101.0, 1.0],
+                        [100.0, 1.0],
+                        [100.0, 0.0],
+                    ]
                 ],
             },
             "properties": {"prop0": "value0", "prop1": 3.0},
@@ -58,7 +64,9 @@ def test_simple_geojson_preview(path):
     assert (result["prop1"] == expected["prop1"]).all()
     assert (result["geometry"] == expected["geometry"]).all()
 
-    ds = DataSource(path("sample.geojson"), reader_kwargs={"preview_offset": 1, "preview_nrows": 1})
+    ds = DataSource(
+        path("sample.geojson"), reader_kwargs={"preview_offset": 1, "preview_nrows": 1}
+    )
     result = ds.get_df()
     expected = gpd.GeoDataFrame.from_features(sample_geojson).iloc[1]
     assert (result["prop0"] == expected["prop0"]).all()

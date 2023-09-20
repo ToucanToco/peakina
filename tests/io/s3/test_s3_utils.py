@@ -4,24 +4,41 @@ from unittest.mock import MagicMock
 from pytest import raises
 from pytest_mock import MockerFixture
 
-from peakina.io.s3.s3_utils import (
-    _s3_open_file_with_retries,
-    parse_s3_url as pu,
-    s3_open,
-)
+from peakina.io.s3.s3_utils import _s3_open_file_with_retries, s3_open
+from peakina.io.s3.s3_utils import parse_s3_url as pu
 
 
 def test_parse_s3_url_no_credentials():
     """it should parse simple s3 urls without credentials"""
     assert pu("s3://mybucket/myobject.csv") == (None, None, "mybucket", "myobject.csv")
-    assert pu("s3://mybucket/my/object.csv") == (None, None, "mybucket", "my/object.csv")
+    assert pu("s3://mybucket/my/object.csv") == (
+        None,
+        None,
+        "mybucket",
+        "my/object.csv",
+    )
 
 
 def test_parse_s3_url_with_credentials():
     """it should parse s3 url with (quoted) credentials"""
-    assert pu("s3://ab:cd@mybucket/myobject.csv") == ("ab", "cd", "mybucket", "myobject.csv")
-    assert pu("s3://ab:cd@mybucket/my/object.csv") == ("ab", "cd", "mybucket", "my/object.csv")
-    assert pu("s3://a%3Ab:cd@mybucket/my/object.csv") == ("a:b", "cd", "mybucket", "my/object.csv")
+    assert pu("s3://ab:cd@mybucket/myobject.csv") == (
+        "ab",
+        "cd",
+        "mybucket",
+        "myobject.csv",
+    )
+    assert pu("s3://ab:cd@mybucket/my/object.csv") == (
+        "ab",
+        "cd",
+        "mybucket",
+        "my/object.csv",
+    )
+    assert pu("s3://a%3Ab:cd@mybucket/my/object.csv") == (
+        "a:b",
+        "cd",
+        "mybucket",
+        "my/object.csv",
+    )
 
 
 def test_invalid_scheme_raise_exception():
@@ -72,11 +89,17 @@ def test_s3_open_with_token(mocker: MockerFixture) -> None:
         client_kwargs={"something": "else", "session_token": "xxxx"},
     )
     s3fs_file_system.assert_called_once_with(
-        token="xxxx", secret="my_secret", key="my_key", client_kwargs={"something": "else"}
+        token="xxxx",
+        secret="my_secret",
+        key="my_key",
+        client_kwargs={"something": "else"},
     )
 
     # called with just the session token
-    s3_open("s3://my_key:my_secret@mybucket/file.csv", client_kwargs={"session_token": "xxxx"})
+    s3_open(
+        "s3://my_key:my_secret@mybucket/file.csv",
+        client_kwargs={"session_token": "xxxx"},
+    )
     s3fs_file_system.assert_called_with(
         token="xxxx", secret="my_secret", key="my_key", client_kwargs=None
     )

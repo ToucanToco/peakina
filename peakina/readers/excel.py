@@ -43,7 +43,9 @@ def excel_meta(filepath: str, reader_kwargs: dict[str, Any]) -> dict[str, Any]:
 
     if (sheet_name := reader_kwargs.get("sheet_name")) is None:
         # multiple sheets together
-        total_rows = sum(excel_file.parse(sheet_name).shape[0] for sheet_name in sheet_names)
+        total_rows = sum(
+            excel_file.parse(sheet_name).shape[0] for sheet_name in sheet_names
+        )
     else:
         # single sheet
         total_rows = excel_file.parse(sheet_name).shape[0]

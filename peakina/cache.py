@@ -1,11 +1,12 @@
 from abc import ABCMeta, abstractmethod
+from collections.abc import Callable
 from contextlib import suppress
 from datetime import timedelta
 from enum import Enum
 from functools import lru_cache, wraps
 from pathlib import Path
 from time import monotonic_ns, time
-from typing import Any, Callable, TypedDict
+from typing import Any, TypedDict
 
 import pandas as pd
 
@@ -24,11 +25,11 @@ class CacheEnum(str, Enum):
 class Cache(metaclass=ABCMeta):
     @staticmethod
     def get_cache(kind: CacheEnum, *args: Any, **kwargs: Any) -> "Cache":
-        ALL_CACHES = {
+        all_caches = {
             CacheEnum.MEMORY: InMemoryCache,
             CacheEnum.HDF: HDFCache,
         }
-        return ALL_CACHES[kind](*args, **kwargs)  # type: ignore[no-any-return]
+        return all_caches[kind](*args, **kwargs)  # type: ignore[no-any-return]
 
     @staticmethod
     def should_invalidate(
@@ -123,8 +124,8 @@ class HDFCache(Cache):
         try:
             # look for the row concerning the desired key in the metadata dataframe:
             infos = metadata[metadata.key == key].iloc[0].to_dict()
-        except IndexError:
-            raise KeyError(key)
+        except IndexError as excp:
+            raise KeyError(key) from excp
 
         if self.should_invalidate(
             mtime=mtime,
@@ -136,8 +137,8 @@ class HDFCache(Cache):
 
         try:
             return pd.read_hdf(self.cache_dir / key)
-        except FileNotFoundError:
-            raise KeyError(key)
+        except FileNotFoundError as excp:
+            raise KeyError(key) from excp
 
     def set(self, key: str, value: pd.DataFrame, mtime: float | None = None) -> None:
         mtime = mtime or time()
@@ -146,7 +147,9 @@ class HDFCache(Cache):
         try:
             # add new row to the metadata dataframe:
             metadata = metadata[metadata.key != key]  # drop duplicates
-            metadata = pd.concat([metadata, pd.Series(infos).to_frame().T], ignore_index=True)
+            metadata = pd.concat(
+                [metadata, pd.Series(infos).to_frame().T], ignore_index=True
+            )
             self.set_metadata(metadata)
             value.to_hdf(self.cache_dir / key, key, mode="w")
         except OSError:

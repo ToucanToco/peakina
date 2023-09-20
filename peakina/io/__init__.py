@@ -1,4 +1,4 @@
-from .fetcher import Fetcher, MatchEnum, fetch
+from .fetcher import Fetch, Fetcher, MatchEnum
 from .ftp.ftp_fetcher import FTPFetcher
 from .http.http_fetcher import HttpFetcher
 from .local.file_fetcher import FileFetcher
@@ -11,5 +11,5 @@ __all__ = (
     "HttpFetcher",
     "FileFetcher",
     "S3Fetcher",
-    "fetch",
+    "Fetch",
 )

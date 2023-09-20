@@ -18,10 +18,14 @@ class HttpFetcher(Fetcher):
             )
         else:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            self.pool_manager = urllib3.PoolManager(cert_reqs="CERT_NONE", assert_hostname=False)
+            self.pool_manager = urllib3.PoolManager(
+                cert_reqs="CERT_NONE", assert_hostname=False
+            )
 
     def open(self, filepath: str) -> IO[bytes]:
-        r = self.pool_manager.request("GET", filepath, preload_content=False, **self.extra_kwargs)
+        r = self.pool_manager.request(
+            "GET", filepath, preload_content=False, **self.extra_kwargs
+        )
         ret = tempfile.NamedTemporaryFile(suffix=".httptmp")
         for chunk in r.stream():
             ret.write(chunk)

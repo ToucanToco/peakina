@@ -11,10 +11,11 @@ import csv
 import inspect
 import mimetypes
 import os
+from collections.abc import Callable
 from datetime import datetime
 from enum import Enum
 from itertools import islice
-from typing import Any, Callable, NamedTuple
+from typing import Any, NamedTuple
 
 import chardet
 import pandas as pd
@@ -116,11 +117,11 @@ def detect_type(filepath: str, is_regex: bool = False) -> TypeEnum | None:
             if mimetype in type_infos.mime_types
         ][0]
         return TypeEnum(detected_type)
-    except IndexError:
+    except IndexError as excp:
         raise ValueError(
             f"Unsupported mimetype {mimetype!r}. "
             f'Supported types are: {", ".join(map(repr, SUPPORTED_FILE_TYPES))}.'
-        )
+        ) from excp
 
 
 def bytes_head(filepath: str, n: int) -> bytes:
@@ -162,7 +163,9 @@ def validate_sep(filepath: str, sep: str = ",", encoding: str | None = None) -> 
     try:
         # we want an error to be raised if we can't read the first two lines
         # hence the parameter `on_bad_lines` set to "error"
-        df = read_csv(filepath, sep=sep, encoding=encoding, nrows=2, on_bad_lines="error")
+        df = read_csv(
+            filepath, sep=sep, encoding=encoding, nrows=2, on_bad_lines="error"
+        )
         return len(df.columns) > 1
     except pd.errors.ParserError:
         return False
@@ -170,7 +173,7 @@ def validate_sep(filepath: str, sep: str = ",", encoding: str | None = None) -> 
 
 def get_reader_allowed_params(t: TypeEnum) -> list[str]:
     reader = SUPPORTED_FILE_TYPES[t].reader
-    return [kw for kw in inspect.signature(reader).parameters]
+    return list(inspect.signature(reader).parameters)
 
 
 def validate_kwargs(kwargs: dict[str, Any], t: TypeEnum | None) -> bool:
@@ -178,7 +181,9 @@ def validate_kwargs(kwargs: dict[str, Any], t: TypeEnum | None) -> bool:
     Validate that kwargs are at least in one signature of the methods
     Raises an error if it's not the case
     """
-    types: list[TypeEnum] = [t] if t is not None else [TypeEnum(t) for t in SUPPORTED_FILE_TYPES]
+    types: list[TypeEnum] = (
+        [t] if t is not None else [TypeEnum(t) for t in SUPPORTED_FILE_TYPES]
+    )
     allowed_kwargs: list[str] = []
     for t in types:
         allowed_kwargs += get_reader_allowed_params(t)
@@ -200,6 +205,8 @@ def pd_read(filepath: str, t: str, kwargs: dict[str, Any]) -> pd.DataFrame:
     return SUPPORTED_FILE_TYPES[t].reader(filepath, **kwargs)
 
 
-def get_metadata(filepath: str, type: str, reader_kwargs: dict[str, Any]) -> dict[str, Any]:
+def get_metadata(
+    filepath: str, type: str, reader_kwargs: dict[str, Any]
+) -> dict[str, Any]:
     metadata_reader = SUPPORTED_FILE_TYPES[type].metadata_reader
     return metadata_reader(filepath, reader_kwargs) if metadata_reader else {}

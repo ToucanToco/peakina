@@ -21,7 +21,8 @@ def transform_with_jq(data: Any, jq_filter: str) -> PdDatalist | PdDatadict:
         isinstance(all_data[0], list)  # list[PdDatalist]
         # detects another valid datastructure [{col1:[value, ...], col2:[value, ...]}]
         or (
-            isinstance(all_data[0], dict) and isinstance(list(all_data[0].values())[0], list)
+            isinstance(all_data[0], dict)
+            and isinstance(list(all_data[0].values())[0], list)
         )  # list[PdDatadict]
     ):
         return all_data[0]

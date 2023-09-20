@@ -49,7 +49,7 @@ def test_hdf_cache(mocker, tmp_path, df_test):
     with pytest.raises(KeyError):
         c1.get("key")
 
-    mocker.patch.object(df_test, "to_hdf").side_effect = IOError("disk full")
+    mocker.patch.object(df_test, "to_hdf").side_effect = OSError("disk full")
     with pytest.raises(OSError):
         c1.set("key", df_test)
     assert len(c1.get_metadata()) == 0

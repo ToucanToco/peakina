@@ -5,15 +5,17 @@ encoding, separator...and its only method is `get_df` to retrieve the pandas Dat
 the given parameters.
 """
 import os
+from collections.abc import Generator, Iterable
 from contextlib import suppress
 from dataclasses import asdict, field
 from datetime import timedelta
 from hashlib import md5
-from typing import IO, Any, Generator, Iterable
+from typing import IO, Any
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
-from pydantic import ConfigDict, __version__ as pydantic_version
+from pydantic import ConfigDict
+from pydantic import __version__ as pydantic_version
 from pydantic.dataclasses import dataclass
 from slugify import slugify
 
@@ -58,7 +60,9 @@ class DataSource:
             if self.scheme not in PD_VALID_URLS:
                 raise AttributeError(f"Invalid scheme {self.scheme!r}")
 
-            self.type = self.type or detect_type(urlparse(self.uri).path, is_regex=bool(self.match))
+            self.type = self.type or detect_type(
+                urlparse(self.uri).path, is_regex=bool(self.match)
+            )
 
             validate_kwargs(self.reader_kwargs, self.type)
 
@@ -70,7 +74,9 @@ class DataSource:
             if self.scheme not in PD_VALID_URLS:
                 raise AttributeError(f"Invalid scheme {self.scheme!r}")
 
-            self.type = self.type or detect_type(urlparse(self.uri).path, is_regex=bool(self.match))
+            self.type = self.type or detect_type(
+                urlparse(self.uri).path, is_regex=bool(self.match)
+            )
 
             validate_kwargs(self.reader_kwargs, self.type)
 
@@ -145,7 +151,9 @@ class DataSource:
             overriden_args = {**my_args, "uri": uri, "match": None}
             yield DataSource(**overriden_args)
 
-    def get_dfs(self, cache: Cache | None = None) -> Generator[pd.DataFrame, None, None]:
+    def get_dfs(
+        self, cache: Cache | None = None
+    ) -> Generator[pd.DataFrame, None, None]:
         """
         From the conf of the datasource, returns a generator
         with all the dataframes
@@ -184,7 +192,9 @@ class DataSource:
                 yield df
 
     def get_df(self, cache: Cache | None = None) -> pd.DataFrame:
-        return pd.concat([x for x in self.get_dfs(cache=cache)], sort=False).reset_index(drop=True)
+        return pd.concat(list(self.get_dfs(cache=cache)), sort=False).reset_index(
+            drop=True
+        )
 
 
 def read_pandas(

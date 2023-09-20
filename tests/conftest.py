@@ -1,8 +1,8 @@
 import os
 import socket
 import time
+from collections.abc import Callable
 from contextlib import suppress
-from typing import Callable
 
 import boto3
 import pytest
@@ -10,7 +10,6 @@ import yaml
 from docker import APIClient
 from docker.tls import TLSConfig
 from slugify import slugify
-from yaml import Loader
 
 fixtures_dir = f"{os.path.dirname(__file__)}/fixtures"
 
@@ -78,7 +77,9 @@ def s3_endpoint_url(s3_container):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~ DOCKER RELATED FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def pytest_addoption(parser):
-    parser.addoption("--pull", action="store_true", default=False, help="Pull docker images")
+    parser.addoption(
+        "--pull", action="store_true", default=False, help="Pull docker images"
+    )
 
 
 @pytest.fixture(scope="session")
@@ -119,7 +120,7 @@ def wait_for_container(
     timeout: int = 60,
 ) -> None:
     skip_exception = skip_exception or Exception
-    for i in range(timeout):
+    for _i in range(timeout):
         try:
             checker_callable(host_port)
             break
@@ -181,7 +182,9 @@ def container_starter(request, docker, docker_pull):
         container["port"] = host_port
 
         if checker_callable is not None:
-            wait_for_container(checker_callable, host_port, image, skip_exception, timeout)
+            wait_for_container(
+                checker_callable, host_port, image, skip_exception, timeout
+            )
         return container
 
     return f
@@ -190,8 +193,10 @@ def container_starter(request, docker, docker_pull):
 @pytest.fixture(scope="session")
 def service_container(unused_port, container_starter):
     def f(service_name, checker_callable=None, skip_exception=None, timeout=60):
-        with open(f"{os.path.dirname(__file__)}/docker-compose.yml") as docker_comppse_yml:
-            docker_conf = yaml.load(docker_comppse_yml, Loader=Loader)
+        with open(
+            f"{os.path.dirname(__file__)}/docker-compose.yml"
+        ) as docker_comppse_yml:
+            docker_conf = yaml.safe_load(docker_comppse_yml)
         service_conf = docker_conf[service_name]
         volumes = service_conf.get("volumes")
         if volumes is not None:

@@ -14,14 +14,18 @@ def test_ftp_fetcher(mocker: MockerFixture, ftp_path: str) -> None:
     tmpfile = fetcher.open(myfile_path)
     assert pd.read_csv(tmpfile).shape == (2, 2)
 
-    mocker.patch("peakina.io.ftp.ftp_fetcher.get_mtimes_cache", return_value={"something": "else"})
+    mocker.patch(
+        "peakina.io.ftp.ftp_fetcher.get_mtimes_cache",
+        return_value={"something": "else"},
+    )
     assert (mtime := fetcher.mtime(myfile_path)) is not None
     assert mtime > 1e9
     assert mtime_spy.call_count == 1
 
     mtime_spy.reset_mock()
     mocker.patch(
-        "peakina.io.ftp.ftp_fetcher.get_mtimes_cache", return_value={ftp_path: {myfile: 1e95}}
+        "peakina.io.ftp.ftp_fetcher.get_mtimes_cache",
+        return_value={ftp_path: {myfile: 1e95}},
     )
     assert myfile in fetcher.listdir(ftp_path)  # gets all mtimes
     for year in range(2015, 2018):
