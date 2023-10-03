@@ -125,7 +125,9 @@ def sftp_client(params: ParseResult) -> Generator[tuple[paramiko.SFTPClient, str
         yield sftp, params.path
 
     finally:
-        ssh_client.close()
+        # In cae of Exception, we don't want to raise it
+        with suppress(AttributeError):
+            ssh_client.close()
 
 
 def _urlparse(url: str) -> ParseResult:

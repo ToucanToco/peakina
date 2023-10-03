@@ -198,3 +198,16 @@ def test_sftp_client(mocker):
     url = "sftp://id#de@me*de:randompass@atat.com:666"
     ftp_listdir(url)
     cl_ftp.listdir.assert_called_once_with(".")
+
+
+def test_sftp_client_silent_close(mocker: MockFixture) -> None:
+    invalid_params = ParseResult(scheme="", netloc="", path="", params="", query="", fragment="")
+    ssh_client = mocker.patch("paramiko.SSHClient")
+    ssh_client.return_value.close.side_effect = AttributeError("NoneType doesnt have .close()")
+
+    with sftp_client(invalid_params) as (sftp, _):
+        # This block should raise an exception due to invalid parameters
+        # The exception is expected to be suppressed by the context manager in the finally block
+        # So, the test will pass if no exception propagates beyond this point
+
+        assert sftp.get_channel()
