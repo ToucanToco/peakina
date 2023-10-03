@@ -2,10 +2,19 @@ import ftplib
 import os
 import socket
 import ssl
+from urllib.parse import ParseResult
 
 from pytest import fixture, raises
+from pytest_mock import MockFixture
 
-from peakina.io.ftp.ftp_utils import dir_mtimes, ftp_listdir, ftp_mtime, ftp_open
+from peakina.io.ftp.ftp_utils import (
+    _DEFAULT_MAX_TIMEOUT,
+    dir_mtimes,
+    ftp_listdir,
+    ftp_mtime,
+    ftp_open,
+    sftp_client,
+)
 
 
 @fixture
@@ -102,7 +111,9 @@ def test_ftp_client(mocker):
     url = "ftp://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
 
-    mock_ftp_client.connect.assert_called_once_with(host="ondine.com", port=123, timeout=3)
+    mock_ftp_client.connect.assert_called_once_with(
+        host="ondine.com", port=123, timeout=_DEFAULT_MAX_TIMEOUT
+    )
     mock_ftp_client.login.assert_called_once_with(passwd="", user="sacha")
     mock_ftp_client.quit.assert_called_once()
 
@@ -122,7 +133,9 @@ def test_ftps_client(mocker):
     url = "ftps://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
 
-    mock_ftps_client.connect.assert_called_once_with(host="ondine.com", port=123, timeout=3)
+    mock_ftps_client.connect.assert_called_once_with(
+        host="ondine.com", port=123, timeout=_DEFAULT_MAX_TIMEOUT
+    )
     mock_ftps_client.login.assert_called_once_with(passwd="", user="sacha")
     mock_ftps_client.quit.assert_called_once()
 
@@ -167,7 +180,11 @@ def test_sftp_client(mocker):
     ftp_open(url)
 
     mock_ssh_client.connect.assert_called_once_with(
-        timeout=3, hostname="atat.com", port=666, username="id#de@me*de", password="randompass"
+        timeout=_DEFAULT_MAX_TIMEOUT,
+        hostname="atat.com",
+        port=666,
+        username="id#de@me*de",
+        password="randompass",
     )
     mock_ssh_client.open_sftp.assert_called_once()
     mock_ssh_client.close.assert_called_once()
