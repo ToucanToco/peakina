@@ -8,7 +8,7 @@ from pytest import fixture, raises
 from pytest_mock import MockFixture
 
 from peakina.io.ftp.ftp_utils import (
-    _DEFAULT_MAX_TIMEOUT,
+    _DEFAULT_MAX_TIMEOUT_SECONDS,
     dir_mtimes,
     ftp_listdir,
     ftp_mtime,
@@ -112,7 +112,7 @@ def test_ftp_client(mocker):
     ftp_open(url)
 
     mock_ftp_client.connect.assert_called_once_with(
-        host="ondine.com", port=123, timeout=_DEFAULT_MAX_TIMEOUT
+        host="ondine.com", port=123, timeout=_DEFAULT_MAX_TIMEOUT_SECONDS
     )
     mock_ftp_client.login.assert_called_once_with(passwd="", user="sacha")
     mock_ftp_client.quit.assert_called_once()
@@ -134,7 +134,7 @@ def test_ftps_client(mocker):
     ftp_open(url)
 
     mock_ftps_client.connect.assert_called_once_with(
-        host="ondine.com", port=123, timeout=_DEFAULT_MAX_TIMEOUT
+        host="ondine.com", port=123, timeout=_DEFAULT_MAX_TIMEOUT_SECONDS
     )
     mock_ftps_client.login.assert_called_once_with(passwd="", user="sacha")
     mock_ftps_client.quit.assert_called_once()
@@ -180,7 +180,7 @@ def test_sftp_client(mocker):
     ftp_open(url)
 
     mock_ssh_client.connect.assert_called_once_with(
-        timeout=_DEFAULT_MAX_TIMEOUT,
+        timeout=_DEFAULT_MAX_TIMEOUT_SECONDS,
         hostname="atat.com",
         port=666,
         username="id#de@me*de",

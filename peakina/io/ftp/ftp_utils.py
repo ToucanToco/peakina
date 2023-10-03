@@ -16,7 +16,7 @@ from urllib.parse import ParseResult, quote, unquote, urlparse
 import paramiko
 
 FTP_SCHEMES = ["ftp", "ftps", "sftp"]
-_DEFAULT_MAX_TIMEOUT = 10
+_DEFAULT_MAX_TIMEOUT_SECONDS = 10
 _DEFAULT_MAX_RETRY = 7
 
 FTPClient = ftplib.FTP | paramiko.SFTPClient
@@ -75,7 +75,9 @@ class FTPS(ftplib.FTP_TLS):
 def ftps_client(params: ParseResult) -> Generator[tuple[FTPS, str], None, None]:
     ftps = FTPS()
     try:
-        ftps.connect(host=params.hostname or "", port=params.port, timeout=_DEFAULT_MAX_TIMEOUT)
+        ftps.connect(
+            host=params.hostname or "", port=params.port, timeout=_DEFAULT_MAX_TIMEOUT_SECONDS
+        )
         try:
             ftps.prot_p()
             ftps.login(user=params.username or "", passwd=params.password or "")
@@ -99,7 +101,7 @@ def ftp_client(params: ParseResult) -> Generator[tuple[ftplib.FTP, str], None, N
     port = params.port or 21
     ftp = ftplib.FTP()
     try:
-        ftp.connect(host=params.hostname or "", port=port, timeout=_DEFAULT_MAX_TIMEOUT)
+        ftp.connect(host=params.hostname or "", port=port, timeout=_DEFAULT_MAX_TIMEOUT_SECONDS)
         ftp.login(user=params.username or "", passwd=params.password or "")
         yield ftp, params.path
 
@@ -119,7 +121,7 @@ def sftp_client(params: ParseResult) -> Generator[tuple[paramiko.SFTPClient, str
             username=params.username,
             password=params.password,
             port=port,
-            timeout=_DEFAULT_MAX_TIMEOUT,
+            timeout=_DEFAULT_MAX_TIMEOUT_SECONDS,
         )
         sftp = ssh_client.open_sftp()
         yield sftp, params.path
