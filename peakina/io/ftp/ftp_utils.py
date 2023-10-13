@@ -17,7 +17,7 @@ from urllib.parse import ParseResult, quote, unquote, urlparse
 import paramiko
 
 FTP_SCHEMES = ["ftp", "ftps", "sftp"]
-_DEFAULT_MAX_TIMEOUT_SECONDS = 10
+_DEFAULT_MAX_TIMEOUT_SECONDS = 180
 _DEFAULT_MAX_RETRY = 7
 
 FTPClient = ftplib.FTP | paramiko.SFTPClient
