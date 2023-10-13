@@ -130,6 +130,7 @@ def sftp_client(params: ParseResult) -> Generator[tuple[paramiko.SFTPClient, str
     finally:
         # In cae of Exception, we don't want to raise it
         with suppress(AttributeError):
+            logging.getLogger(__name__).warning("Unable to close the Connection the SSHConnection.")
             ssh_client.close()
 
 
