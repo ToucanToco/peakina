@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.9.6] - 2023-10-13
+
 ### Fixed
 
 - FTP: retry connection on `SSHException` while opening a remote url.
