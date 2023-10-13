@@ -1,10 +1,10 @@
 import ftplib
 import logging
+import os
 import re
 import socket
 import ssl
 import tempfile
-import urllib.parse
 from contextlib import contextmanager, suppress
 from datetime import datetime
 from functools import partial
@@ -17,7 +17,7 @@ from urllib.parse import ParseResult, quote, unquote, urlparse
 import paramiko
 
 FTP_SCHEMES = ["ftp", "ftps", "sftp"]
-_DEFAULT_MAX_TIMEOUT_SECONDS = 180
+_DEFAULT_MAX_TIMEOUT_SECONDS = 30
 _DEFAULT_MAX_RETRY = 7
 
 FTPClient = ftplib.FTP | paramiko.SFTPClient
@@ -185,41 +185,23 @@ def _open(url: str) -> IO[bytes]:
 
 
 def ftp_open(url: str, retry: int = _DEFAULT_MAX_RETRY) -> IO[bytes]:  # type: ignore
-    file_listed: bool = False
     for i in range(1, retry + 1):
         try:
             return _open(url)
         except (AttributeError, OSError, ftplib.error_temp, paramiko.SSHException) as e:
             log = logging.getLogger(__name__)
-            # If this occurs, we need to see what's actually inside that dir
-            # by listing maxi 15 entries
-            # TODO: remove this after the debuging is done !
+
             # FileNotFoundError inherits from OSError
-            if isinstance(e, FileNotFoundError) and not file_listed:  # pragma: no cover
-                try:
-                    file_path = url.split("/")[-1]
-                    full_path = "/".join(url.split(":")[-1].split("/")[1:])
-                    dir_path = full_path.replace(full_path.split("/")[-1], "")
-                    log.warning(f"File '{file_path}' not available inside : '{dir_path}' !")
-
-                    parsed_url = urllib.parse.urlsplit(url)
-                    path_without_file = parsed_url.path.rsplit("/", 1)[0]
-                    modified_url = urllib.parse.urlunsplit(
-                        (parsed_url.scheme, parsed_url.netloc, path_without_file, "", "")
-                    )
-
-                    files_available = ", ".join(ftp_listdir(modified_url)[:15])
-                    # we list only 15 as maximum
-                    log.warning(f"List of files : ({files_available})")
-                    file_listed = True
-                except Exception as exp:
-                    logging.getLogger(__name__).error(f"Exception on file listing :: {exp}")
-            else:
-                sleep_time = 2 * i**2
-                logging.getLogger(__name__).warning(
-                    f"Retry #{i}: Sleeping {sleep_time}s because {e}"
+            # We need to log that we're not seeing the specified file
+            if isinstance(e, FileNotFoundError):  # pragma: no cover
+                log.warning(
+                    f"File '{os.path.basename(url)}' not available inside : "
+                    f"'{os.path.dirname(urlparse(url).path)}' !"
                 )
-                sleep(sleep_time)
+
+            sleep_time = 2 * i**2
+            logging.getLogger(__name__).warning(f"Retry #{i}: Sleeping {sleep_time}s because {e}")
+            sleep(sleep_time)
 
 
 def _get_all_files(c: FTPClient, path: str) -> list[str]:
