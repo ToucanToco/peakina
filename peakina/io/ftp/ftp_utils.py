@@ -189,7 +189,7 @@ def ftp_open(url: str, retry: int = _DEFAULT_MAX_RETRY) -> IO[bytes]:  # type: i
     for i in range(1, retry + 1):
         try:
             return _open(url)
-        except (AttributeError, OSError, ftplib.error_temp) as e:
+        except (AttributeError, OSError, ftplib.error_temp, paramiko.SSHException) as e:
             log = logging.getLogger(__name__)
             # If this occurs, we need to see what's actually inside that dir
             # by listing maxi 15 entries

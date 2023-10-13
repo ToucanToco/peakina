@@ -4,6 +4,7 @@ import socket
 import ssl
 from urllib.parse import ParseResult
 
+from paramiko.ssh_exception import SSHException
 from pytest import fixture, raises
 from pytest_mock import MockFixture
 
@@ -68,6 +69,7 @@ def test_retry_open(mocker):
         ftplib.error_temp("421 Could not create socket"),
         AttributeError("'NoneType' object has no attribute 'sendall'"),
         OSError("Random OSError"),
+        SSHException("Random connection dropped error"),
         "ok",
     ]
     mock_sleep = mocker.patch("peakina.io.ftp.ftp_utils.sleep")
