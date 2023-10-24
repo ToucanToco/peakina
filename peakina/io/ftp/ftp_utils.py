@@ -55,7 +55,7 @@ class FTPS(ftplib.FTP_TLS):
             conn = self.context.wrap_socket(
                 conn, server_hostname=self.host, session=self.sock.session  # type: ignore[union-attr]
             )  # this is the fix
-        return conn, size
+        return conn, size  # type:ignore[return-value] # size could be None here
 
     def makepasv(self) -> tuple[str, int]:
         # override makepasv so it rewrites the dst address if the server gave a broken one.
