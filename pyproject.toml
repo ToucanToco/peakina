@@ -18,7 +18,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-certifi = ">=2022.5.18,<2023.0.0"
+certifi = "*"
 chardet = ">=4,<6"
 fastparquet = ">=0.8.0,<1"
 jq = "^1.2.1"
