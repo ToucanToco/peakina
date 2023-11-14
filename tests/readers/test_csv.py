@@ -75,9 +75,21 @@ def test_csv_metadata(path):
         "total_rows": 12,
     }
 
+    # skiprows as integer
     ds = DataSource(
         path("fixture-1.csv"),
         reader_kwargs={"skiprows": 3, "skipfooter": 4},
+    )
+    assert ds.get_df().shape == (5, 2)
+    assert ds.get_metadata() == {
+        "df_rows": 5,
+        "total_rows": 12,
+    }
+
+    # skiprows as list
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"skiprows": [0, 2, 4], "skipfooter": 4},
     )
     assert ds.get_df().shape == (5, 2)
     assert ds.get_metadata() == {
