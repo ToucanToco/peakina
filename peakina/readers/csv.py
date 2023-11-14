@@ -101,7 +101,11 @@ def csv_meta(
             "df_rows": reader_kwargs["nrows"],
         }
 
-    start = 0 + reader_kwargs.get("skiprows", 0)
+    skiprows = reader_kwargs.get("skiprows", 0)
+    if isinstance(skiprows, list):
+        skiprows = len(skiprows)
+
+    start = 0 + skiprows
     end = total_rows - reader_kwargs.get("skipfooter", 0)
 
     preview_offset = reader_kwargs.get("preview_offset", 0)
