@@ -1,5 +1,6 @@
 import ftplib
 import logging
+import os
 import re
 import socket
 import ssl
@@ -16,6 +17,8 @@ from urllib.parse import ParseResult, quote, unquote, urlparse
 import paramiko
 
 FTP_SCHEMES = ["ftp", "ftps", "sftp"]
+_DEFAULT_MAX_TIMEOUT_SECONDS = 30
+_DEFAULT_MAX_RETRY = 7
 
 FTPClient = ftplib.FTP | paramiko.SFTPClient
 
@@ -73,7 +76,9 @@ class FTPS(ftplib.FTP_TLS):
 def ftps_client(params: ParseResult) -> Generator[tuple[FTPS, str], None, None]:
     ftps = FTPS()
     try:
-        ftps.connect(host=params.hostname or "", port=params.port, timeout=3)
+        ftps.connect(
+            host=params.hostname or "", port=params.port, timeout=_DEFAULT_MAX_TIMEOUT_SECONDS
+        )
         try:
             ftps.prot_p()
             ftps.login(user=params.username or "", passwd=params.password or "")
@@ -97,7 +102,7 @@ def ftp_client(params: ParseResult) -> Generator[tuple[ftplib.FTP, str], None, N
     port = params.port or 21
     ftp = ftplib.FTP()
     try:
-        ftp.connect(host=params.hostname or "", port=port, timeout=3)
+        ftp.connect(host=params.hostname or "", port=port, timeout=_DEFAULT_MAX_TIMEOUT_SECONDS)
         ftp.login(user=params.username or "", passwd=params.password or "")
         yield ftp, params.path
 
@@ -117,13 +122,16 @@ def sftp_client(params: ParseResult) -> Generator[tuple[paramiko.SFTPClient, str
             username=params.username,
             password=params.password,
             port=port,
-            timeout=3,
+            timeout=_DEFAULT_MAX_TIMEOUT_SECONDS,
         )
         sftp = ssh_client.open_sftp()
         yield sftp, params.path
 
     finally:
-        ssh_client.close()
+        # In cae of Exception, we don't want to raise it
+        with suppress(AttributeError):
+            logging.getLogger(__name__).warning("Unable to close the Connection the SSHConnection.")
+            ssh_client.close()
 
 
 def _urlparse(url: str) -> ParseResult:
@@ -177,11 +185,21 @@ def _open(url: str) -> IO[bytes]:
     return ret
 
 
-def ftp_open(url: str, retry: int = 4) -> IO[bytes]:  # type: ignore
+def ftp_open(url: str, retry: int = _DEFAULT_MAX_RETRY) -> IO[bytes]:  # type: ignore
     for i in range(1, retry + 1):
         try:
             return _open(url)
-        except (AttributeError, OSError, ftplib.error_temp) as e:
+        except (AttributeError, OSError, ftplib.error_temp, paramiko.SSHException) as e:
+            log = logging.getLogger(__name__)
+
+            # FileNotFoundError inherits from OSError
+            # We need to log that we're not seeing the specified file
+            if isinstance(e, FileNotFoundError):  # pragma: no cover
+                log.warning(
+                    f"File '{os.path.basename(url)}' not available inside : "
+                    f"'{os.path.dirname(urlparse(url).path)}' !"
+                )
+
             sleep_time = 2 * i**2
             logging.getLogger(__name__).warning(f"Retry #{i}: Sleeping {sleep_time}s because {e}")
             sleep(sleep_time)

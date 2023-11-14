@@ -2,10 +2,20 @@ import ftplib
 import os
 import socket
 import ssl
+from urllib.parse import ParseResult
 
+from paramiko.ssh_exception import SSHException
 from pytest import fixture, raises
+from pytest_mock import MockFixture
 
-from peakina.io.ftp.ftp_utils import dir_mtimes, ftp_listdir, ftp_mtime, ftp_open
+from peakina.io.ftp.ftp_utils import (
+    _DEFAULT_MAX_TIMEOUT_SECONDS,
+    dir_mtimes,
+    ftp_listdir,
+    ftp_mtime,
+    ftp_open,
+    sftp_client,
+)
 
 
 @fixture
@@ -59,6 +69,7 @@ def test_retry_open(mocker):
         ftplib.error_temp("421 Could not create socket"),
         AttributeError("'NoneType' object has no attribute 'sendall'"),
         OSError("Random OSError"),
+        SSHException("Random connection dropped error"),
         "ok",
     ]
     mock_sleep = mocker.patch("peakina.io.ftp.ftp_utils.sleep")
@@ -102,7 +113,9 @@ def test_ftp_client(mocker):
     url = "ftp://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
 
-    mock_ftp_client.connect.assert_called_once_with(host="ondine.com", port=123, timeout=3)
+    mock_ftp_client.connect.assert_called_once_with(
+        host="ondine.com", port=123, timeout=_DEFAULT_MAX_TIMEOUT_SECONDS
+    )
     mock_ftp_client.login.assert_called_once_with(passwd="", user="sacha")
     mock_ftp_client.quit.assert_called_once()
 
@@ -122,7 +135,9 @@ def test_ftps_client(mocker):
     url = "ftps://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
 
-    mock_ftps_client.connect.assert_called_once_with(host="ondine.com", port=123, timeout=3)
+    mock_ftps_client.connect.assert_called_once_with(
+        host="ondine.com", port=123, timeout=_DEFAULT_MAX_TIMEOUT_SECONDS
+    )
     mock_ftps_client.login.assert_called_once_with(passwd="", user="sacha")
     mock_ftps_client.quit.assert_called_once()
 
@@ -167,7 +182,11 @@ def test_sftp_client(mocker):
     ftp_open(url)
 
     mock_ssh_client.connect.assert_called_once_with(
-        timeout=3, hostname="atat.com", port=666, username="id#de@me*de", password="randompass"
+        timeout=_DEFAULT_MAX_TIMEOUT_SECONDS,
+        hostname="atat.com",
+        port=666,
+        username="id#de@me*de",
+        password="randompass",
     )
     mock_ssh_client.open_sftp.assert_called_once()
     mock_ssh_client.close.assert_called_once()
@@ -181,3 +200,16 @@ def test_sftp_client(mocker):
     url = "sftp://id#de@me*de:randompass@atat.com:666"
     ftp_listdir(url)
     cl_ftp.listdir.assert_called_once_with(".")
+
+
+def test_sftp_client_silent_close(mocker: MockFixture) -> None:
+    invalid_params = ParseResult(scheme="", netloc="", path="", params="", query="", fragment="")
+    ssh_client = mocker.patch("paramiko.SSHClient")
+    ssh_client.return_value.close.side_effect = AttributeError("NoneType doesnt have .close()")
+
+    with sftp_client(invalid_params) as (sftp, _):
+        # This block should raise an exception due to invalid parameters
+        # The exception is expected to be suppressed by the context manager in the finally block
+        # So, the test will pass if no exception propagates beyond this point
+
+        assert sftp.get_channel()
