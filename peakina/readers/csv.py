@@ -27,6 +27,11 @@ def read_csv(
     """
     The read_csv method is able to make a preview by reading on chunks
     """
+
+    # NOTE: To keep column-names in the final result
+    if isinstance(kwargs.get("skiprows", None), list):
+        kwargs["skiprows"] = [x + 1 for x in kwargs["skiprows"]]
+
     if preview_nrows is not None or preview_offset:
         if (skipfooter := kwargs.pop("skipfooter", None)) is None:
             skipfooter = 0
@@ -101,7 +106,11 @@ def csv_meta(
             "df_rows": reader_kwargs["nrows"],
         }
 
-    start = 0 + reader_kwargs.get("skiprows", 0)
+    skiprows = reader_kwargs.get("skiprows", 0)
+    if isinstance(skiprows, list):
+        skiprows = len(skiprows)
+
+    start = 0 + skiprows
     end = total_rows - reader_kwargs.get("skipfooter", 0)
 
     preview_offset = reader_kwargs.get("preview_offset", 0)
