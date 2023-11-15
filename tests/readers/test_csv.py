@@ -51,6 +51,27 @@ def test_simple_csv_preview(path):
     assert ds.get_df().shape == (2, 2)
     assert ds.get_df().equals(pd.DataFrame({"month": ["Mars-14", "Avr-14"], "value": [3.3, 3.1]}))
 
+    # with skiprows as list
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"skiprows": [0, 2, 5, 7, 9, 11, 12]},
+    )
+    assert ds.get_df().equals(
+        pd.DataFrame(
+            {
+                "month": {
+                    0: "Fev-14",
+                    1: "Avr-14",
+                    2: "Mai-14",
+                    3: "Juil-14",
+                    4: "Sept-14",
+                    5: "Nov-14",
+                },
+                "value": {0: 3.2, 1: 3.1, 2: 3.9, 3: 3.1, 4: 3.4, 5: 3.7},
+            }
+        )
+    )
+
 
 def test_csv_metadata(path):
     """
@@ -75,9 +96,21 @@ def test_csv_metadata(path):
         "total_rows": 12,
     }
 
+    # skiprows as integer
     ds = DataSource(
         path("fixture-1.csv"),
         reader_kwargs={"skiprows": 3, "skipfooter": 4},
+    )
+    assert ds.get_df().shape == (5, 2)
+    assert ds.get_metadata() == {
+        "df_rows": 5,
+        "total_rows": 12,
+    }
+
+    # skiprows as list
+    ds = DataSource(
+        path("fixture-1.csv"),
+        reader_kwargs={"skiprows": [0, 2, 4], "skipfooter": 4},
     )
     assert ds.get_df().shape == (5, 2)
     assert ds.get_metadata() == {
