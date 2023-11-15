@@ -134,6 +134,8 @@
 
 - Initial version, showtime!
 
+[0.9.7]: https://github.com/ToucanToco/peakina/compare/v0.9.6...v0.9.7
+[0.9.6]: https://github.com/ToucanToco/peakina/compare/v0.9.5...v0.9.6
 [0.9.5]: https://github.com/ToucanToco/peakina/compare/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.9.4
 [0.9.3]: https://github.com/ToucanToco/peakina/compare/v0.9.0...v0.9.3
