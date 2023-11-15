@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.12.1] - 2023-11-15
+
 ### Fixed
 
 - Csv: fix get-metadatas from CSVs files with `skiprows` as list (0-indexed) in Datasource.
