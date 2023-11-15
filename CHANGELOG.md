@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Csv: fix get-metadatas from CSVs files with `skiprows` as list (0-indexed) in Datasource.
 - FTP: retry connection on `SSHException` while opening a remote url.
 
 ## [0.9.5] - 2023-04-19
