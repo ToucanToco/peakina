@@ -54,19 +54,20 @@ def test_simple_csv_preview(path):
     # with skiprows as list
     ds = DataSource(
         path("fixture-1.csv"),
-        reader_kwargs={"skiprows": [1, 2, 5, 7, 9, 11, 12]},
+        reader_kwargs={"skiprows": [0, 2, 5, 7, 9, 11, 12]},
     )
     assert ds.get_df().equals(
         pd.DataFrame(
             {
                 "month": {
-                    0: "Mars-14",
+                    0: "Fev-14",
                     1: "Avr-14",
-                    2: "Juin-14",
-                    3: "Aout-14",
-                    4: "Oct-14",
+                    2: "Mai-14",
+                    3: "Juil-14",
+                    4: "Sept-14",
+                    5: "Nov-14",
                 },
-                "value": {0: 3.3, 1: 3.1, 2: 3.4, 3: 3.2, 4: 3.8},
+                "value": {0: 3.2, 1: 3.1, 2: 3.9, 3: 3.1, 4: 3.4, 5: 3.7},
             }
         )
     )
