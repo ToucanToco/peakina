@@ -102,8 +102,8 @@ def test_dir_mtimes(ftp_client, mocker):
         "file3.csv",
     ]
     get_mtime_mock = mocker.patch("peakina.io.ftp.ftp_utils._get_mtime")
-    get_mtime_mock.side_effect = ["mtime1", "mtime2", None]
-    assert dir_mtimes("my_url") == {"file1.csv": "mtime1", "file2.csv": "mtime2", "file3.csv": None}
+    get_mtime_mock.side_effect = [1, 2, None]
+    assert dir_mtimes("my_url") == {"file1.csv": 1, "file2.csv": 2, "file3.csv": None}
     assert get_mtime_mock.call_args[0][1].startswith("path/file")
 
 
