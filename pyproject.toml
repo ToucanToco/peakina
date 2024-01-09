@@ -38,7 +38,7 @@ openpyxl = "^3.1.2"
 aiobotocore = {extras = ["boto3"], version = "^2.3.4"}
 black = "^23.12"
 docker = "^7.0.0"
-flake8 = "^6.1.0"
+flake8 = "^7.0.0"
 isort = "^5.13.2"
 mkdocs = "^1.5.3"
 mkdocs-material = "^9.5.2"
