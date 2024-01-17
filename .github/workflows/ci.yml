@@ -10,9 +10,6 @@ jobs:
         python-version:
           - "3.10"
           - "3.11"
-        pydantic-version:
-          - "^1.10"
-          - "^2.0"
 
     steps:
       - uses: actions/checkout@v4
@@ -23,15 +20,6 @@ jobs:
 
       - name: install_system_deps
         run: sudo make install_system_deps
-
-      - name: Update Pydantic version on the toml & lock
-        run: |
-          pip install -U pip poetry
-          # we update the pydantic version corresponding to the matrix
-          sed -i "s/pydantic = \".*\"/pydantic = \"${PYDANTIC_VERSION}\"/" pyproject.toml
-          poetry lock --no-update
-        env:
-          PYDANTIC_VERSION: ${{ matrix.pydantic-version }}
 
       - name: install
         run: make install
@@ -49,9 +37,6 @@ jobs:
         python-version:
           - "3.10"
           - "3.11"
-        pydantic-version:
-          - "^1.10"
-          - "^2.0"
 
     steps:
     - uses: actions/checkout@v4
@@ -63,15 +48,6 @@ jobs:
     - name: install_system_deps
       run: sudo make install_system_deps
 
-    - name: Update Pydantic version on the toml & lock
-      run: |
-        pip install -U pip poetry
-        # we update the pydantic version corresponding to the matrix
-        sed -i "s/pydantic = \".*\"/pydantic = \"${PYDANTIC_VERSION}\"/" pyproject.toml
-        poetry lock --no-update
-      env:
-        PYDANTIC_VERSION: ${{ matrix.pydantic-version }}
-
     - name: install
       run: make install
 
@@ -79,7 +55,6 @@ jobs:
       run: make test
       env:
         FTP_PATH: ${{ secrets.FTP_PATH }}
-        PYDANTIC_VERSION: ${{ matrix.pydantic-version }}
 
     - name: Upload coverage
       uses: codecov/codecov-action@v3
