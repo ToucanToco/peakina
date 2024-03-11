@@ -7,6 +7,11 @@ updates:
   # poetry
   - package-ecosystem: "pip"
     directory: "/"
+    groups:
+        prod-deps:
+          dependency-type: "production"
+        dev-deps:
+          dependency-type: "development"
     schedule:
       interval: "daily"
   # poetry LTS
@@ -15,3 +20,10 @@ updates:
     schedule:
       interval: "weekly"
     target-branch: "release/v0.9"
+    allow:
+      - dependency-type: "production"
+    groups:
+        prod-deps:
+          dependency-type: "production"
+        dev-deps:
+          dependency-type: "development"
