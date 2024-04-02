@@ -1,4 +1,5 @@
 """This module gathers misc convenience functions to handle s3 objects"""
+
 import logging
 import re
 import tempfile
