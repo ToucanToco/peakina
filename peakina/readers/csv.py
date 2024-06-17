@@ -1,6 +1,7 @@
 """
 Module to add csv support
 """
+
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Literal
 

@@ -1,6 +1,7 @@
 """
 Module to enhance pandas.read_json with JQ filter
 """
+
 import json
 from functools import wraps
 from typing import TYPE_CHECKING, Any

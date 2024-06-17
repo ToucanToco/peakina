@@ -15,7 +15,8 @@ def test_ftp_fetcher(mocker: MockerFixture, ftp_path: str) -> None:
     assert pd.read_csv(tmpfile).shape == (2, 2)
 
     mocker.patch("peakina.io.ftp.ftp_fetcher.get_mtimes_cache", return_value={"something": "else"})
-    assert (mtime := fetcher.mtime(myfile_path)) is not None
+    mtime = fetcher.mtime(myfile_path)
+    assert mtime is not None
     assert mtime > 1e9
     assert mtime_spy.call_count == 1
 
