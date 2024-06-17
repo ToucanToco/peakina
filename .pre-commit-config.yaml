@@ -6,27 +6,23 @@ repos:
   - id: check-yaml
   - id: end-of-file-fixer
   - id: trailing-whitespace
+
 - repo: local
   hooks:
   - id: system
-    name: black
-    entry: poetry run black
+    name: Lint with Ruff
+    entry: poetry run ruff check
     types: [python]
     language: system
+
   - id: system
-    name: isort
-    entry: poetry run isort
+    name: Lint with Ruff format
+    entry: poetry run ruff format --check
     types: [python]
     language: system
+
   - id: system
-    name: flake8
-    entry: poetry run flake8 peakina tests
-    types: [python]
-    language: system
-  - id: mypy
-    name: mypy
+    name: Lint with Mypy
     entry: poetry run mypy
-    language: system
     types: [python]
-    require_serial: true
-    verbose: true
+    language: system

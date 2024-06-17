@@ -56,7 +56,9 @@ class FTPS(ftplib.FTP_TLS):
         conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
         if self._prot_p:  # type: ignore[attr-defined]
             conn = self.context.wrap_socket(
-                conn, server_hostname=self.host, session=self.sock.session  # type: ignore[union-attr]
+                conn,
+                server_hostname=self.host,
+                session=self.sock.session,  # type: ignore[union-attr]
             )  # this is the fix
         return conn, size  # type:ignore[return-value] # size could be None here
 

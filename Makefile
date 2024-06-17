@@ -1,6 +1,8 @@
 .DEFAULT_GOAL := all
-black = poetry run black peakina tests
-isort = poetry run isort peakina tests
+# Commands
+RUFF   = poetry run ruff check peakina tests
+FORMAT = poetry run ruff format peakina tests
+MYPY   = poetry run mypy peakina tests
 
 .PHONY: install_system_deps
 install_system_deps:
@@ -15,13 +17,14 @@ install:
 
 .PHONY: format
 format:
-	poetry run pre-commit run --all-files
+	${RUFF} --fix
+	${FORMAT}
 
 .PHONY: lint
 lint:
-	$(black) --diff --check
-	$(isort) --check-only
-	poetry run flake8 peakina tests
+	${RUFF}
+	${FORMAT} --check
+	${MYPY}
 
 .PHONY: mypy
 mypy:

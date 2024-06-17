@@ -210,11 +210,14 @@ def test_basic_excel(path):
     ds = DataSource(path("fixture-multi-sheet.xlsx"))
     df = pd.DataFrame({"Month": [1], "Year": [2019]})
     assert ds.get_df().equals(df)
-    assert ds.get_metadata() == {
-        "df_rows": 1,
-        "sheetnames": ["January", "February"],
-        "total_rows": 4,  # we have for rows as total here because january sheet has 1 row and February sheet has 3 (1 + 3)
-    }
+    assert (
+        ds.get_metadata()
+        == {
+            "df_rows": 1,
+            "sheetnames": ["January", "February"],
+            "total_rows": 4,  # we have for rows as total here because january sheet has 1 row and February sheet has 3 (1 + 3)
+        }
+    )
 
     # On match datasources, no metadata is returned:
     assert DataSource(path("fixture-multi-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
