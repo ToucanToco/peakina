@@ -34,12 +34,9 @@ geopandas = ">=0.11.1,<1"
 pyarrow = ">=11,<17"
 openpyxl = "^3.1.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 aiobotocore = {extras = ["boto3"], version = "^2.3.4"}
-black = "^24.4"
 docker = "^7.1.0"
-flake8 = "^7.1.0"
-isort = "^5.13.2"
 mkdocs = "^1.5.3"
 mkdocs-material = "^9.5.18"
 mypy = "^1.10"
@@ -50,6 +47,7 @@ pytest-mock = "^3.14.0"
 pytest-rerunfailures = "^14.0"
 pytest-sugar = ">=0.9.4,<2"
 PyYAML = "^6.0"
+ruff = "^0.4.9"
 
 # types
 types-chardet = "^5.0.4"
