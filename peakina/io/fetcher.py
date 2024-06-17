@@ -5,6 +5,7 @@ The main purpose of this fetcher is to retrieve a file or a list of files in cas
 filepath by calling the right registered subclass (local, ftp...) matching the filepath scheme.
 The subclasses are all declared in the `io` directory.
 """
+
 import fnmatch
 import os
 import re

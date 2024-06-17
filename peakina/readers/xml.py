@@ -1,6 +1,7 @@
 """
 Module to add xml support
 """
+
 from typing import Any, cast
 
 import jq

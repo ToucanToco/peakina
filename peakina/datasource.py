@@ -4,6 +4,7 @@ A datasource is defined by one or many files matching a pattern and some extra p
 encoding, separator...and its only method is `get_df` to retrieve the pandas DataFrame for
 the given parameters.
 """
+
 import os
 from contextlib import suppress
 from dataclasses import asdict, field
