@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := all
 # Commands
-RUFF = ruff check peakina tests
-FORMAT = ruff format peakina tests
-MYPY=mypy peakina tests
+RUFF   = poetry run ruff check peakina tests
+FORMAT = poetry run ruff format peakina tests
+MYPY   = poetry run mypy peakina tests
 
 .PHONY: install_system_deps
 install_system_deps:
