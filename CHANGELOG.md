@@ -1,7 +1,10 @@
 # Changelog
 
+## [0.13.0] -  2024-07-17
+
 ### Changed
 
+- Require geopandas ^1.0
 - Drop support for pydantic V1.
 
 ## [0.12.1] - 2023-11-15
