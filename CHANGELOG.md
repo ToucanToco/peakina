@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- geopandas: bump dependency version (new version doesnt requires fiona which has a vulnerability)
+
 ## [0.9.7] - 2023-11-15
 
 ### Fixed
