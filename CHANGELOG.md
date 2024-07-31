@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.9.8] - 2024-07-31
+
 ### Changed
 
 - geopandas: bump dependency version (new version doesnt requires fiona which has a vulnerability)
@@ -140,6 +142,7 @@
 
 - Initial version, showtime!
 
+[0.9.8]: https://github.com/ToucanToco/peakina/compare/v0.9.7...v0.9.8
 [0.9.7]: https://github.com/ToucanToco/peakina/compare/v0.9.6...v0.9.7
 [0.9.6]: https://github.com/ToucanToco/peakina/compare/v0.9.5...v0.9.6
 [0.9.5]: https://github.com/ToucanToco/peakina/compare/v0.9.4...v0.9.5
