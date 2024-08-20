@@ -47,7 +47,7 @@ pytest-mock = "^3.14.0"
 pytest-rerunfailures = "^14.0"
 pytest-sugar = ">=0.9.4,<2"
 PyYAML = "^6.0"
-ruff = ">=0.4.9,<0.7.0"
+ruff = "^0.6.1"
 
 # types
 types-chardet = "^5.0.4"
