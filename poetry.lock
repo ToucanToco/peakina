@@ -2,25 +2,25 @@
 
 [[package]]
 name = "aiobotocore"
-version = "2.15.0"
+version = "2.15.1"
 description = "Async client for aws services using botocore and aiohttp"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "aiobotocore-2.15.0-py3-none-any.whl", hash = "sha256:6d0b4a51d70bc33b1b4eba411076b0cc979aecbdad8e084bab202202423c0725"},
-    {file = "aiobotocore-2.15.0.tar.gz", hash = "sha256:988eef33fd9dd4b070959cfec922278e84166950695b2160bd581623cb6a420c"},
+    {file = "aiobotocore-2.15.1-py3-none-any.whl", hash = "sha256:0f738cde74108553b753b24655094289a3c7ea0f0f179ed1c0f8cea488999a35"},
+    {file = "aiobotocore-2.15.1.tar.gz", hash = "sha256:1f9f16eec2a3da32df162b5db12da779ec6d6c6311715c936cad511f436efa74"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.9.2,<4.0.0"
 aioitertools = ">=0.5.1,<1.0.0"
-boto3 = {version = ">=1.35.16,<1.35.17", optional = true, markers = "extra == \"boto3\""}
-botocore = ">=1.35.16,<1.35.17"
+boto3 = {version = ">=1.35.16,<1.35.24", optional = true, markers = "extra == \"boto3\""}
+botocore = ">=1.35.16,<1.35.24"
 wrapt = ">=1.10.10,<2.0.0"
 
 [package.extras]
-awscli = ["awscli (>=1.34.16,<1.34.17)"]
-boto3 = ["boto3 (>=1.35.16,<1.35.17)"]
+awscli = ["awscli (>=1.34.16,<1.34.24)"]
+boto3 = ["boto3 (>=1.35.16,<1.35.24)"]
 
 [[package]]
 name = "aiohappyeyeballs"
@@ -1079,13 +1079,13 @@ pyyaml = ">=5.1"
 
 [[package]]
 name = "mkdocs-material"
-version = "9.5.34"
+version = "9.5.35"
 description = "Documentation that simply works"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "mkdocs_material-9.5.34-py3-none-any.whl", hash = "sha256:54caa8be708de2b75167fd4d3b9f3d949579294f49cb242515d4653dbee9227e"},
-    {file = "mkdocs_material-9.5.34.tar.gz", hash = "sha256:1e60ddf716cfb5679dfd65900b8a25d277064ed82d9a53cd5190e3f894df7840"},
+    {file = "mkdocs_material-9.5.35-py3-none-any.whl", hash = "sha256:44e069d87732d29f4a2533ae0748fa0e67e270043270c71f04d0fba11a357b24"},
+    {file = "mkdocs_material-9.5.35.tar.gz", hash = "sha256:0d233d7db067ac896bf22ee7950eebf2b1eaf26c155bb27382bf4174021cc117"},
 ]
 
 [package.dependencies]
@@ -2549,13 +2549,13 @@ files = [
 
 [[package]]
 name = "types-paramiko"
-version = "3.4.0.20240423"
+version = "3.5.0.20240918"
 description = "Typing stubs for paramiko"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-paramiko-3.4.0.20240423.tar.gz", hash = "sha256:aaa98dda232c47886563d66743d3a8b66c432790c596bc3bdd3f17f91be2a8c1"},
-    {file = "types_paramiko-3.4.0.20240423-py3-none-any.whl", hash = "sha256:c56e0d43399a1b909901b1e0375e0ff6ee62e16cd6e00695024abc2e9fe02035"},
+    {file = "types-paramiko-3.5.0.20240918.tar.gz", hash = "sha256:e0e6c6c72abe922b035edd62741b4a1cd056ec50c548b2b9e17539bb27b2ba94"},
+    {file = "types_paramiko-3.5.0.20240918-py3-none-any.whl", hash = "sha256:6f9b311c63c16c74b923529315e6c75585b323f910b121568d4b3e47cedaf321"},
 ]
 
 [package.dependencies]
@@ -2574,13 +2574,13 @@ files = [
 
 [[package]]
 name = "types-pyyaml"
-version = "6.0.12.20240808"
+version = "6.0.12.20240917"
 description = "Typing stubs for PyYAML"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-PyYAML-6.0.12.20240808.tar.gz", hash = "sha256:b8f76ddbd7f65440a8bda5526a9607e4c7a322dc2f8e1a8c405644f9a6f4b9af"},
-    {file = "types_PyYAML-6.0.12.20240808-py3-none-any.whl", hash = "sha256:deda34c5c655265fc517b546c902aa6eed2ef8d3e921e4765fe606fe2afe8d35"},
+    {file = "types-PyYAML-6.0.12.20240917.tar.gz", hash = "sha256:d1405a86f9576682234ef83bcb4e6fff7c9305c8b1fbad5e0bcd4f7dbdc9c587"},
+    {file = "types_PyYAML-6.0.12.20240917-py3-none-any.whl", hash = "sha256:392b267f1c0fe6022952462bf5d6523f31e37f6cea49b14cee7ad634b6301570"},
 ]
 
 [[package]]
