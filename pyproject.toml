@@ -31,7 +31,7 @@ urllib3 = ">=1.26.8,<3.0.0"
 xlrd = "^2.0.1"
 xmltodict = ">=0.12.0,<1"
 geopandas = ">=1.0.0,<2"
-pyarrow = ">=11,<18"
+pyarrow = ">=11,<19"
 openpyxl = "^3.1.2"
 
 [tool.poetry.group.dev.dependencies]
