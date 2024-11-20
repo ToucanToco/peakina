@@ -1,5 +1,10 @@
 # Changelog
 
+### Changed
+
+- Drop support for HDF cache, and use a Pickle cache instead. CacheEnum.HDF is now an alias to CacheEnum.pickle
+  and will be dropped in v0.15.0
+
 ## [0.13.0] -  2024-07-17
 
 ### Changed

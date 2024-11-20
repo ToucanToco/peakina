@@ -1,11 +1,13 @@
+import warnings
 from abc import ABCMeta, abstractmethod
+from collections.abc import Callable
 from contextlib import suppress
 from datetime import timedelta
 from enum import Enum
 from functools import lru_cache, wraps
 from pathlib import Path
 from time import monotonic_ns, time
-from typing import Any, Callable, TypedDict
+from typing import Any, TypedDict
 
 import pandas as pd
 
@@ -18,17 +20,25 @@ class InMemoryCached(TypedDict):
 
 class CacheEnum(str, Enum):
     MEMORY = "memory"
+    # FIXME: to be removed in v0.15.0
     HDF = "hdf"
+    PICKLE = "pickle"
 
 
 class Cache(metaclass=ABCMeta):
     @staticmethod
     def get_cache(kind: CacheEnum, *args: Any, **kwargs: Any) -> "Cache":
-        ALL_CACHES = {
-            CacheEnum.MEMORY: InMemoryCache,
-            CacheEnum.HDF: HDFCache,
-        }
-        return ALL_CACHES[kind](*args, **kwargs)  # type: ignore[no-any-return]
+        if kind == CacheEnum.HDF:
+            warnings.warn(
+                "HDF Cache has been removed in v0.14.0, PickleCache will be used instead. "
+                "This will be an error in v0.15.0, please use CacheEnum.PICKLE instead",
+                DeprecationWarning,
+            )
+            kind = CacheEnum.PICKLE
+        if kind == CacheEnum.PICKLE:
+            return PickleCache(*args, **kwargs)
+        else:
+            return InMemoryCache(*args, **kwargs)
 
     @staticmethod
     def should_invalidate(
@@ -88,11 +98,13 @@ class InMemoryCache(Cache):
             del self._cache[key]
 
 
-class HDFCache(Cache):
-    META_DF_KEY = "__meta__"
+META_DF_KEY = "__meta__"
 
+
+class PickleCache(Cache):
     def __init__(self, cache_dir: str | Path) -> None:
         self.cache_dir = Path(cache_dir).resolve()
+        self._meta_df_key = self.cache_dir / META_DF_KEY
 
     def get_metadata(self) -> pd.DataFrame:
         """
@@ -101,20 +113,14 @@ class HDFCache(Cache):
         If metadata file is not found or is corrupted, an empty one is recreated.
         """
         try:
-            # We manually instantiate the HDFStore to be able to close it no matter what
-            # See https://github.com/pandas-dev/pandas/pull/28429 for more infos
-            store = pd.HDFStore(self.cache_dir / self.META_DF_KEY, mode="r")
-            try:
-                metadata = pd.read_hdf(store)
-            finally:
-                store.close()
+            metadata = pd.read_pickle(self._meta_df_key)
         except Exception:  # catch all, on purpose
             metadata = pd.DataFrame(columns=["key", "mtime", "created_at"])
             self.set_metadata(metadata)
         return metadata
 
     def set_metadata(self, df: pd.DataFrame) -> None:
-        df.to_hdf(self.cache_dir / self.META_DF_KEY, self.META_DF_KEY, mode="w")
+        df.to_pickle(self._meta_df_key)
 
     def get(
         self, key: str, mtime: float | None = None, expire: timedelta | None = None
@@ -135,7 +141,7 @@ class HDFCache(Cache):
             self.delete(key)
 
         try:
-            return pd.read_hdf(self.cache_dir / key)
+            return pd.read_pickle(self.cache_dir / key)
         except FileNotFoundError:
             raise KeyError(key)
 
@@ -148,7 +154,7 @@ class HDFCache(Cache):
             metadata = metadata[metadata.key != key]  # drop duplicates
             metadata = pd.concat([metadata, pd.Series(infos).to_frame().T], ignore_index=True)
             self.set_metadata(metadata)
-            value.to_hdf(self.cache_dir / key, key, mode="w")
+            value.to_pickle(self.cache_dir / key)
         except OSError:
             self.delete(key)
             raise
