@@ -1,5 +1,9 @@
 # Changelog
 
+### Added
+
+- Python 3.13 is now supported
+
 ### Changed
 
 - Drop support for HDF cache, and use a Pickle cache instead. CacheEnum.HDF is now an alias to CacheEnum.pickle
