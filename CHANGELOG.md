@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.14.0] -  2024-11-21
+
 ### Added
 
 - Python 3.13 is now supported
