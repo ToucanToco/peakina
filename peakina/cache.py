@@ -1,4 +1,3 @@
-import warnings
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from contextlib import suppress
@@ -20,21 +19,12 @@ class InMemoryCached(TypedDict):
 
 class CacheEnum(str, Enum):
     MEMORY = "memory"
-    # FIXME: to be removed in v0.15.0
-    HDF = "hdf"
     PICKLE = "pickle"
 
 
 class Cache(metaclass=ABCMeta):
     @staticmethod
     def get_cache(kind: CacheEnum, *args: Any, **kwargs: Any) -> "Cache":
-        if kind == CacheEnum.HDF:
-            warnings.warn(
-                "HDF Cache has been removed in v0.14.0, PickleCache will be used instead. "
-                "This will be an error in v0.15.0, please use CacheEnum.PICKLE instead",
-                DeprecationWarning,
-            )
-            kind = CacheEnum.PICKLE
         if kind == CacheEnum.PICKLE:
             return PickleCache(*args, **kwargs)
         else:
