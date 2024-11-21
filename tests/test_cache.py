@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 
-from peakina.cache import Cache, CacheEnum, HDFCache, InMemoryCache
+from peakina.cache import Cache, CacheEnum, InMemoryCache, PickleCache
 
 
 @pytest.fixture
@@ -31,12 +31,12 @@ def test_inmemory_cache(df_test):
         c1.get("key")
 
 
-def test_hdf_cache(mocker, tmp_path, df_test):
-    """two hdf caches pointing to the same directory are equivalent"""
+def test_pickle_cache(mocker, tmp_path, df_test):
+    """two pickle caches pointing to the same directory are equivalent"""
     c1 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
-    c2 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
-    assert isinstance(c1, HDFCache)
-    assert isinstance(c2, HDFCache)
+    c2 = Cache.get_cache(CacheEnum.PICKLE, cache_dir=tmp_path)
+    assert isinstance(c1, PickleCache)
+    assert isinstance(c2, PickleCache)
 
     c1.set("key", df_test)
     assert c1.get_metadata().shape == (1, 3)
@@ -49,7 +49,7 @@ def test_hdf_cache(mocker, tmp_path, df_test):
     with pytest.raises(KeyError):
         c1.get("key")
 
-    mocker.patch.object(df_test, "to_hdf").side_effect = IOError("disk full")
+    mocker.patch.object(df_test, "to_pickle").side_effect = IOError("disk full")
     with pytest.raises(OSError):
         c1.set("key", df_test)
     assert len(c1.get_metadata()) == 0
@@ -84,20 +84,3 @@ def test_cache_expiration(cache, df_test, mocker):
     assert_frame_equal(cache.get("key", expire=timedelta(days=10)), df_test)
     with pytest.raises(KeyError):
         cache.get("key", expire=timedelta(days=8))
-
-
-def test_hdf_store_closed_on_error(df_test, mocker, tmp_path):
-    """it should not crash if HDF is not valid
-
-    i.e. if `read_hdf` raises an AssertionError and doesn't close the HDF store
-    """
-    c1 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
-    assert isinstance(c1, HDFCache)
-    c1.set("key", df_test)
-    c1.set_metadata(df_test)
-    # cf. https://github.com/pandas-dev/pandas/issues/28430: an exception might
-    # occur in `read_hdf` leaving the HDF store opened.
-    mocker.patch("pandas.io.pytables.HDFStore.select").side_effect = AssertionError(
-        "gaps in blocks ref_loc"
-    )
-    assert c1.get_metadata().shape == (0, 3)
