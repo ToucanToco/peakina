@@ -2,6 +2,7 @@ from .csv import csv_meta, read_csv
 from .excel import excel_meta, read_excel
 from .geodata import read_geo_data
 from .json import read_json
+from .parquet import read_parquet
 from .xml import read_xml
 
 __all__ = (
@@ -17,4 +18,6 @@ __all__ = (
     "read_xml",
     # GEOJSON
     "read_geo_data",
+    # PARQUET
+    "read_parquet",
 )
