@@ -1,5 +1,9 @@
 # Changelog
 
+### Changed
+
+- Removed `CacheEnum.HDF`
+
 ## [0.14.0] -  2024-11-21
 
 ### Added

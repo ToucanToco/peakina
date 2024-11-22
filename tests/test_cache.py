@@ -33,7 +33,7 @@ def test_inmemory_cache(df_test):
 
 def test_pickle_cache(mocker, tmp_path, df_test):
     """two pickle caches pointing to the same directory are equivalent"""
-    c1 = Cache.get_cache(CacheEnum.HDF, cache_dir=tmp_path)
+    c1 = Cache.get_cache(CacheEnum.PICKLE, cache_dir=tmp_path)
     c2 = Cache.get_cache(CacheEnum.PICKLE, cache_dir=tmp_path)
     assert isinstance(c1, PickleCache)
     assert isinstance(c2, PickleCache)
@@ -60,7 +60,7 @@ def cache(request: Any, tmpdir: str) -> Cache:
     if request.param == "memory":
         return Cache.get_cache(CacheEnum.MEMORY)
     elif request.param == "hdf":
-        return Cache.get_cache(CacheEnum.HDF, cache_dir=tmpdir)
+        return Cache.get_cache(CacheEnum.PICKLE, cache_dir=tmpdir)
     else:
         raise ValueError("invalid internal test config")
 
