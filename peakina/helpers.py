@@ -26,6 +26,7 @@ from peakina.readers import (
     read_excel,
     read_geo_data,
     read_json,
+    read_parquet,
     read_xml,
 )
 
@@ -72,7 +73,7 @@ SUPPORTED_FILE_TYPES = {
         read_json,
         ["filter"],  # this option comes from read_json, which @wraps(pd.read_json)
     ),
-    "parquet": TypeInfos(["peakina/parquet"], pd.read_parquet),
+    "parquet": TypeInfos(["peakina/parquet"], read_parquet),
     "xml": TypeInfos(["application/xml", "text/xml"], read_xml),
 }
 
