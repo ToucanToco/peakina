@@ -2,7 +2,6 @@
 Module to enhance pandas.read_json with JQ filter
 """
 
-from functools import wraps
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -14,7 +13,6 @@ if TYPE_CHECKING:
     FilePathOrBuffer = str | bytes | PathLike[str] | PathLike[bytes]
 
 
-@wraps(pd.read_parquet)
 def read_parquet(
     path_or_buf: "FilePathOrBuffer",
     preview_offset: int = 0,
