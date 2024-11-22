@@ -18,6 +18,7 @@ def read_parquet(
     preview_offset: int = 0,
     preview_nrows: int | None = None,
     columns: list[int] | None = None,
+    **kwargs
 ) -> pd.DataFrame:
     dataset = ds.dataset(source=path_or_buf, format="parquet")
     indices = None
