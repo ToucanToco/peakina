@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.0] -  2024-11-22
+
+### Added
+
+- Support `preview_nrows` and `preview_offset` for parquet files
+
 ### Changed
 
 - Removed `CacheEnum.HDF`
