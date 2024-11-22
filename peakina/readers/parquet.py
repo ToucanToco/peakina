@@ -22,9 +22,14 @@ def read_parquet(
     columns: list[int] | None = None,
 ) -> pd.DataFrame:
     dataset = ds.dataset(source=path_or_buf, format="parquet")
+    indices = None
 
     if preview_nrows is not None:
         indices = range(preview_offset, preview_offset + preview_nrows)
+    elif preview_offset > 0:
+        indices = range(preview_offset, dataset.count_rows())
+
+    if indices is not None:
         table = dataset.take(indices=indices, columns=columns)
     else:
         table = dataset.to_table(columns=columns)

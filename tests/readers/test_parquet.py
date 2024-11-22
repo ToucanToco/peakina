@@ -27,3 +27,10 @@ def test_simple_parquet_preview(path):
     assert ds.get_df().equals(
         pd.DataFrame({"Date": ["21/08/1900", None], "Country": ["Usa", "Usa"]})
     )
+
+    # preview with only `offset`
+    ds = DataSource(
+        path("fixture.parquet"),
+        reader_kwargs={"preview_offset": 2, "columns": ["Date", "Country"]},
+    )
+    assert ds.get_df().shape == (4898, 2)
