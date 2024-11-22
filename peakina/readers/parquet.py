@@ -2,7 +2,7 @@
 Module to enhance pandas.read_json with JQ filter
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 import pyarrow.dataset as ds
@@ -18,7 +18,7 @@ def read_parquet(
     preview_offset: int = 0,
     preview_nrows: int | None = None,
     columns: list[int] | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> pd.DataFrame:
     dataset = ds.dataset(source=path_or_buf, format="parquet")
     indices = None
