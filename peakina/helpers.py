@@ -120,7 +120,7 @@ def detect_type(filepath: str, is_regex: bool = False) -> TypeEnum | None:
     except IndexError:
         raise ValueError(
             f"Unsupported mimetype {mimetype!r}. "
-            f'Supported types are: {", ".join(map(repr, SUPPORTED_FILE_TYPES))}.'
+            f"Supported types are: {', '.join(map(repr, SUPPORTED_FILE_TYPES))}."
         )
 
 
@@ -188,7 +188,7 @@ def validate_kwargs(kwargs: dict[str, Any], t: TypeEnum | None) -> bool:
         allowed_kwargs += EXTRA_PEAKINA_READER_KWARGS
     bad_kwargs = set(kwargs) - set(allowed_kwargs)
     if bad_kwargs:
-        raise ValueError(f'Unsupported kwargs: {", ".join(map(repr, bad_kwargs))}')
+        raise ValueError(f"Unsupported kwargs: {', '.join(map(repr, bad_kwargs))}")
     return True
 
 

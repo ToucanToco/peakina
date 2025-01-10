@@ -59,7 +59,7 @@ def s3_container(service_container):
 @pytest.fixture(scope="session")
 def s3_endpoint_url(s3_container):
     session = boto3.session.Session()
-    s3_url = f'http://localhost:{s3_container["port"]}'
+    s3_url = f"http://localhost:{s3_container['port']}"
     s3_client = session.client(
         service_name="s3",
         aws_access_key_id="accessKey1",
