@@ -20,6 +20,12 @@ jobs:
       - name: install_system_deps
         run: sudo make install_system_deps
 
+      - name: Install uv
+        env:
+          UV_VERSION: "0.5.20"
+        run: |
+          curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+
       - name: install
         run: make install
 
@@ -44,6 +50,12 @@ jobs:
 
     - name: install_system_deps
       run: sudo make install_system_deps
+
+    - name: Install uv
+      env:
+        UV_VERSION: "0.5.20"
+      run: |
+        curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
 
     - name: install
       run: make install
