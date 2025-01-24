@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.16.1] -  2025-01-24
+
+### Fixed
+
+- Temporarily bypass https://github.com/pypa/setuptools/issues/4759
+
 ## [0.16.0] -  2025-01-24
 
 ### Changed
