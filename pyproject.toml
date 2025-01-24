@@ -63,6 +63,10 @@ dev = [
     "types-PyYAML<7.0.0,>=6.0.12",
 ]
 
+# FIXME: temporary workaround until https://github.com/pypa/setuptools/issues/4759 is fixed
+[tool.setuptools]
+license-files = []
+
 [tool.uv]
 package = true
 
