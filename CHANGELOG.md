@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.16.0] -  2025-01-24
+
+### Changed
+
+- Switched from `poetry` to `uv` for package management
+
 ## [0.15.0] -  2024-11-22
 
 ### Added
