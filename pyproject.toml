@@ -1,10 +1,8 @@
 [project]
 name = "peakina"
-version = "0.16.1"
-authors = [
-    {name = "Toucan Toco", email = "dev@toucantoco.com"},
-]
-license = {text = "BSD-3-Clause"}
+version = "0.17.0"
+authors = [{ name = "Toucan Toco", email = "dev@toucantoco.com" }]
+license = { text = "BSD-3-Clause" }
 requires-python = "<4.0,>=3.10"
 dependencies = [
     "certifi",
@@ -107,7 +105,4 @@ module = "peakina.*"
 disallow_untyped_defs = true
 
 [tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
