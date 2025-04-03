@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.17.0] -  2025-04-03
+
+### Changed
+
+* Loosened upper constraints on dependencies
+
 ## [0.16.1] -  2025-01-24
 
 ### Fixed
