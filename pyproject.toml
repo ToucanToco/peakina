@@ -17,7 +17,7 @@ dependencies = [
     "xlrd<3.0.0,>=2.0.1",
     "xmltodict<1,>=0.12.0",
     "geopandas<2,>=1.0.0",
-    "pyarrow<22,>=11",
+    "pyarrow>=11",
     "openpyxl<4.0.0,>=3.1.2",
 ]
 description = "pandas readers on steroids (remote files, glob patterns, cache, etc.)"
