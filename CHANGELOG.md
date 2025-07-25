@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.17.1] -  2025-07-25
+
+### Changed
+
+* Removed upper constraint on `pyarrow` dependency
+
 ## [0.17.0] -  2025-04-03
 
 ### Changed
