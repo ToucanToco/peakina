@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.18.0] -  2025-08-22
+
 ### Changed
 
 * **breaking**: Dropped support for pandas < 2 and Python < 3.13
