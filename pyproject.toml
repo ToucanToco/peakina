@@ -3,12 +3,12 @@ name = "peakina"
 version = "0.17.1"
 authors = [{ name = "Toucan Toco", email = "dev@toucantoco.com" }]
 license = { text = "BSD-3-Clause" }
-requires-python = "<4.0,>=3.10"
+requires-python = "<4.0,>=3.13"
 dependencies = [
     "certifi",
     "chardet<6,>=4",
     "jq<2.0.0,>=1.2.1",
-    "pandas<3.0.0,>=1.5.3",
+    "pandas<3.0.0,>=2",
     "paramiko<4.1.0,>=2.9.2",
     "pydantic<3.0.0,>=2.4.2",
     "python-slugify<9.0.0,>=5.0.2",
@@ -69,13 +69,13 @@ license-files = []
 package = true
 
 [tool.ruff]
-# Assume python 3.10
-target-version = "py310"
+# Assume python 3.13
+target-version = "py313"
 line-length = 100
 exclude = ["__init__.py", ".git", ".direnv"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.13"
 plugins = "pydantic.mypy"
 pretty = true
 allow_redefinition = false
