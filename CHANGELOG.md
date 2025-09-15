@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.18.1] -  2025-09-15
+
+### Changed
+
+* Removed upper constraint on `xmltodict` dependency
+
 ## [0.18.0] -  2025-08-22
 
 ### Changed
