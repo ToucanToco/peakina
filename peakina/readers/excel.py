@@ -77,20 +77,3 @@ def excel_meta(filepath: str, reader_kwargs: dict[str, Any]) -> dict[str, Any]:
     """Returns a dictionary with the meta information of the Excel file."""
     excel_file = fe.read_excel(filepath)
     return {"sheetnames": excel_file.sheet_names}
-    # excel_file = pd.ExcelFile(filepath)
-    # sheet_names = excel_file.sheet_names
-
-    # df = read_excel(excel_file, **reader_kwargs)
-
-    # if (sheet_name := reader_kwargs.get("sheet_name")) is None:
-    #     # multiple sheets together
-    #     total_rows = sum(excel_file.parse(sheet_name).shape[0] for sheet_name in sheet_names)
-    # else:
-    #     # single sheet
-    #     total_rows = excel_file.parse(sheet_name).shape[0]
-
-    # return {
-    #     "sheetnames": sheet_names,
-    #     "df_rows": df.shape[0],
-    #     "total_rows": total_rows,
-    # }
