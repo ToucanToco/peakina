@@ -7,18 +7,18 @@ requires-python = "<4.0,>=3.13"
 dependencies = [
     "certifi",
     "chardet<6,>=4",
+    "fastexcel[pandas]>=0.14.0",
+    "geopandas<2,>=1.0.0",
     "jq<2.0.0,>=1.2.1",
     "pandas<3.0.0,>=2",
     "paramiko<4.1.0,>=2.9.2",
+    "pyarrow>=11",
     "pydantic<3.0.0,>=2.4.2",
     "python-slugify<9.0.0,>=5.0.2",
     "s3fs>=2022.1,<2026.0",
     "urllib3<3.0.0,>=1.26.8",
     "xlrd<3.0.0,>=2.0.1",
     "xmltodict<2,>=0.12.0",
-    "geopandas<2,>=1.0.0",
-    "pyarrow>=11",
-    "openpyxl<4.0.0,>=3.1.2",
 ]
 description = "pandas readers on steroids (remote files, glob patterns, cache, etc.)"
 readme = "README.md"

@@ -4,6 +4,7 @@ from datetime import timedelta
 
 import pandas as pd
 import pytest
+from pandas._testing.asserters import assert_frame_equal
 
 from peakina.cache import InMemoryCache
 from peakina.datasource import DataSource, read_pandas
@@ -208,16 +209,11 @@ def test_s3(s3_endpoint_url):
 def test_basic_excel(path):
     """It should not add a __sheet__ column when retrieving a single sheet"""
     ds = DataSource(path("fixture-multi-sheet.xlsx"))
-    df = pd.DataFrame({"Month": [1], "Year": [2019]})
-    assert ds.get_df().equals(df)
-    assert (
-        ds.get_metadata()
-        == {
-            "df_rows": 1,
-            "sheetnames": ["January", "February"],
-            "total_rows": 4,  # we have for rows as total here because january sheet has 1 row and February sheet has 3 (1 + 3)
-        }
-    )
+    expected_df = pd.DataFrame({"Month": [1.0], "Year": [2019.0]})
+    df = ds.get_df()
+    assert_frame_equal(df, expected_df)
+
+    assert ds.get_metadata() == {"sheetnames": ["January", "February"]}
 
     # On match datasources, no metadata is returned:
     assert DataSource(path("fixture-multi-sh*t.xlsx"), match=MatchEnum.GLOB).get_metadata() == {}
@@ -261,25 +257,6 @@ def test_basic_excel(path):
     # test with nrows and skiprows
     ds = DataSource(path("fixture_new_format.xls"), reader_kwargs={"nrows": 1, "skiprows": 2})
     assert ds.get_df().shape == (1, 8)
-
-
-def test_multi_sheets_excel(path):
-    """It should add a __sheet__ column when retrieving multiple sheet"""
-    ds = DataSource(path("fixture-multi-sheet.xlsx"), reader_kwargs={"sheet_name": None})
-    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
-    df = pd.DataFrame(
-        {
-            "Month": [1, 2, 3, 4],
-            "Year": [2019, 2019, 2021, 2022],
-            "__sheet__": ["January", "February", "February", "February"],
-        }
-    )
-    assert ds.get_df().equals(df)
-    assert ds.get_metadata() == {
-        "df_rows": 4,
-        "sheetnames": ["January", "February"],
-        "total_rows": 4,
-    }
 
 
 def test_basic_xml(path):

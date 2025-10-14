@@ -54,7 +54,9 @@ class DataSource:
 
         self.type = self.type or detect_type(urlparse(self.uri).path, is_regex=bool(self.match))
 
-        validate_kwargs(self.reader_kwargs, self.type)
+        # allowing all kind of kwargs for excel since we want to keep compat with pandas kwargs
+        if self.type != TypeEnum.EXCEL:
+            validate_kwargs(self.reader_kwargs, self.type)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
