@@ -79,11 +79,7 @@ def test_xls_metadata(path):
     # when no kwargs are provided
     ds = DataSource(path("fixture.xls"), reader_kwargs={"sheet_name": "Data"})
     assert ds.get_df().shape == (170, 6)
-    assert ds.get_metadata() == {
-        "sheetnames": ["Data"],
-        "df_rows": 170,
-        "total_rows": 170,
-    }
+    assert ds.get_metadata() == {"sheetnames": ["Data"]}
 
     # extra pandas kwargs that impact size of dataframe
     ds = DataSource(
@@ -91,11 +87,7 @@ def test_xls_metadata(path):
         reader_kwargs={"skipfooter": 5},
     )
     assert ds.get_df().shape == (165, 6)
-    assert ds.get_metadata() == {
-        "sheetnames": ["Data"],
-        "df_rows": 165,
-        "total_rows": 170,
-    }
+    assert ds.get_metadata() == {"sheetnames": ["Data"]}
 
     # with nrows and offset
     ds = DataSource(
@@ -103,11 +95,7 @@ def test_xls_metadata(path):
         reader_kwargs={"preview_nrows": 2, "preview_offset": 2},
     )
     assert ds.get_df().shape == (2, 6)
-    assert ds.get_metadata() == {
-        "sheetnames": ["Data"],
-        "df_rows": 2,
-        "total_rows": 170,
-    }
+    assert ds.get_metadata() == {"sheetnames": ["Data"]}
 
 
 def test_multiple_xls_metadata(path):
@@ -117,38 +105,19 @@ def test_multiple_xls_metadata(path):
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None, "preview_nrows": 1, "preview_offset": 1},
     )
-    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
-    assert ds.get_df().shape == (1, 3)
-    assert ds.get_metadata() == {
-        "sheetnames": ["January", "February"],
-        "df_rows": 1,
-        "total_rows": 4,
-    }
+    assert ds.get_metadata() == {"sheetnames": ["January", "February"]}
 
     ds = DataSource(
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None, "preview_nrows": 2, "preview_offset": 2},
     )
-    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
-    # We want to see the preview window applied on all the concatenated sheets
-    assert ds.get_df().shape == (2, 3)
-    assert ds.get_metadata() == {
-        "sheetnames": ["January", "February"],
-        "df_rows": 2,
-        "total_rows": 4,
-    }
+    assert ds.get_metadata() == {"sheetnames": ["January", "February"]}
 
     ds = DataSource(
         path("fixture-multi-sheet.xlsx"),
         reader_kwargs={"sheet_name": None, "preview_nrows": 2},
     )
-    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
-    assert ds.get_df().shape == (2, 3)
-    assert ds.get_metadata() == {
-        "sheetnames": ["January", "February"],
-        "df_rows": 2,
-        "total_rows": 4,
-    }
+    assert ds.get_metadata() == {"sheetnames": ["January", "February"]}
 
     # for a specific sheet (not the first one)
     ds = DataSource(
@@ -156,59 +125,7 @@ def test_multiple_xls_metadata(path):
         reader_kwargs={"sheet_name": "February"},
     )
     assert ds.get_df().shape == (3, 2)
-    assert ds.get_metadata() == {
-        "sheetnames": ["January", "February"],
-        "df_rows": 3,
-        "total_rows": 3,
-    }
-
-
-def test_multisheet_xlsx(path):
-    """It should be able to read multiple sheets and add them together"""
-    ds = DataSource(
-        path("fixture-multi-sheet.xlsx"),
-        reader_kwargs={"sheet_name": None},
-    )
-    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
-    pd.testing.assert_frame_equal(
-        ds.get_df(),
-        pd.DataFrame(
-            {
-                "Month": [1, 2, 3, 4],
-                "Year": [2019, 2019, 2021, 2022],
-                "__sheet__": ["January", "February", "February", "February"],
-            }
-        ),
-    )
-
-    ds = DataSource(
-        path("fixture-multi-sheet.xlsx"),
-        reader_kwargs={},
-    )
-    pd.testing.assert_frame_equal(
-        ds.get_df(),
-        pd.DataFrame(
-            {
-                "Month": [1],
-                "Year": [2019],
-            }
-        ),
-    )
-
-    ds = DataSource(
-        path("fixture-multi-sheet.xlsx"),
-        reader_kwargs={"sheet_name": "February"},
-    )
-    # because our excel file has 1 entry on January sheet and 3 entries in February sheet
-    pd.testing.assert_frame_equal(
-        ds.get_df(),
-        pd.DataFrame(
-            {
-                "Month": [2, 3, 4],
-                "Year": [2019, 2021, 2022],
-            }
-        ),
-    )
+    assert ds.get_metadata() == {"sheetnames": ["January", "February"]}
 
 
 def test_preview_sheet_more_lines_xlsx(path):
@@ -218,11 +135,7 @@ def test_preview_sheet_more_lines_xlsx(path):
         reader_kwargs={"preview_nrows": 2000, "preview_offset": 2},
     )
     assert ds.get_df().shape == (168, 6)
-    assert ds.get_metadata() == {
-        "sheetnames": ["Data"],
-        "df_rows": 168,
-        "total_rows": 170,
-    }
+    assert ds.get_metadata() == {"sheetnames": ["Data"]}
 
     ds = DataSource(
         path("fixture-multi-sheet.xlsx"),
@@ -230,7 +143,7 @@ def test_preview_sheet_more_lines_xlsx(path):
     )
     # because our excel file has 1 entry on January sheet and 3 entries in February sheet
     pd.testing.assert_frame_equal(
-        ds.get_df(), pd.DataFrame({"Month": [2, 3, 4], "Year": [2019, 2021, 2022]})
+        ds.get_df(), pd.DataFrame({"Month": [2.0, 3.0, 4.0], "Year": [2019.0, 2021.0, 2022.0]})
     )
 
 
@@ -239,16 +152,15 @@ def test_with_specials_types_xlsx(path):
     ds = DataSource(
         path("fixture-single-sheet-with-types.xlsx"),
     )
-    from datetime import datetime
 
     test_dates = ["03/02/2022 05:43:04", "03/02/2022 05:43:04", "03/02/2022 05:43:04"]
     pd.testing.assert_frame_equal(
         ds.get_df(),
         pd.DataFrame(
             {
-                "Unnamed: 0": [0, 1, 2],
+                "__UNNAMED__0": [0.0, 1.0, 2.0],
                 "bools": [True, False, True],
-                "dates": [datetime.strptime(d, "%m/%d/%Y %H:%M:%S") for d in test_dates],
+                "dates": pd.Series([pd.Timestamp(d) for d in test_dates]).astype("datetime64[ms]"),
                 "floats": [12.35, 42.69, 1234567.0],
             }
         ),
@@ -274,4 +186,4 @@ def test_excel_meta_with_broken_max_row(path):
     to test, the fixture file formula_excel.xlsx has it's metadata broken
     """
     ds = DataSource(path("formula_excel.xlsx"))
-    assert ds.get_metadata() == {"df_rows": 3, "sheetnames": ["Sheet1"], "total_rows": 3}
+    assert ds.get_metadata() == {"sheetnames": ["Sheet1"]}

@@ -1,5 +1,9 @@
 # Changelog
 
+### Changed
+
+* Replaced `openpyxl` with `fastexcel` for improved performance and consistency.
+
 ## [0.18.1] -  2025-09-15
 
 ### Changed
