@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+## [0.19.1] -  2025-11-14
+
 ### Fixed
 
 * Unnamed columns returned by `fastexcel` are now renamed from `__UNNAMED__<index>` to `Unnamed: <index>` to patch
