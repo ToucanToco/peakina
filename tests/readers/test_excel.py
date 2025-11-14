@@ -150,7 +150,7 @@ def test_preview_sheet_more_lines_xlsx(path):
 def test_with_specials_types_xlsx(path):
     """It should be able to read sheet and format types"""
     ds = DataSource(
-        path("fixture-single-sheet-with-types.xlsx"),
+        path("fixture-multi-sheet-with-types.xlsx"),
     )
 
     test_dates = ["03/02/2022 05:43:04", "03/02/2022 05:43:04", "03/02/2022 05:43:04"]
@@ -158,10 +158,34 @@ def test_with_specials_types_xlsx(path):
         ds.get_df(),
         pd.DataFrame(
             {
-                "__UNNAMED__0": [0.0, 1.0, 2.0],
+                "Unnamed: 0": [0.0, 1.0, 2.0],
                 "bools": [True, False, True],
                 "dates": pd.Series([pd.Timestamp(d) for d in test_dates]).astype("datetime64[ms]"),
                 "floats": [12.35, 42.69, 1234567.0],
+            }
+        ),
+    )
+
+
+def test_unnamed_columns(path):
+    """It should be able to read sheet and format types"""
+    ds = DataSource(
+        path("fixture-multi-sheet-with-types.xlsx"),
+        reader_kwargs={"sheet_name": "unnamed_columns"},
+    )
+
+    test_dates = ["03/02/2022 05:43:04", "03/02/2022 05:43:04"]
+    df = ds.get_df()
+    pd.testing.assert_frame_equal(
+        df,
+        pd.DataFrame(
+            {
+                "0": [1.0, 2.0],
+                "Unnamed: 1": [False, True],
+                "Unnamed: 2": pd.Series([pd.Timestamp(d) for d in test_dates]).astype(
+                    "datetime64[ms]"
+                ),
+                "12.35": [42.69, 1234567.0],
             }
         ),
     )

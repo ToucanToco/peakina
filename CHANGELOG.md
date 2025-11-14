@@ -1,5 +1,12 @@
 # Changelog
 
+### Unreleased
+
+### Fixed
+
+* Unnamed columns returned by `fastexcel` are now renamed from `__UNNAMED__<index>` to `Unnamed: <index>` to patch
+  `pandas`'s naming convention
+
 ## [0.19.0] -  2025-10-14
 
 ### Changed
