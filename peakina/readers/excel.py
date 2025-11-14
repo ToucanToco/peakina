@@ -3,6 +3,7 @@ Module to add excel files support
 """
 
 import logging
+import re
 from typing import Any
 
 import fastexcel as fe
@@ -34,6 +35,23 @@ def _translate_pd_dtype_kwarg(dtype: str | dict[str, str]) -> fe.DType | fe.DTyp
         return _translate_pd_single_dtype(dtype)
     else:
         return {k: _translate_pd_single_dtype(v) for k, v in dtype.items()}
+
+
+_FE_COLUMN_REGEX = re.compile(r"__UNNAMED__(\d+)")
+
+
+def _rename_unnamed_columns_to_pandas(df: pd.DataFrame) -> pd.DataFrame:
+    """Renames fastexcel unnamed columns to pandas style.
+
+    Changes `__UNNAMED__<index>` to `Unnamed: <index>`.
+    """
+    to_rename = {}
+    for column in df.columns:
+        match = _FE_COLUMN_REGEX.match(column)
+        if match:
+            to_rename[column] = f"Unnamed: {match.group(1)}"
+    df.rename(to_rename, inplace=True, axis="columns")
+    return df
 
 
 def read_excel(
@@ -70,7 +88,7 @@ def read_excel(
     if (skip_footer := kwargs.get("skipfooter")) is not None:
         df = df.iloc[:-skip_footer]
 
-    return df
+    return _rename_unnamed_columns_to_pandas(df)
 
 
 def excel_meta(filepath: str, reader_kwargs: dict[str, Any]) -> dict[str, Any]:
