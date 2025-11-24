@@ -199,6 +199,57 @@ def test_read_with_dtype(path):
     assert isinstance(ds.get_df()["Month"][0], str)
 
 
+def test_read_with_dtype_or_dtypes_kwarg(path):
+    """Check that read excel handles dtypes from either 'dtype' or 'dtypes' kwarg"""
+    # Test with 'dtype' kwarg
+    ds_dtype = DataSource(
+        path("fixture-single-sheet.xlsx"), reader_kwargs={"dtype": {"Month": "str", "Year": "str"}}
+    )
+    df_dtype = ds_dtype.get_df()
+    assert isinstance(df_dtype["Month"][0], str)
+    assert isinstance(df_dtype["Year"][0], str)
+
+    # Test with 'dtypes' kwarg
+    ds_dtypes = DataSource(
+        path("fixture-single-sheet.xlsx"), reader_kwargs={"dtypes": {"Month": "str", "Year": "str"}}
+    )
+    df_dtypes = ds_dtypes.get_df()
+    assert isinstance(df_dtypes["Month"][0], str)
+    assert isinstance(df_dtypes["Year"][0], str)
+
+    # Both dataframes should be equal
+    pd.testing.assert_frame_equal(df_dtype, df_dtypes)
+
+    # Test that 'dtypes' takes precedence over 'dtype' when both are provided
+    ds_both = DataSource(
+        path("fixture-single-sheet.xlsx"),
+        reader_kwargs={"dtypes": {"Month": "str"}, "dtype": {"Year": "str"}},
+    )
+    df_both = ds_both.get_df()
+    # Only 'dtypes' should be applied (Month as str), 'dtype' should be ignored
+    assert isinstance(df_both["Month"][0], str)
+
+
+def test_datasource_supports_dtypes_kwarg(path):
+    """Check that DataSource for excel files supports the dtypes reader kwarg"""
+    # Test that dtypes kwarg is properly supported in reader_kwargs
+    ds = DataSource(
+        path("fixture-single-sheet.xlsx"), reader_kwargs={"dtypes": {"Month": "str", "Year": "str"}}
+    )
+    df = ds.get_df()
+
+    # Verify that dtypes were applied correctly
+    assert df["Month"].dtype == object  # string dtype is represented as object in pandas
+    assert df["Year"].dtype == object
+    assert isinstance(df["Month"][0], str)
+    assert isinstance(df["Year"][0], str)
+
+    # Verify the data is still correct
+    assert len(df) > 0
+    assert "Month" in df.columns
+    assert "Year" in df.columns
+
+
 def test_read_excel_with_formula(path):
     """check that read excel is able to handle a sheet with formula"""
     ds = DataSource(path("formula_excel.xlsx"))

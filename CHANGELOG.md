@@ -2,6 +2,12 @@
 
 ### Unreleased
 
+### Fixed
+
+* When loading excel files, convert the `skip_rows` parameter to fastexcel's `header_row`.
+* When loading excel files, use fastexcel's `skip_whitespace_tail_rows` and `whitespace_as_null` options
+* When loading excel files, load the dtypes form either the `dtype` or the `dtypes` kwarg.
+
 ## [0.19.1] -  2025-11-14
 
 ### Fixed
