@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+## [0.19.2] -  2025-11-24
+
 ### Fixed
 
 * When loading excel files, convert the `skip_rows` parameter to fastexcel's `header_row`.
