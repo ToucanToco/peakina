@@ -7,7 +7,7 @@ requires-python = "<4.0,>=3.13"
 dependencies = [
     "certifi",
     "chardet<6,>=4",
-    "fastexcel[pandas]>=0.14.0",
+    "fastexcel[pandas]>=0.18.0",
     "geopandas<2,>=1.0.0",
     "jq<2.0.0,>=1.2.1",
     "pandas<3.0.0,>=2",

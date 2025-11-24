@@ -65,21 +65,28 @@ def read_excel(
     sheet_id: str | int = (
         kwargs.get("sheet") or kwargs.get("sheet_name") or kwargs.get("sheetname") or 0
     )
-    skip_rows = kwargs.get("skip_rows") or kwargs.get("skiprows")
+    skip_rows = kwargs.get("skip_rows") or kwargs.get("skiprows") or 0
     if "nrows" in kwargs:
         n_rows = kwargs["nrows"]
     else:
         n_rows = preview_nrows + preview_offset if preview_nrows else None
     if "dtypes" in kwargs:
         dtypes: fe.DType | fe.DTypeMap | None = _translate_pd_dtype_kwarg(kwargs["dtypes"])
-    if "dtype" in kwargs:
+    elif "dtype" in kwargs:
         dtypes = _translate_pd_dtype_kwarg(kwargs["dtype"])
     else:
         dtypes = None
 
     excel_file = fe.read_excel(path_or_data)
 
-    sheet = excel_file.load_sheet(sheet_id, skip_rows=skip_rows, n_rows=n_rows, dtypes=dtypes)
+    sheet = excel_file.load_sheet(
+        sheet_id,
+        header_row=skip_rows,
+        n_rows=n_rows,
+        dtypes=dtypes,
+        skip_whitespace_tail_rows=True,
+        whitespace_as_null=True,
+    )
     df = sheet.to_pandas()
     if preview_offset:
         df = df.iloc[preview_offset:]
