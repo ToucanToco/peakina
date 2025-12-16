@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+## [0.19.3] -  2025-12-16
+
 ### Fixed
 
 * `read_geo_data` now calls `GeoDataFrame.make_valid` to ensure that the resulting GeoDataFrame is valid.
