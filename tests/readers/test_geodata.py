@@ -1,6 +1,9 @@
+from typing import Callable
+
 import geopandas as gpd
 
 from peakina import DataSource
+from peakina.readers import read_geo_data
 
 sample_geojson = {
     "type": "FeatureCollection",
@@ -78,3 +81,9 @@ def test_geojson_mask(path):
     ds = DataSource(path("sample.geojson"), reader_kwargs={"mask": mask})
     expected = gpd.GeoDataFrame.from_features(sample_geojson).iloc[0]
     assert (ds.get_df()["geometry"] == expected["geometry"]).all()
+
+
+def test_geo_data_is_made_valid(path: Callable[[str], str]) -> None:
+    gdf = read_geo_data(path("france_germany_italy.geojson"))
+    # France and Germany are broken, but read_geo_data should call `GeoDataFrame.make_valid`
+    assert gdf.geometry.is_valid.all()
