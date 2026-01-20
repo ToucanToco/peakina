@@ -2,6 +2,12 @@
 
 ### Unreleased
 
+## [0.19.4] -  2026-01-20
+
+### Fixed
+
+* Dependencies: removed upper constraint on `s3fs`.
+
 ## [0.19.3] -  2025-12-16
 
 ### Fixed
