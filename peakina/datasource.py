@@ -161,7 +161,7 @@ class DataSource:
 
             for df in dfs:
                 if self.match:
-                    df["__filename__"] = os.path.basename(datasource.uri)
+                    df["__filename__"] = os.path.basename(datasource.uri)  # type:ignore[index]
                 if with_cache:
                     assert cache is not None
                     cache.set(key=cache_key, value=df, mtime=cache_mtime)
