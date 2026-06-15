@@ -4,6 +4,7 @@
     "config:recommended",
     "schedule:earlyMondays"
   ],
+  "minimumReleaseAge": "10 days",
   "packageRules": [
     {
       "matchDepTypes": ["dependency-groups"],
