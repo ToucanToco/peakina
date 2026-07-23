@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- deps: Removed upper constraint on `s3fs`
+- build: switched to poetry 2
+
 ## [0.9.8] - 2024-07-31
 
 ### Changed
