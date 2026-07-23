@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.9.9] - 2026-07-23
+
 ### Changed
 
 - deps: Removed upper constraint on `s3fs`
@@ -147,6 +149,7 @@
 
 - Initial version, showtime!
 
+[0.9.9]: https://github.com/ToucanToco/peakina/compare/v0.9.7...v0.9.8
 [0.9.8]: https://github.com/ToucanToco/peakina/compare/v0.9.7...v0.9.8
 [0.9.7]: https://github.com/ToucanToco/peakina/compare/v0.9.6...v0.9.7
 [0.9.6]: https://github.com/ToucanToco/peakina/compare/v0.9.5...v0.9.6
