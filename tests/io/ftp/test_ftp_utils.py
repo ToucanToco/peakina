@@ -151,11 +151,12 @@ def test_ftps_client_ssl_required_on_control_channel(mocker):
     url = "ftps://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
 
-    mock_ftps_client.connect.call_count == 2
-    mock_ftps_client.prot_p.call_count == 2
-    mock_ftps_client.login.call_count == 1
+    # the error is handled on the same connection: we log in first, then retry `prot_p`
+    assert mock_ftps_client.connect.call_count == 1
+    assert mock_ftps_client.prot_p.call_count == 2
+    assert mock_ftps_client.login.call_count == 1
     mock_ftps_client.login.assert_called_once_with(passwd="", user="sacha")
-    mock_ftps_client.quit.call_count == 2
+    assert mock_ftps_client.quit.call_count == 1
 
 
 def test_ftps_client_other_error(mocker):
@@ -163,7 +164,9 @@ def test_ftps_client_other_error(mocker):
     mock_ftps_client.prot_p.side_effect = [ssl.SSLError("meh"), None]
     url = "ftps://sacha@ondine.com:123/picha/chu.csv"
     ftp_open(url)
-    mock_ftps_client.login.call_count == 0  # never called
+    # the error is not handled specially: it's propagated and the whole connection is retried,
+    # so `login` is only called once, during the second (successful) attempt
+    assert mock_ftps_client.login.call_count == 1
 
 
 def test_ftps_client_quit_resilience(mocker):

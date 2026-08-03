@@ -104,7 +104,7 @@ class PickleCache(Cache):
         """
         try:
             metadata = pd.read_pickle(self._meta_df_key)
-        except Exception:  # catch all, on purpose
+        except Exception:  # noqa: BLE001 # catch all, on purpose
             metadata = pd.DataFrame(columns=["key", "mtime", "created_at"])
             self.set_metadata(metadata)
         return metadata

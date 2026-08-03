@@ -22,7 +22,7 @@ def transform_with_jq(data: Any, jq_filter: str) -> PdDatalist | PdDatadict:
         isinstance(all_data[0], list)  # list[PdDatalist]
         # detects another valid datastructure [{col1:[value, ...], col2:[value, ...]}]
         or (
-            isinstance(all_data[0], dict) and isinstance(list(all_data[0].values())[0], list)
+            isinstance(all_data[0], dict) and isinstance(next(iter(all_data[0].values())), list)
         )  # list[PdDatadict]
     ):
         return all_data[0]
@@ -37,7 +37,8 @@ def read_xml(
     preview_nrows: int | None = None,
     filter: str | None = None,
 ) -> pd.DataFrame:
-    data = xmltodict.parse(open(filepath).read(), encoding=encoding)
+    with open(filepath) as f:
+        data = xmltodict.parse(f.read(), encoding=encoding)
     if filter is not None:
         data = transform_with_jq(data, filter)
     if isinstance(data, list) and isinstance(preview_nrows, int):

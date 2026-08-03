@@ -11,10 +11,11 @@ import csv
 import inspect
 import mimetypes
 import os
-from datetime import datetime
+from collections.abc import Callable
+from datetime import UTC, datetime
 from enum import Enum
 from itertools import islice
-from typing import Any, Callable, NamedTuple
+from typing import Any, NamedTuple
 
 import chardet
 import pandas as pd
@@ -39,7 +40,7 @@ class TypeInfos(NamedTuple):
     reader: Callable[..., pd.DataFrame]
     # If the default reader has some missing declared kwargs, it's useful
     # to declare them for `validate_kwargs` method
-    reader_kwargs: list[str] = []
+    reader_kwargs: list[str] = []  # noqa: RUF012 # NamedTuple fields are immutable
     metadata_reader: Callable[..., dict[str, Any]] | None = None
 
 
@@ -111,13 +112,13 @@ def detect_type(filepath: str, is_regex: bool = False) -> TypeEnum | None:
     if is_regex and mimetype is None:  # generic extension with `is_regex=True`
         return None
     try:
-        detected_type = [
+        detected_type = next(
             type_
             for type_, type_infos in SUPPORTED_FILE_TYPES.items()
             if mimetype in type_infos.mime_types
-        ][0]
+        )
         return TypeEnum(detected_type)
-    except IndexError:
+    except StopIteration:
         raise ValueError(
             f"Unsupported mimetype {mimetype!r}. "
             f"Supported types are: {', '.join(map(repr, SUPPORTED_FILE_TYPES))}."
@@ -181,10 +182,10 @@ def validate_kwargs(kwargs: dict[str, Any], t: TypeEnum | None) -> bool:
     """
     types: list[TypeEnum] = [t] if t is not None else [TypeEnum(t) for t in SUPPORTED_FILE_TYPES]
     allowed_kwargs: list[str] = []
-    for t in types:
-        allowed_kwargs += get_reader_allowed_params(t)
+    for type_ in types:
+        allowed_kwargs += get_reader_allowed_params(type_)
         # Add extra allowed kwargs
-        allowed_kwargs += SUPPORTED_FILE_TYPES[t].reader_kwargs
+        allowed_kwargs += SUPPORTED_FILE_TYPES[type_].reader_kwargs
         allowed_kwargs += EXTRA_PEAKINA_READER_KWARGS
     bad_kwargs = set(kwargs) - set(allowed_kwargs)
     if bad_kwargs:
@@ -194,7 +195,7 @@ def validate_kwargs(kwargs: dict[str, Any], t: TypeEnum | None) -> bool:
 
 def mdtm_to_string(mtime: int) -> str:
     """Convert the last modification date of a file as an iso string"""
-    return datetime.utcfromtimestamp(mtime).isoformat() + "Z"
+    return datetime.fromtimestamp(mtime, tz=UTC).replace(tzinfo=None).isoformat() + "Z"
 
 
 def pd_read(filepath: str, t: str, kwargs: dict[str, Any]) -> pd.DataFrame:

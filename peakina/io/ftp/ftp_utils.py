@@ -5,13 +5,14 @@ import re
 import socket
 import ssl
 import tempfile
-from contextlib import contextmanager, suppress
-from datetime import datetime
+from collections.abc import Callable, Generator
+from contextlib import AbstractContextManager, contextmanager, suppress
+from datetime import UTC, datetime
 from functools import partial
 from ipaddress import ip_address
 from os.path import basename, join
 from time import sleep
-from typing import IO, Any, Callable, ContextManager, Generator, cast
+from typing import IO, Any, cast
 from urllib.parse import ParseResult, quote, unquote, urlparse
 
 import paramiko
@@ -21,6 +22,10 @@ _DEFAULT_MAX_TIMEOUT_SECONDS = 30
 _DEFAULT_MAX_RETRY = 7
 
 FTPClient = ftplib.FTP | paramiko.SFTPClient
+
+
+class FTPError(Exception):
+    """Raised when a file can't be fetched from an FTP server"""
 
 
 class FTPS(ftplib.FTP_TLS):
@@ -75,7 +80,7 @@ class FTPS(ftplib.FTP_TLS):
 
 
 @contextmanager
-def ftps_client(params: ParseResult) -> Generator[tuple[FTPS, str], None, None]:
+def ftps_client(params: ParseResult) -> Generator[tuple[FTPS, str]]:
     ftps = FTPS()
     try:
         ftps.connect(
@@ -100,7 +105,7 @@ def ftps_client(params: ParseResult) -> Generator[tuple[FTPS, str], None, None]:
 
 
 @contextmanager
-def ftp_client(params: ParseResult) -> Generator[tuple[ftplib.FTP, str], None, None]:
+def ftp_client(params: ParseResult) -> Generator[tuple[ftplib.FTP, str]]:
     port = params.port or 21
     ftp = ftplib.FTP()
     try:
@@ -114,7 +119,7 @@ def ftp_client(params: ParseResult) -> Generator[tuple[ftplib.FTP, str], None, N
 
 
 @contextmanager
-def sftp_client(params: ParseResult) -> Generator[tuple[paramiko.SFTPClient, str], None, None]:
+def sftp_client(params: ParseResult) -> Generator[tuple[paramiko.SFTPClient, str]]:
     port = params.port or 22
     ssh_client = paramiko.SSHClient()
     try:
@@ -147,10 +152,10 @@ def _urlparse(url: str) -> ParseResult:
     return ParseResult(*[unquote(param) for param in url_params])
 
 
-def client(url: str) -> ContextManager[tuple[FTPClient, str]]:
+def client(url: str) -> AbstractContextManager[tuple[FTPClient, str]]:
     parse_result = _urlparse(url)
     ftp_client_mapping: dict[
-        str, Callable[[ParseResult], ContextManager[tuple[FTPClient, str]]]
+        str, Callable[[ParseResult], AbstractContextManager[tuple[FTPClient, str]]]
     ] = {
         "ftp": ftp_client,
         "ftps": ftps_client,
@@ -167,21 +172,22 @@ def retry_pasv(c: ftplib.FTP, cmd: str, *args: Any) -> Any:
     fun = partial(getattr(c, cmd), *args)
     try:
         return fun()
-    except socket.timeout:
+    except TimeoutError:
         c.set_pasv(False)
         return fun()
 
 
 def _open(url: str) -> IO[bytes]:
     extension = url.split(".")[-1]
-    ret = tempfile.NamedTemporaryFile(suffix=f".{extension}")
+    # the caller is responsible for closing the returned file
+    ret = tempfile.NamedTemporaryFile(suffix=f".{extension}")  # noqa: SIM115
     with client(url) as (c, path):
         try:
             retry_pasv(cast(ftplib.FTP, c), "retrbinary", f"RETR {path}", ret.write)
         except AttributeError:
             cast(paramiko.SFTPClient, c).getfo(path, ret)
         except ftplib.error_perm as e:
-            raise Exception(f"Can't open file {path}. Please make sure the file exists") from e
+            raise FTPError(f"Can't open file {path}. Please make sure the file exists") from e
 
     ret.seek(0)
     return ret
@@ -230,8 +236,9 @@ def _get_mtime(c: FTPClient, path: str) -> int | None:
         # some FTP servers response include the milliseconds (e.g. '20180101203000.123')
         mtime = re.search(r"^213 (\d+)(\.\d+)?$", mdtm)
         assert mtime is not None
-        dt = datetime.strptime(mtime.group(1), "%Y%m%d%H%M%S")
-        return int((dt - datetime(1970, 1, 1)).total_seconds())
+        # MDTM responses are expressed in UTC
+        dt = datetime.strptime(mtime.group(1), "%Y%m%d%H%M%S").replace(tzinfo=UTC)
+        return int(dt.timestamp())
     except AttributeError:
         return cast(paramiko.SFTPClient, c).stat(path).st_mtime
     except ftplib.error_perm as e:

@@ -6,8 +6,10 @@ from pytest_mock import MockerFixture
 
 from peakina.io.s3.s3_utils import (
     _s3_open_file_with_retries,
-    parse_s3_url as pu,
     s3_open,
+)
+from peakina.io.s3.s3_utils import (
+    parse_s3_url as pu,
 )
 
 
