@@ -1,8 +1,8 @@
 import os
 import socket
 import time
+from collections.abc import Callable
 from contextlib import suppress
-from typing import Callable
 
 import boto3
 import pytest
@@ -91,7 +91,7 @@ def docker():
     docker_kwargs = {"version": "auto"}
     if "DOCKER_HOST" in os.environ:
         docker_kwargs["base_url"] = os.environ["DOCKER_HOST"]
-    if os.environ.get("DOCKER_TLS_VERIFY", 0) == "1":
+    if os.environ.get("DOCKER_TLS_VERIFY") == "1":
         docker_kwargs["tls"] = TLSConfig(
             (
                 f"{os.environ['DOCKER_CERT_PATH']}/cert.pem",

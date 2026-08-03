@@ -6,11 +6,12 @@ the given parameters.
 """
 
 import os
+from collections.abc import Generator, Iterable
 from contextlib import suppress
 from dataclasses import asdict, field
 from datetime import timedelta
 from hashlib import md5
-from typing import IO, Any, Generator, Iterable
+from typing import IO, Any
 from urllib.parse import urlparse, uses_netloc, uses_params, uses_relative
 
 import pandas as pd
@@ -112,9 +113,12 @@ class DataSource:
             kwargs["encoding"] = encoding
 
         # Check separator for CSV files if it's not set
-        if "sep" in allowed_params and "sep" not in kwargs:
-            if not validate_sep(stream.name, encoding=encoding):
-                kwargs["sep"] = detect_sep(stream.name, encoding)
+        if (
+            "sep" in allowed_params
+            and "sep" not in kwargs
+            and not validate_sep(stream.name, encoding=encoding)
+        ):
+            kwargs["sep"] = detect_sep(stream.name, encoding)
 
         try:
             df = pd_read(stream.name, filetype, kwargs)
@@ -123,13 +127,13 @@ class DataSource:
 
         return df
 
-    def get_matched_datasources(self) -> Generator["DataSource", None, None]:
+    def get_matched_datasources(self) -> Generator["DataSource"]:
         my_args = asdict(self)
         for uri in self.fetcher.get_filepath_list(self.uri, self.match):
             overriden_args = {**my_args, "uri": uri, "match": None}
             yield DataSource(**overriden_args)
 
-    def get_dfs(self, cache: Cache | None = None) -> Generator[pd.DataFrame, None, None]:
+    def get_dfs(self, cache: Cache | None = None) -> Generator[pd.DataFrame]:
         """
         From the conf of the datasource, returns a generator
         with all the dataframes

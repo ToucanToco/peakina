@@ -22,7 +22,8 @@ class HttpFetcher(Fetcher):
 
     def open(self, filepath: str) -> IO[bytes]:
         r = self.pool_manager.request("GET", filepath, preload_content=False, **self.extra_kwargs)
-        ret = tempfile.NamedTemporaryFile(suffix=".httptmp")
+        # the caller is responsible for closing the returned file
+        ret = tempfile.NamedTemporaryFile(suffix=".httptmp")  # noqa: SIM115
         for chunk in r.stream():
             ret.write(chunk)
         ret.seek(0)
@@ -34,7 +35,7 @@ class HttpFetcher(Fetcher):
     def mtime(self, filepath: str) -> int | None:
         try:
             r = self.pool_manager.request("HEAD", filepath)
-        except Exception:
+        except Exception:  # noqa: BLE001 # any failure means we can't know the mtime
             return None
         else:
             dt = parsedate_to_datetime(r.headers["last-modified"])

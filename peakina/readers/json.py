@@ -49,4 +49,4 @@ def read_json(
                     data[preview_offset : nrows + preview_offset]
                 )  # pragma: no cover
 
-    return pd.read_json(path_or_buf, encoding=encoding, *args, **kwargs)
+    return pd.read_json(path_or_buf, *args, encoding=encoding, **kwargs)

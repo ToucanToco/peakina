@@ -14,6 +14,10 @@ S3_SCHEMES = ["s3", "s3n", "s3a"]
 logger = logging.getLogger(__name__)
 
 
+class S3Error(Exception):
+    """Raised when an object can't be fetched from S3"""
+
+
 def parse_s3_url(url: str, file: bool = True) -> tuple[str | None, str | None, str | None, str]:
     """parses a s3 url and extract credentials and s3 object path.
 
@@ -62,7 +66,7 @@ def _s3_open_file_with_retries(fs: s3fs.S3FileSystem, path: str, retries: int) -
         except Exception as ex:
             nb_tries += 1
             if nb_tries >= retries:
-                raise Exception(f"Could not open {path} ({nb_tries} tries): {ex}") from ex
+                raise S3Error(f"Could not open {path} ({nb_tries} tries): {ex}") from ex
             # if the file has just been uploaded, then it might not be visible immediatly
             # but the fail to open has been cached by s3fs
             # so, we invalidate the cache
@@ -83,7 +87,8 @@ def s3_open(url: str, *, client_kwargs: dict[str, Any] | None = None) -> IO[byte
     fs = s3fs.S3FileSystem(key=access_key, secret=secret, client_kwargs=client_kwargs, token=token)
 
     path = f"{bucketname}/{objectname}"
-    ret = tempfile.NamedTemporaryFile(suffix=".s3tmp")
+    # the caller is responsible for closing the returned file
+    ret = tempfile.NamedTemporaryFile(suffix=".s3tmp")  # noqa: SIM115
     file = _s3_open_file_with_retries(fs, path, 3)
     ret.write(file.read())
     ret.seek(0)

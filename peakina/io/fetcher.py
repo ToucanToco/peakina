@@ -10,8 +10,10 @@ import fnmatch
 import os
 import re
 from abc import ABCMeta, abstractmethod
+from collections.abc import Callable
 from enum import Enum
-from typing import IO, Any, Callable, Pattern, TypeVar
+from re import Pattern
+from typing import IO, Any, ClassVar, TypeVar
 from urllib.parse import urlparse
 
 from peakina.helpers import mdtm_to_string
@@ -47,7 +49,7 @@ class Fetcher(metaclass=ABCMeta):
     All the `Fetcher` subclasses need to implement basic methods in order to be used properly.
     """
 
-    registry: dict[str, type["Fetcher"]] = {}
+    registry: ClassVar[dict[str, type["Fetcher"]]] = {}
 
     def __init__(self, **kwargs: Any) -> None:
         self.extra_kwargs = kwargs
@@ -126,5 +128,5 @@ class fetch:
         return self.fetcher.get_str_mtime(self.uri)
 
     def get_mtime_dict(self) -> dict[str, str | None]:
-        dirpath, basename = os.path.split(self.uri)
+        dirpath, _basename = os.path.split(self.uri)
         return self.fetcher.get_mtime_dict(dirpath)

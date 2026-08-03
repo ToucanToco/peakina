@@ -63,7 +63,7 @@ def test_s3_fetcher_open_retry(s3_fetcher, s3_endpoint_url, mocker):
 
         def open(self, path, mode="rb", block_size=None, cache_options=None, **kwargs):
             if not self.invalidated_cache:
-                raise Exception("argh!")
+                raise RuntimeError("argh!")
             return super().open(path, mode, block_size, cache_options, **kwargs)
 
         def invalidate_cache(self, path=None):
