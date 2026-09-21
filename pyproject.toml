@@ -40,7 +40,7 @@ documentation = "https://toucantoco.github.io/peakina"
 
 [dependency-groups]
 dev = [
-    "aiobotocore[boto3]<3.10.0,>=3.9.1",
+    "boto3<2.0.0,>=1.43.66",
     "docker<8.0.0,>=7.1.0",
     "mkdocs<2.0.0,>=1.5.3",
     "mkdocs-material<10.0.0,>=9.5.18",
