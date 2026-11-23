@@ -51,6 +51,15 @@ def test_detect_type_with_regex():
     assert detect_type("file*", is_regex=True) is None
 
 
+@pytest.mark.parametrize("guessed_mimetype", [None, "application/vnd.apache.parquet"])
+def test_detect_type_parquet(guessed_mimetype):
+    """It should detect parquet files whether or not the system knows the official mimetype
+    (e.g. Ubuntu >= 26.04 maps .parquet to 'application/vnd.apache.parquet')"""
+    with mock.patch("peakina.helpers.mimetypes.guess_type", return_value=(guessed_mimetype, None)):
+        assert detect_type("file.parquet") == "parquet"
+        assert detect_type("file*.parquet$", is_regex=True) == "parquet"
+
+
 def test_bytes_head(path):
     """It should get the first lines of a file as bytes"""
     assert bytes_head(path("0_0.csv"), 1) == b"a,b\n"
